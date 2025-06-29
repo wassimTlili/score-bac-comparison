@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Universities/Academic Hubs
+model Hub {
+  id           String        @id @default(cuid())
+  name         String        @unique // "جامعة المنستير"
+  nameEn       String?       // English name (optional)
+  region       String?       // Geographic region
+  website      String?       // Official website
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  universities University[]
+  
+  @@map("hubs")
+}
+
+// Individual Universities/Institutions within a Hub
+model University {
+  id        String   @id @default(cuid())
+  name      String   // "كلية الصيدلة بالمنستير"
+  nameEn    String?  // English name (optional)
+  code      String?  // Institution code
+  hubId     String
+  website   String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  hub         Hub         @relation(fields: [hubId], references: [id])
+  orientations Orientation[]
+  
+  @@map("universities")
+}
+
+// Academic Orientations/Programs
+model Orientation {
+  id           String   @id @default(cuid())
+  code         String   @unique // "34701"
+  licence      String   // "الصيدلة"
+  licenceEn    String?  // English name (optional)
+  description  String?  // Detailed description
+  duration     String?  // "3 ans", "5 ans"
+  degree       String?  // "Licence", "Master", "Doctorat"
+  category     String?  // "Sciences", "Médecine", etc.
+  universityId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  university   University @relation(fields: [universityId], references: [id])
+  bacScores    BacScore[]
+  comparisons1 Comparison[] @relation("Orientation1")
+  comparisons2 Comparison[] @relation("Orientation2")
+  
+  @@map("orientations")
+}
+
+// Bac Score Requirements
+model BacScore {
+  id            String      @id @default(cuid())
+  orientationId String
+  bacType       String      // "آداب", "رياضيات", "علوم تجريبية", etc.
+  score2024     Float?      // Score for 2024
+  score2023     Float?      // Score for 2023
+  score2022     Float?      // Score for 2022
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  orientation   Orientation @relation(fields: [orientationId], references: [id], onDelete: Cascade)
+  
+  @@unique([orientationId, bacType])
+  @@map("bac_scores")
+}
+
+// User Comparisons
+model Comparison {
+  id             String   @id @default(cuid())
+  orientation1Id String
+  orientation2Id String
+  userBacType    String   // User's bac type
+  userScore      Float    // User's bac score
+  analysis       Json?    // AI-generated comparison analysis
+  metadata       Json?    // Additional metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  orientation1 Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
+  orientation2 Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
+  chatSessions ChatSession[]
+  
+  @@map("comparisons")
+}
+
+// Chat Sessions for each comparison
+model ChatSession {
+  id           String    @id @default(cuid())
+  comparisonId String
+  messages     Json      // Array of chat messages
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  
+  @@map("chat_sessions")
+}
+
+// Analytics and Usage Tracking
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventType   String   // "comparison_created", "chat_interaction", etc.
+  eventData   Json?    // Event-specific data
+  userSession String?  // Session identifier
+  ipAddress   String?  // User IP (hashed for privacy)
+  userAgent   String?  // Browser info
+  createdAt   DateTime @default(now())
+  
+  @@index([eventType, createdAt])
+  @@map("analytics_events")
+}

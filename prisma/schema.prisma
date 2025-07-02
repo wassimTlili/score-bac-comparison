@@ -127,3 +127,26 @@ model AnalyticsEvent {
   @@index([eventType, createdAt])
   @@map("analytics_events")
 }
+
+// Pomodoro Timer Settings
+model PomodoroSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique // User identifier from Clerk
+  settings  Json     // Pomodoro timer settings (durations, auto-start, etc.)
+  tasks     Json?    // User's tasks/todos
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("pomodoro_settings")
+}
+
+// Lofi Player Settings
+model LofiSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique // User identifier from Clerk
+  settings  Json     // Lofi player settings (volume, last track, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("lofi_settings")
+}

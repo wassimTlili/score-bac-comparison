@@ -1,15 +1,14 @@
+import { PrismaClient } from '@prisma/client';
 import { ComparisonModel } from './comparison-model.js';
 
-// Global storage that persists across hot reloads in development
-if (!global.comparisonStorageInstance) {
-  global.comparisonStorageInstance = new Map();
-}
+// Initialize Prisma client
+const prisma = global.prisma || new PrismaClient();
+if (process.env.NODE_ENV === 'development') global.prisma = prisma;
 
-// In-memory storage (replace with database in production)
+// Database-backed storage for comparisons
 class ComparisonStorage {
   constructor() {
-    // Use global storage to persist across Next.js hot reloads
-    this.comparisons = global.comparisonStorageInstance;
+    this.prisma = prisma;
   }
 
   // Create a new comparison
@@ -21,8 +20,24 @@ class ComparisonStorage {
         throw new Error('Invalid comparison data');
       }
 
-      this.comparisons.set(comparison.id, comparison);
-      
+      // Store in database
+      const savedComparison = await this.prisma.comparison.create({
+        data: {
+          id: comparison.id,
+          orientation1Id: comparison.orientation1.id || comparison.orientation1.code,
+          orientation2Id: comparison.orientation2.id || comparison.orientation2.code,
+          userBacType: comparison.userProfile.bacType,
+          userScore: comparison.userProfile.score,
+          analysis: comparison.aiAnalysis ? JSON.stringify(comparison.aiAnalysis) : null,
+          metadata: JSON.stringify({
+            userProfile: comparison.userProfile,
+            orientation1: comparison.orientation1,
+            orientation2: comparison.orientation2,
+            createdAt: comparison.createdAt
+          })
+        }
+      });
+
       return comparison;
     } catch (error) {
       console.error('❌ Error creating comparison:', error);
@@ -33,8 +48,36 @@ class ComparisonStorage {
   // Get comparison by ID
   async getById(id) {
     try {
-      const comparison = this.comparisons.get(id);
-      return comparison || null;
+      const dbComparison = await this.prisma.comparison.findUnique({
+        where: { id }
+      });
+
+      if (!dbComparison) {
+        return null;
+      }
+
+      // Parse metadata and reconstruct comparison object
+      const metadata = typeof dbComparison.metadata === 'string' 
+        ? JSON.parse(dbComparison.metadata) 
+        : dbComparison.metadata;
+
+      const analysis = dbComparison.analysis 
+        ? (typeof dbComparison.analysis === 'string' 
+           ? JSON.parse(dbComparison.analysis) 
+           : dbComparison.analysis)
+        : null;
+
+      // Create ComparisonModel instance
+      const comparison = new ComparisonModel({
+        id: dbComparison.id,
+        userProfile: metadata.userProfile,
+        orientation1: metadata.orientation1,
+        orientation2: metadata.orientation2,
+        aiAnalysis: analysis,
+        createdAt: dbComparison.createdAt
+      });
+
+      return comparison;
     } catch (error) {
       console.error('❌ Error getting comparison:', error);
       return null;
@@ -44,19 +87,32 @@ class ComparisonStorage {
   // Update comparison
   async update(id, updateData) {
     try {
-      const comparison = this.comparisons.get(id);
-      if (!comparison) {
+      const existingComparison = await this.getById(id);
+      if (!existingComparison) {
         throw new Error('Comparison not found');
       }
 
-      // Update fields
-      Object.assign(comparison, updateData);
-      comparison.updatedAt = new Date();
+      // Update the comparison object
+      Object.assign(existingComparison, updateData);
 
-      this.comparisons.set(id, comparison);
-      return comparison;
+      // Update in database
+      await this.prisma.comparison.update({
+        where: { id },
+        data: {
+          analysis: existingComparison.aiAnalysis ? JSON.stringify(existingComparison.aiAnalysis) : null,
+          metadata: JSON.stringify({
+            userProfile: existingComparison.userProfile,
+            orientation1: existingComparison.orientation1,
+            orientation2: existingComparison.orientation2,
+            createdAt: existingComparison.createdAt
+          }),
+          updatedAt: new Date()
+        }
+      });
+
+      return existingComparison;
     } catch (error) {
-      console.error('Error updating comparison:', error);
+      console.error('❌ Error updating comparison:', error);
       throw error;
     }
   }
@@ -64,16 +120,25 @@ class ComparisonStorage {
   // Update AI analysis for a comparison
   async updateAiAnalysis(id, aiAnalysis) {
     try {
-      const comparison = this.comparisons.get(id);
-      if (!comparison) {
+      const existingComparison = await this.getById(id);
+      if (!existingComparison) {
         throw new Error('Comparison not found');
       }
 
-      comparison.updateAiAnalysis(aiAnalysis);
-      this.comparisons.set(id, comparison);
-      return comparison;
+      existingComparison.updateAiAnalysis(aiAnalysis);
+
+      // Update in database
+      await this.prisma.comparison.update({
+        where: { id },
+        data: {
+          analysis: JSON.stringify(aiAnalysis),
+          updatedAt: new Date()
+        }
+      });
+
+      return existingComparison;
     } catch (error) {
-      console.error('Error updating AI analysis:', error);
+      console.error('❌ Error updating AI analysis:', error);
       throw error;
     }
   }
@@ -81,10 +146,12 @@ class ComparisonStorage {
   // Delete comparison
   async delete(id) {
     try {
-      const deleted = this.comparisons.delete(id);
-      return deleted;
+      await this.prisma.comparison.delete({
+        where: { id }
+      });
+      return true;
     } catch (error) {
-      console.error('Error deleting comparison:', error);
+      console.error('❌ Error deleting comparison:', error);
       return false;
     }
   }
@@ -92,9 +159,32 @@ class ComparisonStorage {
   // Get all comparisons (admin function)
   async getAll() {
     try {
-      return Array.from(this.comparisons.values());
+      const dbComparisons = await this.prisma.comparison.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return dbComparisons.map(dbComparison => {
+        const metadata = typeof dbComparison.metadata === 'string' 
+          ? JSON.parse(dbComparison.metadata) 
+          : dbComparison.metadata;
+
+        const analysis = dbComparison.analysis 
+          ? (typeof dbComparison.analysis === 'string' 
+             ? JSON.parse(dbComparison.analysis) 
+             : dbComparison.analysis)
+          : null;
+
+        return new ComparisonModel({
+          id: dbComparison.id,
+          userProfile: metadata.userProfile,
+          orientation1: metadata.orientation1,
+          orientation2: metadata.orientation2,
+          aiAnalysis: analysis,
+          createdAt: dbComparison.createdAt
+        });
+      });
     } catch (error) {
-      console.error('Error getting all comparisons:', error);
+      console.error('❌ Error getting all comparisons:', error);
       return [];
     }
   }
@@ -102,7 +192,7 @@ class ComparisonStorage {
   // Search comparisons by criteria
   async search(criteria) {
     try {
-      const allComparisons = Array.from(this.comparisons.values());
+      const allComparisons = await this.getAll();
       
       return allComparisons.filter(comparison => {
         // Search by orientation names
@@ -138,7 +228,7 @@ class ComparisonStorage {
         return true;
       });
     } catch (error) {
-      console.error('Error searching comparisons:', error);
+      console.error('❌ Error searching comparisons:', error);
       return [];
     }
   }
@@ -146,7 +236,7 @@ class ComparisonStorage {
   // Get statistics
   async getStats() {
     try {
-      const allComparisons = Array.from(this.comparisons.values());
+      const allComparisons = await this.getAll();
       
       const stats = {
         total: allComparisons.length,
@@ -186,7 +276,7 @@ class ComparisonStorage {
 
       return stats;
     } catch (error) {
-      console.error('Error getting stats:', error);
+      console.error('❌ Error getting stats:', error);
       return {
         total: 0,
         byLocation: {},
@@ -200,14 +290,14 @@ class ComparisonStorage {
   // Export data (for backup/migration)
   async exportData() {
     try {
-      const allComparisons = Array.from(this.comparisons.values());
+      const allComparisons = await this.getAll();
       return {
         exportedAt: new Date().toISOString(),
         version: '1.0',
         comparisons: allComparisons.map(c => c.toJSON())
       };
     } catch (error) {
-      console.error('Error exporting data:', error);
+      console.error('❌ Error exporting data:', error);
       throw error;
     }
   }
@@ -225,17 +315,17 @@ class ComparisonStorage {
       for (const compData of data.comparisons) {
         try {
           const comparison = ComparisonModel.fromJSON(compData);
-          this.comparisons.set(comparison.id, comparison);
+          await this.create(comparison);
           imported++;
         } catch (error) {
-          console.error('Error importing comparison:', error);
+          console.error('❌ Error importing comparison:', error);
           errors++;
         }
       }
 
       return { imported, errors };
     } catch (error) {
-      console.error('Error importing data:', error);
+      console.error('❌ Error importing data:', error);
       throw error;
     }
   }

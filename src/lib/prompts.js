@@ -129,8 +129,8 @@ export function createChatbotContext(comparison) {
 CONTEXTE DE LA COMPARAISON:
 
 ORIENTATIONS COMPARÉES:
-1. ${orientation1Name} (${comparison.orientation1.category || 'Catégorie non spécifiée'})
-2. ${orientation2Name} (${comparison.orientation2.category || 'Catégorie non spécifiée'})
+1. ${orientation1Name} (${comparison.orientation1.category || comparison.orientation1.domaine || 'Catégorie non spécifiée'})
+2. ${orientation2Name} (${comparison.orientation2.category || comparison.orientation2.domaine || 'Catégorie non spécifiée'})
 
 PROFIL ÉTUDIANT:
 - Score: ${comparison.userProfile.score}/200

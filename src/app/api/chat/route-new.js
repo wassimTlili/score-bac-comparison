@@ -20,7 +20,7 @@ export async function POST(request) {
     let systemPrompt = CHATBOT_SYSTEM_PROMPT;
 
     if (isGeneralChat) {
-      // General educational chatbot mode - use streaming
+      // General educational chatbot mode - return JSON response instead of streaming
       systemPrompt = `Tu es un assistant éducatif spécialisé dans le système scolaire et universitaire tunisien. Tu aides les étudiants avec:
 
 - L'orientation scolaire et universitaire  
@@ -33,7 +33,26 @@ export async function POST(request) {
 
 Réponds de manière claire, utile et encourageante. Utilise des exemples concrets du système éducatif tunisien.`;
 
-      console.log('🚀 Starting general chat stream generation...');
+      try {
+        const response = await openai.chat.completions.create({
+          model: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || 'gpt-4',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages
+          ],
+          max_tokens: 1000,
+          temperature: 0.7,
+        });
+
+        const message = response.choices[0]?.message?.content || "Désolé, je n'ai pas pu générer une réponse.";
+        
+        return Response.json({ message });
+      } catch (error) {
+        console.error('❌ General chat error:', error);
+        return Response.json({ 
+          message: "Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants." 
+        }, { status: 500 });
+      }
     } else if (comparisonId) {
       // Comparison-specific chat mode (streaming)
       console.log('🔍 Loading comparison for chat...');
@@ -60,7 +79,7 @@ Réponds de manière claire, utile et encourageante. Utilise des exemples concre
       return new Response('Either isGeneralChat or comparisonId must be provided', { status: 400 });
     }
 
-    // Use streaming for both general chat and comparison chat
+    // For comparison chat, use streaming
     try {
       console.log('🚀 Starting stream generation...');
       
@@ -76,75 +95,59 @@ Réponds de manière claire, utile et encourageante. Utilise des exemples concre
       });
 
       console.log('✅ Stream generation successful');
-      return result.toDataStreamResponse();
+      return result.toAIStreamResponse();
 
     } catch (streamError) {
       console.error('❌ Stream generation error:', streamError);
       
-      // Return error message as JSON for both types of chat
-      return Response.json({ 
-        message: "Désolé, je rencontre un problème technique. Veuillez réessayer dans quelques instants." 
-      }, { status: 500 });
+      // Fallback to non-streaming response
+      try {
+        console.log('🔄 Falling back to non-streaming...');
+        
+        const completion = await openai.chat.completions.create({
+          model: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || 'gpt-4',
+          messages: [
+            { role: 'system', content: systemPrompt + (context ? `\n\nCONTEXT:\n${context}` : '') },
+            ...messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
+          ],
+          max_tokens: 2000,
+          temperature: 0.7
+        });
+
+        const assistantMessage = completion.choices[0]?.message?.content || 
+          "Désolé, je rencontre des difficultés techniques. Veuillez réessayer.";
+
+        return new Response(assistantMessage, {
+          headers: { 'Content-Type': 'text/plain' }
+        });
+
+      } catch (fallbackError) {
+        console.error('❌ Fallback also failed:', fallbackError);
+        return new Response(
+          "Désolé, je rencontre des problèmes techniques. Veuillez réessayer dans quelques instants.",
+          { 
+            status: 500,
+            headers: { 'Content-Type': 'text/plain' }
+          }
+        );
+      }
     }
 
   } catch (error) {
-    console.error('❌ Chat API error:', error);
-    console.error('❌ Error name:', error.name);
-    console.error('❌ Error message:', error.message);
-    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Chat API Error:', error);
     
-    // More specific error handling
-    if (error.message?.includes('Azure')) {
-      console.error('❌ Azure configuration error detected');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Erreur de configuration Azure. Veuillez vérifier les paramètres.' 
-        }), 
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    if (error.message?.includes('API')) {
-      console.error('❌ API error detected');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Erreur de l\'API IA. Service temporairement indisponible.' 
-        }), 
-        { 
-          status: 503,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-    
-    // Return generic error response
     return new Response(
-      JSON.stringify({ 
-        error: 'Une erreur est survenue lors du traitement de votre message.',
+      JSON.stringify({
+        error: 'Une erreur s\'est produite lors du traitement de votre demande',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      }), 
-      { 
+      }),
+      {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       }
     );
   }
-}
-
-export async function GET() {
-  return new Response(
-    JSON.stringify({ 
-      message: 'Chat API is running',
-      version: '1.0.0',
-      endpoints: {
-        POST: 'Send chat messages with comparisonId and messages array'
-      }
-    }), 
-    { 
-      headers: { 'Content-Type': 'application/json' }
-    }
-  );
 }

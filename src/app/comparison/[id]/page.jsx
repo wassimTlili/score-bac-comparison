@@ -1,116 +1,258 @@
-import { notFound } from 'next/navigation';
-import { getComparison, generateAiAnalysis } from '../../../actions/comparison-actions';
-import ComparisonView from '../../../components/ComparisonView';
-import ChatBot from '../../../components/ChatBot';
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import { Suspense } from 'react';
+'use client';
 
-export async function generateMetadata({ params }) {
-  const resolvedParams = await params;
-  const comparison = await getComparison(resolvedParams.id);
-  
-  if (!comparison) {
-    return {
-      title: 'Comparaison non trouvée',
-    };
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import ComparisonView from '@/components/ComparisonView';
+import ChatBot from '@/components/ChatBot';
+import { getComparison, generateAiAnalysis } from '@/actions/comparison-actions';
+
+export default function ComparisonResults() {
+  const params = useParams();
+  const [comparison, setComparison] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [expandedSection, setExpandedSection] = useState(null); // 'analysis' or 'chat' or null
+
+  useEffect(() => {
+    async function loadComparison() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Get comparison data
+        const comparisonData = await getComparison(params.id);
+        
+        if (!comparisonData) {
+          setError('Comparison not found');
+          return;
+        }
+
+        setComparison(comparisonData);
+
+        // If no AI analysis yet, generate it
+        if (!comparisonData.aiAnalysis) {
+          setIsGeneratingAI(true);
+          const aiResult = await generateAiAnalysis(params.id);
+          
+          if (aiResult.success) {
+            // Refetch updated comparison
+            const updatedComparison = await getComparison(params.id);
+            setComparison(updatedComparison);
+          } else {
+            console.error('AI Analysis failed:', aiResult.error);
+          }
+          setIsGeneratingAI(false);
+        }
+      } catch (err) {
+        console.error('Error loading comparison:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (params.id) {
+      loadComparison();
+    }
+  }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-[#e5e7eb]">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h3 className="text-white text-lg font-medium mb-2">Chargement de votre comparaison...</h3>
+            <p className="text-gray-400 text-sm">Veuillez patienter pendant que nous récupérons vos données</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  return {
-    title: `Comparaison: ${comparison.orientation1.name || comparison.orientation1.licence} vs ${comparison.orientation2.name || comparison.orientation2.licence}`,
-    description: `Analyse IA de la comparaison entre ${comparison.orientation1.name || comparison.orientation1.licence} et ${comparison.orientation2.name || comparison.orientation2.licence} pour un étudiant avec un score de ${comparison.userProfile.score}/200.`,
-  };
-}
-
-export default async function ComparisonPage({ params }) {
-  const { id } = await params;
-  const comparison = await getComparison(id);
-
-  if (!comparison) {
-    notFound();
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-[#e5e7eb]">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center bg-red-900/30 border border-red-500/50 rounded-lg p-8 max-w-md">
+            <div className="text-red-400 text-6xl mb-4">⚠️</div>
+            <h3 className="text-white text-lg font-medium mb-2">Erreur</h3>
+            <p className="text-red-300 text-sm mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.href = '/comparison'}
+              className="bg-[#1581f3] hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Retour à la comparaison
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Generate AI analysis if it doesn't exist - but don't wait for it during render
-  if (!comparison.aiAnalysis) {
-    // Don't await - let it generate in the background
-    generateAiAnalysis(id).catch(console.error);
+  if (!comparison) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-[#e5e7eb]">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="text-gray-400 text-6xl mb-4">🔍</div>
+            <h3 className="text-white text-lg font-medium mb-2">Aucune comparaison trouvée</h3>
+            <p className="text-gray-400 text-sm mb-4">La comparaison demandée n'existe pas ou a expiré</p>
+            <button 
+              onClick={() => window.location.href = '/comparison'}
+              className="bg-[#1581f3] hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+            >
+              Nouvelle comparaison
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-[#0f172a] text-[#e5e7eb]">
+      {/* Header */}
+      <div className="border-b border-slate-700 bg-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Comparaison d'Orientations
-                </h1>
-              </div>
-              <p className="text-gray-300">
-                {comparison.orientation1.name || comparison.orientation1.licence} vs {comparison.orientation2.name || comparison.orientation2.licence}
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-400">
-                Score: <span className="text-cyan-400 font-semibold">{comparison.userProfile.score}/200</span>
-              </div>
-              <div className="text-sm text-gray-400">
-                Localisation: <span className="text-cyan-400">{comparison.userProfile.location}</span>
-              </div>
-              <div className="text-sm text-gray-400">
-                Créé le: {new Date(comparison.createdAt).toLocaleDateString('fr-TN')}
+              <h1 className="text-xl lg:text-2xl font-bold text-white mb-1">
+                Résultats de comparaison
+              </h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                <span className="flex items-center gap-1">
+                  <span>📊</span>
+                  Score: {comparison.userProfile.score}/200
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>📍</span>
+                  {comparison.userProfile.location}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span>📅</span>
+                  {new Date(comparison.createdAt).toLocaleDateString('fr-FR')}
+                </span>
               </div>
             </div>
-          </div>
-        </header>
-
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Panel - Comparison Analysis */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 12rem)' }}>
-            <div className="p-6 border-b border-slate-600 bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
-              <h2 className="text-xl font-semibold flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Analyse IA
-              </h2>
-            </div>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <Suspense fallback={<LoadingSpinner message="Chargement de l'analyse..." />}>
-                <ComparisonView comparison={comparison} />
-              </Suspense>
-            </div>
-          </div>
-
-          {/* Right Panel - Chat Assistant */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl shadow-xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 12rem)' }}>
-            <div className="p-6 border-b border-slate-600 bg-gradient-to-r from-green-600 to-blue-600 text-white flex-shrink-0">
-              <h2 className="text-xl font-semibold flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                Assistant IA
-              </h2>
-              <p className="text-sm opacity-90 mt-1">
-                Posez vos questions sur cette comparaison
-              </p>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <Suspense fallback={<LoadingSpinner message="Initialisation du chat..." />}>
-                <ChatBot comparison={comparison} />
-              </Suspense>
+            
+            <div className="mt-3 sm:mt-0">
+              <button 
+                onClick={() => window.location.href = '/comparison'}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors text-sm"
+              >
+                Nouvelle comparaison
+              </button>
             </div>
           </div>
         </div>
-
       </div>
-    </main>
+
+      {/* Comparison Header */}
+      <div className="border-b border-slate-700 bg-slate-800/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Orientation 1 */}
+            <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <h3 className="text-lg font-semibold text-cyan-300 mb-2">
+                {comparison.orientation1.licence || comparison.orientation1.name || 'Orientation 1'}
+              </h3>
+              <p className="text-sm text-gray-300 mb-2">{comparison.orientation1.university || 'Université non spécifiée'}</p>
+              <div className="text-xs text-gray-400 space-y-1">
+                <div>Code: {comparison.orientation1.code || 'Non défini'}</div>
+                <div>Hub: {comparison.orientation1.hub || 'Non défini'}</div>
+                <div>Seuil: {comparison.orientation1.bacScores?.[0]?.score2024 || comparison.orientation1.seuil || 'Non défini'}/200</div>
+              </div>
+            </div>
+
+            {/* Orientation 2 */}
+            <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <h3 className="text-lg font-semibold text-cyan-300 mb-2">
+                {comparison.orientation2.licence || comparison.orientation2.name || 'Orientation 2'}
+              </h3>
+              <p className="text-sm text-gray-300 mb-2">{comparison.orientation2.university || 'Université non spécifiée'}</p>
+              <div className="text-xs text-gray-400 space-y-1">
+                <div>Code: {comparison.orientation2.code || 'Non défini'}</div>
+                <div>Hub: {comparison.orientation2.hub || 'Non défini'}</div>
+                <div>Seuil: {comparison.orientation2.bacScores?.[0]?.score2024 || comparison.orientation2.seuil || 'Non défini'}/200</div>
+              </div>
+            </div>
+          </div>
+
+          {/* VS Indicator */}
+          <div className="flex justify-center -mt-3 relative">
+            <div className="bg-[#1581f3] text-white px-6 py-2 rounded-full text-sm font-bold border border-blue-400 shadow-lg">
+              VS
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={`grid gap-8 ${expandedSection ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} ${expandedSection ? 'h-[calc(100vh-200px)]' : 'h-[calc(100vh-300px)]'}`}>
+          {/* Left: Comparison Analysis */}
+          <div className={`bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden ${expandedSection === 'chat' ? 'hidden' : ''}`}>
+            <div className="h-full">
+              {isGeneratingAI ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="animate-spin w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <h3 className="text-white text-lg font-medium mb-2">Génération de l'analyse IA...</h3>
+                    <p className="text-gray-400 text-sm">
+                      Notre IA analyse vos orientations en tenant compte de votre profil
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <ComparisonView 
+                  comparison={comparison} 
+                  onExpand={setExpandedSection}
+                  isExpanded={expandedSection === 'analysis'}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Right: Chatbot */}
+          <div className={`bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden ${expandedSection === 'analysis' ? 'hidden' : ''}`}>
+            <div className="h-full">
+              {comparison.aiAnalysis && !isGeneratingAI ? (
+                <ChatBot 
+                  comparison={comparison} 
+                  onExpand={setExpandedSection}
+                  isExpanded={expandedSection === 'chat'}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <div className="text-gray-400 text-6xl mb-4">💬</div>
+                    <h3 className="text-white text-lg font-medium mb-2">Chat bientôt disponible</h3>
+                    <p className="text-gray-400 text-sm">
+                      Le chatbot sera activé une fois l'analyse IA terminée
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t border-slate-700 bg-slate-800/30 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center text-sm text-gray-400">
+            <p>
+              Analyse générée par IA • Score BAC Tunisien • 
+              <span className="ml-2">
+                ID: {comparison.id.slice(-8)}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

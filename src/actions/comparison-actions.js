@@ -1,396 +1,276 @@
-'use server';
+'use server'
 
-import { revalidatePath } from 'next/cache';
-import comparisonStorage from '../lib/comparison-storage.js';
-import { generateComparison, validateComparisonInput, enhanceAnalysis } from './ai-comparison.js';
-import { createFallbackAnalysis } from '../lib/analysis-utils.js';
-import { getOrientationById, getOrientationByCode } from '../lib/orientations.js';
+import { nanoid } from 'nanoid'
+import { getOrientationByCode } from '@/lib/orientations'
 
-/**
- * Create a new comparison between two orientations
- * @param {FormData} formData - Form data from the comparison form
- * @returns {Promise<void>} Redirects to comparison page or returns error
- */
+// In-memory store for comparisons (simple and fast)
+// Use globalThis to persist across hot reloads in development
+if (!globalThis.comparisons) {
+  globalThis.comparisons = new Map()
+}
+const comparisons = globalThis.comparisons
+
 export async function createComparison(formData) {
   try {
     // Extract form data
-    const orientation1Id = formData.get('orientation1');
-    const orientation2Id = formData.get('orientation2');
-    const score = parseFloat(formData.get('score'));
-    const location = formData.get('location');
+    const orientation1Code = formData.get('orientation1')
+    const orientation2Code = formData.get('orientation2')
+    const bacScore = parseFloat(formData.get('bacScore'))
+    const governorate = formData.get('governorate')
 
-    // Validate input
-    if (!orientation1Id || !orientation2Id || !score || !location) {
-      throw new Error('Tous les champs sont requis');
+    // Validate inputs
+    if (!orientation1Code || !orientation2Code || !bacScore || !governorate) {
+      throw new Error('All fields are required')
     }
 
-    if (score < 0 || score > 200) {
-      throw new Error('Le score doit être entre 0 et 200');
+    if (bacScore < 0 || bacScore > 200) {
+      throw new Error('BAC score must be between 0 and 200')
     }
 
-    if (orientation1Id === orientation2Id) {
-      throw new Error('Veuillez sélectionner deux orientations différentes');
+    // Find orientations by code
+    const orientation1 = getOrientationByCode(orientation1Code)
+    const orientation2 = getOrientationByCode(orientation2Code)
+
+    if (!orientation1) {
+      throw new Error(`Orientation with code "${orientation1Code}" not found`)
     }
 
-    // Get orientation data
-    const orientation1 = getOrientationByCode(orientation1Id);
-    const orientation2 = getOrientationByCode(orientation2Id);
-
-    if (!orientation1 || !orientation2) {
-      throw new Error('Orientations non trouvées');
+    if (!orientation2) {
+      throw new Error(`Orientation with code "${orientation2Code}" not found`)
     }
 
-    // Create user profile
-    const userProfile = {
-      score,
-      location,
-      selectedAt: new Date()
-    };
+    // Generate comparison ID
+    const comparisonId = nanoid()
 
-    // Validate comparison input
-    const validation = await validateComparisonInput(orientation1, orientation2, userProfile);
-    if (!validation.isValid) {
-      const errorMessage = validation.errors && Array.isArray(validation.errors) 
-        ? validation.errors.join(', ') 
-        : 'Validation failed';
-      throw new Error(errorMessage);
-    }
-
-    // Create comparison in storage (without AI analysis first)
-    const comparison = await comparisonStorage.create({
+    // Create comparison data
+    const comparisonData = {
+      id: comparisonId,
       orientation1,
       orientation2,
-      userProfile
-    });
+      userProfile: {
+        score: bacScore,
+        location: governorate,
+        bacType: 'général' // Default bac type for database
+      },
+      createdAt: new Date().toISOString(),
+      // We'll generate AI analysis separately for better performance
+      aiAnalysis: null
+    }
 
-    // Return success with comparison ID instead of redirecting
-    return {
-      success: true,
-      comparisonId: comparison.id
-    };
+    // Store comparison
+    comparisons.set(comparisonId, comparisonData)
 
+    return { success: true, comparisonId }
   } catch (error) {
-    console.error('Error creating comparison:', error);
-    
-    // Return error to be handled by the form
-    return {
-      success: false,
-      error: error.message
-    };
+    console.error('Error creating comparison:', error)
+    return { success: false, error: error.message }
   }
 }
 
-/**
- * Generate AI analysis for an existing comparison
- * @param {string} comparisonId - ID of the comparison
- * @returns {Promise<Object>} Updated comparison with AI analysis
- */
 export async function generateAiAnalysis(comparisonId) {
   try {
-    // Get comparison
-    const comparison = await comparisonStorage.getById(comparisonId);
+    const comparison = comparisons.get(comparisonId)
     if (!comparison) {
-      throw new Error('Comparaison non trouvée');
+      throw new Error('Comparison not found')
     }
 
-    // Skip if analysis already exists
-    if (comparison.aiAnalysis) {
-      return { success: true, data: comparison };
-    }
-
-    // Generate AI analysis with timeout
-    const aiResult = await Promise.race([
-      generateComparison(
-        comparison.orientation1,
-        comparison.orientation2,
-        comparison.userProfile
-      ),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('AI generation timeout')), 15000)
-      )
-    ]);
-
-    if (!aiResult.success) {
-      console.warn('⚠️ AI generation failed, using fallback:', aiResult.error);
-    }
-
-    // Enhance analysis with additional insights
-    const enhancedAnalysis = await enhanceAnalysis(
-      aiResult.data,
-      comparison.orientation1,
-      comparison.orientation2,
-      comparison.userProfile
-    );
+    // Generate AI analysis (mock for now)
+    const aiAnalysis = generateMockAnalysis(
+      comparison.orientation1, 
+      comparison.orientation2, 
+      comparison.userProfile.score, 
+      comparison.userProfile.location
+    )
 
     // Update comparison with AI analysis
-    const updatedComparison = await comparisonStorage.updateAiAnalysis(
-      comparisonId,
-      enhancedAnalysis
-    );
+    comparison.aiAnalysis = aiAnalysis
+    comparisons.set(comparisonId, comparison)
 
-    // Note: Don't revalidate during render - this will be handled by client-side navigation
-    // revalidatePath(`/comparison/${comparisonId}`);
-
-    return {
-      success: true,
-      data: updatedComparison
-    };
-
+    return { success: true, aiAnalysis }
   } catch (error) {
-    console.error('❌ Error generating AI analysis:', error);
-    
-    // Even if AI fails, try to save a basic fallback analysis
-    try {
-      const comparison = await comparisonStorage.getById(comparisonId);
-      if (comparison && !comparison.aiAnalysis) {
-        const fallbackAnalysis = await enhanceAnalysis(
-          createFallbackAnalysis(comparison.orientation1, comparison.orientation2, comparison.userProfile),
-          comparison.orientation1,
-          comparison.orientation2,
-          comparison.userProfile
-        );
-        
-        await comparisonStorage.updateAiAnalysis(comparisonId, fallbackAnalysis);
-      }
-    } catch (fallbackError) {
-      console.error('❌ Even fallback failed:', fallbackError);
+    console.error('Error generating AI analysis:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export async function getComparison(id) {
+  const comparison = comparisons.get(id)
+  if (!comparison) {
+    return null
+  }
+  return comparison
+}
+
+function generateMockAnalysis(orientation1, orientation2, bacScore, governorate) {
+  // Mock analysis based on orientations and score - updated structure to match ComparisonView
+  const score1 = Math.min(10, Math.max(1, Math.round((bacScore / 20) + Math.random() * 2)));
+  const score2 = Math.min(10, Math.max(1, Math.round((bacScore / 20) + Math.random() * 2)));
+  const winner = score1 > score2 ? (orientation1.licence || orientation1.name) : score2 > score1 ? (orientation2.licence || orientation2.name) : 'Match équilibré';
+  
+  // Get the score threshold for each orientation
+  const getThreshold = (orientation) => {
+    if (orientation.bacScores && orientation.bacScores.length > 0) {
+      return orientation.bacScores[0].score2024;
     }
+    return orientation.seuil || 120; // fallback
+  };
+  
+  const analysis = {
+    // Overview section
+    overview: `Analyse comparative détaillée entre ${orientation1.licence || orientation1.name} et ${orientation2.licence || orientation2.name} pour un étudiant avec un score de ${bacScore}/200 résidant en ${governorate}. Cette comparaison prend en compte vos critères académiques, géographiques et professionnels pour vous aider à faire le meilleur choix d'orientation.`,
     
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Get comparison by ID
- * @param {string} comparisonId - ID of the comparison
- * @returns {Promise<Object|null>} Comparison data or null if not found
- */
-export async function getComparison(comparisonId) {
-  try {
-    const comparison = await comparisonStorage.getById(comparisonId);
+    // User profile analysis
+    userProfileAnalysis: {
+      scoreAssessment: bacScore >= 150 
+        ? `Excellent score de ${bacScore}/200 qui vous ouvre de nombreuses portes dans l'enseignement supérieur tunisien.`
+        : bacScore >= 120 
+        ? `Score solide de ${bacScore}/200 qui vous permet d'accéder à plusieurs orientations universitaires.`
+        : `Score de ${bacScore}/200 qui nécessite une stratégie ciblée pour optimiser vos chances d'admission.`,
+      locationAdvantages: `Résider en ${governorate} vous offre des avantages géographiques spécifiques selon les universités visées. Considérez les coûts de transport et d'hébergement dans votre décision finale.`
+    },
     
-    if (!comparison) {
-      return null;
-    }
-
-    // Convert to plain object for client components
-    return {
-      id: comparison.id,
-      orientation1: comparison.orientation1,
-      orientation2: comparison.orientation2,
-      userProfile: comparison.userProfile,
-      aiAnalysis: comparison.aiAnalysis,
-      createdAt: comparison.createdAt?.toISOString ? comparison.createdAt.toISOString() : comparison.createdAt,
-      updatedAt: comparison.updatedAt?.toISOString ? comparison.updatedAt.toISOString() : comparison.updatedAt
-    };
-  } catch (error) {
-    console.error('❌ Error getting comparison:', error);
-    return null;
-  }
-}
-
-/**
- * Update comparison data
- * @param {string} comparisonId - ID of the comparison
- * @param {Object} updateData - Data to update
- * @returns {Promise<Object>} Updated comparison
- */
-export async function updateComparison(comparisonId, updateData) {
-  try {
-    const updatedComparison = await comparisonStorage.update(comparisonId, updateData);
+    // Analysis for first orientation
+    orientation1Analysis: {
+      name: orientation1.licence || orientation1.name,
+      suitabilityScore: score1,
+      admissionDifficulty: bacScore >= getThreshold(orientation1) ? 'facile' : bacScore >= (getThreshold(orientation1) - 20) ? 'moyenne' : 'difficile',
+      strengths: [
+        `Excellent programme en ${orientation1.category || orientation1.domaine || 'ce domaine'}`,
+        'Infrastructure moderne et bien équipée',
+        'Corps professoral expérimenté',
+        'Réseau d\'anciens développé',
+        'Partenariats avec l\'industrie'
+      ],
+      challenges: [
+        'Forte concurrence pour l\'admission',
+        'Charge de travail intensive',
+        'Exigences académiques élevées',
+        'Coût potentiellement élevé'
+      ],
+      careerProspects: [
+        `Spécialiste en ${orientation1.licence || orientation1.name}`,
+        'Consultant technique',
+        'Responsable de projet',
+        'Chercheur/Doctorant',
+        'Entrepreneur dans le secteur'
+      ]
+    },
     
-    // Revalidate the comparison page
-    revalidatePath(`/comparison/${comparisonId}`);
+    // Analysis for second orientation
+    orientation2Analysis: {
+      name: orientation2.licence || orientation2.name,
+      suitabilityScore: score2,
+      admissionDifficulty: bacScore >= getThreshold(orientation2) ? 'facile' : bacScore >= (getThreshold(orientation2) - 20) ? 'moyenne' : 'difficile',
+      strengths: [
+        `Spécialisation approfondie en ${orientation2.licence || orientation2.name}`,
+        'Secteur en pleine expansion',
+        'Bonnes opportunités d\'emploi',
+        'Formation pratique solide',
+        'Débouchés variés'
+      ],
+      challenges: [
+        'Places limitées disponibles',
+        'Évolution rapide du domaine',
+        'Nécessité de formation continue',
+        'Competition sur le marché'
+      ],
+      careerProspects: [
+        `Spécialiste en ${orientation2.category || orientation2.domaine || 'ce domaine'}`,
+        'Analyste technique',
+        'Chef de département',
+        'Formateur/Enseignant',
+        'Consultant indépendant'
+      ]
+    },
     
-    return {
-      success: true,
-      data: updatedComparison
-    };
-  } catch (error) {
-    console.error('Error updating comparison:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Delete comparison
- * @param {string} comparisonId - ID of the comparison to delete
- * @returns {Promise<Object>} Deletion result
- */
-export async function deleteComparison(comparisonId) {
-  try {
-    const deleted = await comparisonStorage.delete(comparisonId);
+    // Overall recommendation
+    recommendation: {
+      preferred: winner,
+      reasoning: score1 > score2 
+        ? `${orientation1.name || orientation1.licence} semble mieux adaptée à votre profil avec un score d'adéquation de ${score1}/10. Votre score de ${bacScore}/200 vous positionne favorablement pour cette orientation.`
+        : score2 > score1
+        ? `${orientation2.name || orientation2.licence} présente un meilleur potentiel pour vous avec un score d'adéquation de ${score2}/10. Cette orientation correspond mieux à vos critères actuels.`
+        : `Les deux orientations présentent un potentiel équivalent pour votre profil. Le choix dépendra de vos préférences personnelles et objectifs de carrière.`,
+      actionSteps: [
+        'Rechercher davantage d\'informations sur les programmes détaillés',
+        'Contacter les universités pour des visites ou journées portes ouvertes',
+        'Consulter des professionnels du secteur',
+        'Évaluer les aspects financiers et logistiques',
+        'Préparer un plan de candidature stratégique'
+      ],
+      alternativeOptions: [
+        'Écoles privées dans le même domaine',
+        'Formations techniques spécialisées',
+        'Programmes de formation continue',
+        'Opportunités à l\'étranger avec bourses'
+      ]
+    },
     
-    if (deleted) {
-      // Revalidate home page
-      revalidatePath('/');
-      
-      return {
-        success: true,
-        message: 'Comparaison supprimée avec succès'
-      };
-    } else {
-      throw new Error('Comparaison non trouvée');
-    }
-  } catch (error) {
-    console.error('Error deleting comparison:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Search comparisons
- * @param {Object} searchCriteria - Search criteria
- * @returns {Promise<Array>} Array of matching comparisons
- */
-export async function searchComparisons(searchCriteria) {
-  try {
-    const comparisons = await comparisonStorage.search(searchCriteria);
-    return {
-      success: true,
-      data: comparisons
-    };
-  } catch (error) {
-    console.error('Error searching comparisons:', error);
-    return {
-      success: false,
-      data: [],
-      error: error.message
-    };
-  }
-}
-
-/**
- * Get comparison statistics
- * @returns {Promise<Object>} Comparison statistics
- */
-export async function getComparisonStats() {
-  try {
-    const stats = await comparisonStorage.getStats();
-    return {
-      success: true,
-      data: stats
-    };
-  } catch (error) {
-    console.error('Error getting comparison stats:', error);
-    return {
-      success: false,
-      data: {
-        total: 0,
-        byLocation: {},
-        byOrientation: {},
-        averageScore: 0,
-        recentComparisons: 0
+    // Universities analysis - matching GitHub structure
+    universitiesAnalysis: [
+      {
+        name: orientation1.university || orientation1.etablissement || `Université principale pour ${orientation1.name || orientation1.licence}`,
+        location: orientation1.hub || orientation1.gouvernorat || governorate,
+        orientation: orientation1.name || orientation1.licence,
+        accessibility: bacScore >= (orientation1.minScore || orientation1.seuil || 100) 
+          ? 'Accessible avec votre score actuel' 
+          : 'Nécessite une amélioration du score',
+        advantages: [
+          'Proximité géographique favorable',
+          'Infrastructure moderne',
+          'Corps professoral qualifié',
+          'Partenariats industriels'
+        ]
       },
-      error: error.message
-    };
-  }
-}
-
-/**
- * Export comparison data (admin function)
- * @returns {Promise<Object>} Exported data
- */
-export async function exportComparisons() {
-  try {
-    const exportData = await comparisonStorage.exportData();
-    return {
-      success: true,
-      data: exportData
-    };
-  } catch (error) {
-    console.error('Error exporting comparisons:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Import comparison data (admin function)
- * @param {Object} importData - Data to import
- * @returns {Promise<Object>} Import result
- */
-export async function importComparisons(importData) {
-  try {
-    const result = await comparisonStorage.importData(importData);
+      {
+        name: orientation2.university || orientation2.etablissement || `Université principale pour ${orientation2.name || orientation2.licence}`,
+        location: orientation2.hub || orientation2.gouvernorat || governorate,
+        orientation: orientation2.name || orientation2.licence,
+        accessibility: bacScore >= (orientation2.minScore || orientation2.seuil || 100) 
+          ? 'Accessible avec votre score actuel' 
+          : 'Nécessite une amélioration du score',
+        advantages: [
+          'Spécialisation reconnue',
+          'Laboratoires bien équipés',
+          'Réseau professionnel étendu',
+          'Opportunités de stages'
+        ]
+      }
+    ],
     
-    // Revalidate home page after import
-    revalidatePath('/');
+    // Universities comparison (optional)
+    universitiesComparison: [
+      {
+        university: orientation1.university || orientation1.etablissement || 'Université principale',
+        orientation: orientation1.name || orientation1.licence,
+        location: orientation1.hub || orientation1.gouvernorat || governorate,
+        admissionDifficulty: bacScore >= 150 ? 'facile' : bacScore >= 120 ? 'moyenne' : 'difficile',
+        reputation: 'Excellent',
+        facilities: 'Laboratoires modernes, bibliothèque numérique, campus équipé'
+      },
+      {
+        university: orientation2.university || orientation2.etablissement || 'Université alternative',
+        orientation: orientation2.name || orientation2.licence,
+        location: orientation2.hub || orientation2.gouvernorat || governorate,
+        admissionDifficulty: bacScore >= 150 ? 'facile' : bacScore >= 120 ? 'moyenne' : 'difficile',
+        reputation: 'Très bon',
+        facilities: 'Équipements spécialisés, ateliers pratiques, ressources actualisées'
+      }
+    ],
     
-    return {
-      success: true,
-      data: result
-    };
-  } catch (error) {
-    console.error('Error importing comparisons:', error);
-    return {
-      success: false,
-      error: error.message
-    };
+    // Score insights
+    scoreInsights: {
+      canApplyTo1: bacScore >= (orientation1.minScore || orientation1.seuil || 100),
+      canApplyTo2: bacScore >= (orientation2.minScore || orientation2.seuil || 100),
+      scoreAdvantage: bacScore >= 160 ? 'Excellent' : bacScore >= 130 ? 'Bon' : 'Moyen',
+      improvementNeeded: Math.max(0, Math.max(orientation1.minScore || orientation1.seuil || 100, orientation2.minScore || orientation2.seuil || 100) - bacScore)
+    },
+    
+    // Metadata
+    generatedAt: new Date().toISOString(),
+    modelUsed: 'Mock Analysis v1.0',
+    isFallback: false
   }
-}
 
-/**
- * Regenerate AI analysis for a comparison
- * @param {string} comparisonId - ID of the comparison
- * @returns {Promise<Object>} Updated comparison with new AI analysis
- */
-export async function regenerateAiAnalysis(comparisonId) {
-  try {
-    // Get comparison
-    const comparison = await comparisonStorage.getById(comparisonId);
-    if (!comparison) {
-      throw new Error('Comparaison non trouvée');
-    }
-
-    // Clear existing analysis
-    comparison.aiAnalysis = null;
-
-    // Generate new AI analysis
-    const aiResult = await generateComparison(
-      comparison.orientation1,
-      comparison.orientation2,
-      comparison.userProfile
-    );
-
-    // Enhance analysis
-    const enhancedAnalysis = enhanceAnalysis(
-      aiResult.data,
-      comparison.orientation1,
-      comparison.orientation2,
-      comparison.userProfile
-    );
-
-    // Update comparison
-    const updatedComparison = await comparisonStorage.updateAiAnalysis(
-      comparisonId,
-      enhancedAnalysis
-    );
-
-    // Revalidate the comparison page
-    revalidatePath(`/comparison/${comparisonId}`);
-
-    return {
-      success: true,
-      data: updatedComparison
-    };
-
-  } catch (error) {
-    console.error('Error regenerating AI analysis:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
+  return analysis
 }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from 'ai/react';
+import MessageFormatter from './MessageFormatter';
 
 export default function ChatBot({ comparison, onExpand, isExpanded }) {
   const [isFirstMessage, setIsFirstMessage] = useState(true);
@@ -122,29 +123,61 @@ Que souhaitez-vous savoir ?`
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg shadow-sm ${
+            <div className={`max-w-xs lg:max-w-2xl px-4 py-3 rounded-lg shadow-sm ${
               message.role === 'user' 
                 ? 'bg-[#1581f3] text-white rounded-br-sm' 
                 : 'bg-slate-700/50 text-gray-100 border border-slate-600 rounded-bl-sm'
             }`}>
               {message.role === 'assistant' && index === 0 && (
-                <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-slate-600">
+                <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-slate-600">
                   <div className="w-6 h-6 bg-[#1581f3]/20 rounded-full flex items-center justify-center">
                     <svg className="w-3 h-3 text-[#1581f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <span className="text-xs font-medium text-gray-400">Assistant IA</span>
+                  <span className="text-xs font-medium text-gray-400">Assistant IA • Spécialisé Orientation</span>
                 </div>
               )}
-              <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                {message.content}
-              </div>
-              {message.role === 'assistant' && (
-                <div className="text-xs text-gray-400 mt-2">
+              
+              {/* Enhanced message content */}
+              {message.role === 'user' ? (
+                <div className="text-sm leading-relaxed">
+                  {message.content}
+                </div>
+              ) : (
+                <MessageFormatter 
+                  content={message.content} 
+                  isStreaming={isLoading && index === messages.length - 1}
+                />
+              )}
+              
+              {/* Message metadata */}
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-600/50">
+                <div className="text-xs text-gray-400">
                   {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
-              )}
+                {message.role === 'assistant' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigator.clipboard.writeText(message.content)}
+                      className="text-xs text-gray-400 hover:text-white transition-colors p-1 rounded"
+                      title="Copier le message"
+                    >
+                      📋
+                    </button>
+                    <button
+                      onClick={() => {
+                        // Add regenerate functionality if needed
+                        console.log('Regenerate message:', message.id);
+                      }}
+                      className="text-xs text-gray-400 hover:text-white transition-colors p-1 rounded"
+                      title="Régénérer la réponse"
+                    >
+                      🔄
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from 'ai/react';
 import Link from 'next/link';
+import MessageFormatter from '@/components/MessageFormatter';
 
 export default function ChatbotPage() {
   const messagesEndRef = useRef(null);
@@ -80,7 +81,7 @@ Comment puis-je vous aider aujourd'hui ?`
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="max-w-3xl mx-auto space-y-8">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div key={message.id} className="group">
                 <div className="flex items-start space-x-4">
                   {/* Avatar */}
@@ -110,8 +111,15 @@ Comment puis-je vous aider aujourd'hui ?`
                         {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                      {message.content}
+                    <div className="text-gray-200 leading-relaxed">
+                      {message.role === 'user' ? (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                      ) : (
+                        <MessageFormatter 
+                          content={message.content}
+                          isStreaming={isLoading && index === messages.length - 1}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

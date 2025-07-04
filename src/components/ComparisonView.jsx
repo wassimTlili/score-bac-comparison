@@ -29,7 +29,6 @@ export default function ComparisonView({ comparison, onExpand, isExpanded }) {
   const tabs = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: '📊' },
     { id: 'orientations', label: 'Comparaison', icon: '⚖️' },
-    { id: 'universities', label: 'Universités', icon: '🏫' },
     { id: 'action-plan', label: 'Plan d\'action', icon: '🎯' }
   ];
 
@@ -241,36 +240,6 @@ export default function ComparisonView({ comparison, onExpand, isExpanded }) {
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {activeTab === 'universities' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">🏫 Analyse des universités</h3>
-            {aiAnalysis.universitiesAnalysis?.map((university, index) => (
-              <div key={index} className="bg-slate-700/50 border border-slate-600 rounded-md p-4 hover:bg-slate-700/70 transition-all">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-white">{university.name}</h4>
-                  <span className="text-sm text-gray-400">{university.location}</span>
-                </div>
-                <p className="text-sm text-gray-300 mb-2">
-                  Orientation: {university.orientation}
-                </p>
-                <p className="text-sm text-cyan-300 mb-3">
-                  {university.accessibility}
-                </p>
-                {university.advantages && (
-                  <div>
-                    <h5 className="font-medium text-white mb-1">Avantages:</h5>
-                    <ul className="list-disc list-inside text-sm text-gray-300 space-y-1">
-                      {university.advantages.map((advantage, idx) => (
-                        <li key={idx}>{advantage}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         )}
 

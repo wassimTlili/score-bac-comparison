@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import { ComparisonModel } from './comparison-model.js';
 
 // Initialize Prisma client
 const prisma = global.prisma || new PrismaClient();
@@ -14,31 +13,31 @@ class ComparisonStorage {
   // Create a new comparison
   async create(comparisonData) {
     try {
-      const comparison = new ComparisonModel(comparisonData);
-      
-      if (!comparison.isValid()) {
-        throw new Error('Invalid comparison data');
+      // Validate data (simplified without ComparisonModel)
+      if (!comparisonData.id || !comparisonData.orientation1 || !comparisonData.orientation2) {
+        throw new Error('Invalid comparison data: missing required fields');
       }
 
-      // Store in database
+      // Store in database - use orientation codes as IDs since orientations are stored in JSON
       const savedComparison = await this.prisma.comparison.create({
         data: {
-          id: comparison.id,
-          orientation1Id: comparison.orientation1.id || comparison.orientation1.code,
-          orientation2Id: comparison.orientation2.id || comparison.orientation2.code,
-          userBacType: comparison.userProfile.bacType,
-          userScore: comparison.userProfile.score,
-          analysis: comparison.aiAnalysis ? JSON.stringify(comparison.aiAnalysis) : null,
+          id: comparisonData.id,
+          orientation1Id: comparisonData.orientation1.code,
+          orientation2Id: comparisonData.orientation2.code,
+          userBacType: comparisonData.userProfile.bacType,
+          userScore: comparisonData.userProfile.score,
+          analysis: comparisonData.aiAnalysis ? JSON.stringify(comparisonData.aiAnalysis) : null,
           metadata: JSON.stringify({
-            userProfile: comparison.userProfile,
-            orientation1: comparison.orientation1,
-            orientation2: comparison.orientation2,
-            createdAt: comparison.createdAt
+            userProfile: comparisonData.userProfile,
+            orientation1: comparisonData.orientation1,
+            orientation2: comparisonData.orientation2,
+            createdAt: comparisonData.createdAt
           })
         }
       });
 
-      return comparison;
+      // Return plain object
+      return comparisonData;
     } catch (error) {
       console.error('❌ Error creating comparison:', error);
       throw error;
@@ -56,7 +55,7 @@ class ComparisonStorage {
         return null;
       }
 
-      // Parse metadata and reconstruct comparison object
+      // Parse metadata and reconstruct comparison object as plain object
       const metadata = typeof dbComparison.metadata === 'string' 
         ? JSON.parse(dbComparison.metadata) 
         : dbComparison.metadata;
@@ -67,17 +66,15 @@ class ComparisonStorage {
            : dbComparison.analysis)
         : null;
 
-      // Create ComparisonModel instance
-      const comparison = new ComparisonModel({
+      // Return plain object instead of ComparisonModel instance
+      return {
         id: dbComparison.id,
         userProfile: metadata.userProfile,
         orientation1: metadata.orientation1,
         orientation2: metadata.orientation2,
         aiAnalysis: analysis,
         createdAt: dbComparison.createdAt
-      });
-
-      return comparison;
+      };
     } catch (error) {
       console.error('❌ Error getting comparison:', error);
       return null;
@@ -125,7 +122,8 @@ class ComparisonStorage {
         throw new Error('Comparison not found');
       }
 
-      existingComparison.updateAiAnalysis(aiAnalysis);
+      // Update the aiAnalysis in the plain object
+      existingComparison.aiAnalysis = aiAnalysis;
 
       // Update in database
       await this.prisma.comparison.update({
@@ -174,14 +172,14 @@ class ComparisonStorage {
              : dbComparison.analysis)
           : null;
 
-        return new ComparisonModel({
+        return {
           id: dbComparison.id,
           userProfile: metadata.userProfile,
           orientation1: metadata.orientation1,
           orientation2: metadata.orientation2,
           aiAnalysis: analysis,
           createdAt: dbComparison.createdAt
-        });
+        };
       });
     } catch (error) {
       console.error('❌ Error getting all comparisons:', error);
@@ -199,8 +197,8 @@ class ComparisonStorage {
         if (criteria.orientation) {
           const searchTerm = criteria.orientation.toLowerCase();
           const hasOrientation = 
-            comparison.orientation1.name.toLowerCase().includes(searchTerm) ||
-            comparison.orientation2.name.toLowerCase().includes(searchTerm);
+            (comparison.orientation1.name || comparison.orientation1.licence || '').toLowerCase().includes(searchTerm) ||
+            (comparison.orientation2.name || comparison.orientation2.licence || '').toLowerCase().includes(searchTerm);
           if (!hasOrientation) return false;
         }
 
@@ -258,8 +256,8 @@ class ComparisonStorage {
         stats.byLocation[location] = (stats.byLocation[location] || 0) + 1;
 
         // Orientation stats
-        const ori1 = comparison.orientation1.name;
-        const ori2 = comparison.orientation2.name;
+        const ori1 = comparison.orientation1.name || comparison.orientation1.licence;
+        const ori2 = comparison.orientation2.name || comparison.orientation2.licence;
         stats.byOrientation[ori1] = (stats.byOrientation[ori1] || 0) + 1;
         stats.byOrientation[ori2] = (stats.byOrientation[ori2] || 0) + 1;
 
@@ -294,7 +292,7 @@ class ComparisonStorage {
       return {
         exportedAt: new Date().toISOString(),
         version: '1.0',
-        comparisons: allComparisons.map(c => c.toJSON())
+        comparisons: allComparisons
       };
     } catch (error) {
       console.error('❌ Error exporting data:', error);
@@ -314,8 +312,7 @@ class ComparisonStorage {
 
       for (const compData of data.comparisons) {
         try {
-          const comparison = ComparisonModel.fromJSON(compData);
-          await this.create(comparison);
+          await this.create(compData);
           imported++;
         } catch (error) {
           console.error('❌ Error importing comparison:', error);

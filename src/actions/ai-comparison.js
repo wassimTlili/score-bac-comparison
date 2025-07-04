@@ -37,13 +37,13 @@ const ComparisonAnalysisSchema = z.object({
 });
 
 /**
- * Generate AI comparison analysis for two orientations
- * @param {Object} orientation1 - First orientation data
- * @param {Object} orientation2 - Second orientation data  
- * @param {Object} userProfile - User profile with score and location
- * @returns {Promise<Object>} AI analysis result
+ * Generate and store AI comparison analysis.
+ * @param {Object} comparisonData - The full comparison object.
+ * @returns {Promise<Object>} The generated AI analysis.
  */
-export async function generateComparison(orientation1, orientation2, userProfile) {
+export async function generateComparisonAnalysis(comparisonData) {
+  const { orientation1, orientation2, userProfile } = comparisonData;
+
   try {
     const prompt = createComparisonPrompt(orientation1, orientation2, userProfile);
 
@@ -61,23 +61,24 @@ export async function generateComparison(orientation1, orientation2, userProfile
       generatedAt: new Date(),
       modelUsed: 'gpt-4o',
       promptTokens: result.usage?.promptTokens || 0,
-      completionTokens: result.usage?.completionTokens || 0
+      completionTokens: result.usage?.completionTokens || 0,
+      isFallback: false
     };
 
-    return {
-      success: true,
-      data: analysis
-    };
+    // This is where you would typically save the analysis to your database
+    // For this example, we'll just return it.
+    comparisonData.aiAnalysis = analysis;
+
+    return analysis;
 
   } catch (error) {
     console.error('❌ Error generating AI comparison:', error);
     
-    // Return fallback analysis in case of AI failure
-    return {
-      success: false,
-      error: error.message,
-      data: createFallbackAnalysis(orientation1, orientation2, userProfile)
-    };
+    // Create and store fallback analysis
+    const fallbackAnalysis = createFallbackAnalysis(orientation1, orientation2, userProfile);
+    comparisonData.aiAnalysis = fallbackAnalysis;
+
+    return fallbackAnalysis;
   }
 }
 

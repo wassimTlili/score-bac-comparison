@@ -59,8 +59,9 @@ model Orientation {
   
   university   University @relation(fields: [universityId], references: [id])
   bacScores    BacScore[]
-  comparisons1 Comparison[] @relation("Orientation1")
-  comparisons2 Comparison[] @relation("Orientation2")
+  // Remove the comparison relations since we're not using foreign keys
+  // comparisons1 Comparison[] @relation("Orientation1")
+  // comparisons2 Comparison[] @relation("Orientation2")
   
   @@map("orientations")
 }
@@ -85,17 +86,18 @@ model BacScore {
 // User Comparisons
 model Comparison {
   id             String   @id @default(cuid())
-  orientation1Id String
-  orientation2Id String
+  orientation1Id String   // Store orientation code instead of DB ID
+  orientation2Id String   // Store orientation code instead of DB ID
   userBacType    String   // User's bac type
   userScore      Float    // User's bac score
   analysis       Json?    // AI-generated comparison analysis
-  metadata       Json?    // Additional metadata
+  metadata       Json?    // Additional metadata (includes full orientation data)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   
-  orientation1 Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
-  orientation2 Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
+  // Remove foreign key constraints since orientations are in JSON files
+  // orientation1 Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
+  // orientation2 Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
   chatSessions ChatSession[]
   
   @@map("comparisons")

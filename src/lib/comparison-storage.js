@@ -1,8 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-// Initialize Prisma client
-const prisma = global.prisma || new PrismaClient();
-if (process.env.NODE_ENV === 'development') global.prisma = prisma;
+import { prisma } from './prisma.js';
 
 // Database-backed storage for comparisons
 class ComparisonStorage {

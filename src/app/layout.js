@@ -4,6 +4,7 @@ import { AppProvider } from '../context/AppContext';
 import { PomodoroProvider } from './contexts/PomodoroTimer';
 import { I18nProvider } from './i18n/client';
 import MainLayout from '../components/Layout/MainLayout';
+import ClientHydrationWrapper from '../components/ClientHydrationWrapper';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,16 +23,19 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+        suppressHydrationWarning
       >
         <I18nProvider locale="fr">
           <AppProvider>
             <PomodoroProvider>
-              <MainLayout>
-                {children}
-              </MainLayout>
+              <ClientHydrationWrapper>
+                <MainLayout>
+                  {children}
+                </MainLayout>
+              </ClientHydrationWrapper>
             </PomodoroProvider>
           </AppProvider>
         </I18nProvider>

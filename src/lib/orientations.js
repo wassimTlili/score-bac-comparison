@@ -1,5 +1,4 @@
 import orientationsData from '@/data/orientations.json';
-import prisma from './prisma';
 
 // Static data access (fallback for development)
 export function getStaticOrientationsData() {
@@ -326,65 +325,11 @@ export function getComparisonData(orientation1Id, orientation2Id) {
   };
 }
 
-// Database access functions (for production)
-export async function getOrientationsFromDB() {
-  try {
-    const orientations = await prisma.orientation.findMany({
-      include: {
-        university: {
-          include: {
-            hub: true
-          }
-        },
-        bacScores: true
-      }
-    });
-
-    return orientations.map(orientation => ({
-      id: orientation.code,
-      name: orientation.licence,
-      nameAr: orientation.licence,
-      code: orientation.code,
-      hub: orientation.university.hub.name,
-      university: orientation.university.name,
-      category: getCategoryFromLicence(orientation.licence),
-      minScore: getMinScoreFromBacScores(orientation.bacScores),
-      bacScores: orientation.bacScores.map(bs => ({
-        bacType: bs.bacType,
-        score2024: bs.score2024,
-        score2023: bs.score2023,
-        score2022: bs.score2022
-      })),
-      description: `${orientation.licence} - ${orientation.university.name}`,
-      duration: getDurationFromLicence(orientation.licence),
-      degree: getDegreeFromLicence(orientation.licence),
-      skills: getSkillsFromLicence(orientation.licence),
-      careers: getCareersFromLicence(orientation.licence),
-      institutes: [orientation.university.name],
-      governorates: [getGovernorateFromHub(orientation.university.hub.name)]
-    }));
-  } catch (error) {
-    console.error('Failed to fetch orientations from database:', error);
-    // Fallback to static data
-    return getStaticOrientationsData().orientations;
-  }
-}
-
 export async function getGovernoratesFromDB() {
   try {
-    const hubs = await prisma.hub.findMany({
-      include: {
-        universities: true
-      }
-    });
-
-    return hubs.map(hub => ({
-      id: getGovernorateIdFromHub(hub.name),
-      name: getGovernorateNameFromHub(hub.name),
-      nameAr: getGovernorateNameFromHub(hub.name),
-      region: getRegionFromHub(hub.name),
-      universities: hub.universities.map(u => u.name)
-    }));
+    // Database functionality removed to prevent client-side imports
+    // Fallback to static data
+    return getStaticOrientationsData().governorates;
   } catch (error) {
     console.error('Failed to fetch governorates from database:', error);
     return getStaticOrientationsData().governorates;

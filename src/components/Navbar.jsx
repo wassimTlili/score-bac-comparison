@@ -4,13 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { SignedIn, SignedOut, SignInButton, UserButton, useClerk } from '@clerk/nextjs';
 import { 
   CalculatorIcon, 
   GitCompareIcon, 
   Bot ,
   MenuIcon,
   XIcon,
-  GraduationCapIcon
+  GraduationCapIcon,
+  LogOutIcon
 } from 'lucide-react';
 
 const navigation = [
@@ -37,6 +39,7 @@ const navigation = [
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { signOut } = useClerk();
 
   const isActive = (href) => {
     if (href === '/') {
@@ -99,8 +102,61 @@ export default function Navbar() {
             </div>
           </div>
 
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center space-x-4">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-200 shadow-lg"
+                >
+                  تسجيل الدخول
+                </motion.button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-10 h-10"
+                  },
+                  variables: {
+                    colorText: '#fff',
+                  },
+                  // Relabel sign out button to Arabic
+                  signOutButton: {
+                    label: 'تسجيل الخروج',
+                  }
+                }}
+                afterSignOutUrl="/"
+              />
+            </SignedIn>
+          </div>
+
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center space-x-2">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg text-sm font-medium"
+                >
+                  دخول
+                </motion.button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+                afterSignOutUrl="/"
+              />
+            </SignedIn>
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

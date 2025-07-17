@@ -43,6 +43,19 @@ body {
   animation: slideInUp 0.3s ease-out;
 }
 
+/* Animation delay utilities */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+
 @keyframes slideInUp {
   from {
     opacity: 0;

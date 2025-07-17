@@ -1,8 +1,7 @@
 'use client'
 
-'use client'
-
 import React, { createContext, useContext, useState } from 'react';
+import { FloatingNexieProvider } from './FloatingNexieContext';
 
 const AppContext = createContext();
 
@@ -17,7 +16,9 @@ export function AppProvider({ children }) {
       results,
       setResults
     }}>
-      {children}
+      <FloatingNexieProvider>
+        {children}
+      </FloatingNexieProvider>
     </AppContext.Provider>
   );
 }

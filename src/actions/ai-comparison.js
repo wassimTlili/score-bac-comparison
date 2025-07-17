@@ -6,34 +6,104 @@ import { COMPARISON_SYSTEM_PROMPT, createComparisonPrompt } from '../lib/prompts
 import { createFallbackAnalysis } from '../lib/analysis-utils.js';
 import { z } from 'zod';
 
-// Zod schema for AI response validation
+// Zod schema for AI response validation - Updated to match prompts
 const ComparisonAnalysisSchema = z.object({
-  overview: z.string(),
-  orientation1Analysis: z.object({
-    strengths: z.array(z.string()),
-    challenges: z.array(z.string()),
-    suitabilityScore: z.number().min(0).max(10),
-    careerProspects: z.array(z.string())
+  summary: z.object({
+    recommendation: z.string(),
+    confidence: z.number().min(0).max(100),
+    reasoning: z.string()
   }),
-  orientation2Analysis: z.object({
-    strengths: z.array(z.string()),
-    challenges: z.array(z.string()),
-    suitabilityScore: z.number().min(0).max(10),
-    careerProspects: z.array(z.string())
+  criteriaComparison: z.object({
+    'فرص القبول': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    }),
+    'سوق العمل': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    }),
+    'المرتب المتوقع': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    }),
+    'صعوبة الدراسة': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    }),
+    'التطوير المهني': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    }),
+    'الاستقرار الوظيفي': z.object({
+      orientation1: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      }),
+      orientation2: z.object({
+        score: z.number().min(0).max(100),
+        note: z.string(),
+        details: z.string()
+      })
+    })
   }),
-  recommendation: z.object({
-    preferred: z.string(),
+  overallScores: z.object({
+    orientation1: z.object({
+      total: z.number().min(0).max(600),
+      percentage: z.number().min(0).max(100),
+      name: z.string()
+    }),
+    orientation2: z.object({
+      total: z.number().min(0).max(600),
+      percentage: z.number().min(0).max(100),
+      name: z.string()
+    })
+  }),
+  finalRecommendation: z.object({
+    winner: z.string(),
     reasoning: z.string(),
-    actionSteps: z.array(z.string())
-  }),
-  universitiesComparison: z.array(z.object({
-    orientation: z.string(),
-    university: z.string(),
-    location: z.string(),
-    admissionDifficulty: z.enum(['facile', 'moyenne', 'difficile']),
-    reputation: z.enum(['excellente', 'bonne', 'moyenne']),
-    facilities: z.string()
-  }))
+    nextSteps: z.array(z.string())
+  })
 });
 
 /**

@@ -1,7 +1,7 @@
 // System prompts for AI comparison generation
 export const COMPARISON_SYSTEM_PROMPT = `
 Tu es un conseiller d'orientation expert spécialisé dans le système éducatif tunisien et le baccalauréat tunisien. 
-Tu aides les étudiants tunisiens à comparer deux orientations universitaires en tenant compte de leur score au bac, leur localisation, et le marché de l'emploi en Tunisie.
+Tu aides les étudiants tunisiens à comparer deux orientations universitaires en analysant chaque critère avec des notes détaillées.
 
 Contexte important:
 - Le système de notation tunisien va de 0 à 200 points
@@ -10,13 +10,20 @@ Contexte important:
 - Considère les gouvernorats tunisiens et leurs spécificités économiques
 
 Instructions pour l'analyse:
-1. Analyse chaque orientation en détail (forces, défis, perspectives)
-2. Évalue la compatibilité avec le profil de l'étudiant (score, localisation)
-3. Compare les opportunités d'emploi en Tunisie pour chaque domaine
-4. Fournis des recommandations personnalisées et actionables
-5. Sois objectif mais encourageant dans tes analyses
+1. Évalue chaque orientation sur 6 critères principaux avec des notes sur 100
+2. Pour chaque critère, fournis une note justifiée et une explication détaillée
+3. Compare les deux orientations point par point
+4. Fournis des recommandations personnalisées basées sur le profil de l'étudiant
 
-Format de réponse attendu: JSON structuré avec tous les détails d'analyse.
+Critères d'évaluation obligatoires:
+- فرص القبول (Chances d'admission) /100
+- سوق العمل (Marché de l'emploi) /100  
+- المرتب المتوقع (Salaire attendu) /100
+- صعوبة الدراسة (Difficulté des études) /100
+- التطوير المهني (Développement professionnel) /100
+- الاستقرار الوظيفي (Stabilité professionnelle) /100
+
+Format de réponse attendu: JSON structuré avec notes détaillées pour chaque critère.
 `;
 
 export const CHATBOT_SYSTEM_PROMPT = `
@@ -51,26 +58,39 @@ export function createComparisonPrompt(orientation1, orientation2, userProfile) 
     return arr.join(separator);
   };
 
+  // Get latest score from bacScores
+  const getLatestScore = (orientation) => {
+    if (!orientation?.bacScores || !Array.isArray(orientation.bacScores)) return 'Non spécifié';
+    const mathsScore = orientation.bacScores.find(score => score.bacType === 'رياضيات');
+    const scienceScore = orientation.bacScores.find(score => score.bacType === 'علوم تجريبية');
+    const artsScore = orientation.bacScores.find(score => score.bacType === 'آداب');
+    
+    const latest2024 = mathsScore?.score2024 || scienceScore?.score2024 || artsScore?.score2024;
+    const latest2023 = mathsScore?.score2023 || scienceScore?.score2023 || artsScore?.score2023;
+    
+    return latest2024 || latest2023 || 'Non spécifié';
+  };
+
   return `
 Analyse et compare ces deux orientations universitaires pour un étudiant tunisien:
 
-ORIENTATION 1: ${orientation1?.name || 'Non spécifiée'}
+ORIENTATION 1: ${orientation1?.licence || orientation1?.name || 'Non spécifiée'}
 - Code: ${orientation1?.code || 'N/A'}
-- Université: ${orientation1?.university || 'Non spécifiée'}
-- Hub: ${orientation1?.hub || 'Non spécifié'}
-- Catégorie: ${orientation1?.category || 'Non spécifiée'}
-- Description: ${orientation1?.description || 'Non spécifiée'}
-- Score minimum requis: ${orientation1?.minScore || 0}/200
+- Université: ${orientation1?.university || orientation1?.institution || 'Non spécifiée'}
+- Hub: ${orientation1?.hub || orientation1?.location || 'Non spécifié'}
+- Catégorie: ${orientation1?.category || orientation1?.domaine || 'Non spécifiée'}
+- Description: ${orientation1?.description || orientation1?.licence || 'Non spécifiée'}
+- Score minimum requis: ${getLatestScore(orientation1)}/200
 - Compétences: ${safeJoin(orientation1?.skills)}
 - Débouchés: ${safeJoin(orientation1?.careers)}
 
-ORIENTATION 2: ${orientation2?.name || 'Non spécifiée'}
+ORIENTATION 2: ${orientation2?.licence || orientation2?.name || 'Non spécifiée'}
 - Code: ${orientation2?.code || 'N/A'}
-- Université: ${orientation2?.university || 'Non spécifiée'}
-- Hub: ${orientation2?.hub || 'Non spécifié'}
-- Catégorie: ${orientation2?.category || 'Non spécifiée'}
-- Description: ${orientation2?.description || 'Non spécifiée'}
-- Score minimum requis: ${orientation2?.minScore || 0}/200
+- Université: ${orientation2?.university || orientation2?.institution || 'Non spécifiée'}
+- Hub: ${orientation2?.hub || orientation2?.location || 'Non spécifié'}
+- Catégorie: ${orientation2?.category || orientation2?.domaine || 'Non spécifiée'}
+- Description: ${orientation2?.description || orientation2?.licence || 'Non spécifiée'}
+- Score minimum requis: ${getLatestScore(orientation2)}/200
 - Compétences: ${safeJoin(orientation2?.skills)}
 - Débouchés: ${safeJoin(orientation2?.careers)}
 
@@ -82,41 +102,109 @@ PROFIL DE L'ÉTUDIANT:
 ANALYSE DEMANDÉE:
 Fournis une analyse complète au format JSON avec la structure suivante:
 {
-  "overview": "Vue d'ensemble de la comparaison",
-  "orientation1Analysis": {
-    "strengths": ["Force 1", "Force 2", "Force 3"],
-    "challenges": ["Défi 1", "Défi 2"],
-    "suitabilityScore": score_sur_10,
-    "careerProspects": ["Débouché 1", "Débouché 2", "Débouché 3"]
+  "summary": {
+    "recommendation": "nom_de_l_orientation_recommandée",
+    "confidence": score_de_confiance_0_100,
+    "reasoning": "Explication détaillée du choix en arabe"
   },
-  "orientation2Analysis": {
-    "strengths": ["Force 1", "Force 2", "Force 3"],
-    "challenges": ["Défi 1", "Défi 2"],
-    "suitabilityScore": score_sur_10,
-    "careerProspects": ["Débouché 1", "Débouché 2", "Débouché 3"]
-  },
-  "recommendation": {
-    "preferred": "nom_de_l_orientation_recommandée",
-    "reasoning": "Explication détaillée du choix",
-    "actionSteps": ["Étape 1", "Étape 2", "Étape 3"]
-  },
-  "universitiesComparison": [
-    {
-      "orientation": "nom_orientation",
-      "university": "nom_université",
-      "location": "gouvernorat",
-      "admissionDifficulty": "facile|moyenne|difficile",
-      "reputation": "excellente|bonne|moyenne",
-      "facilities": "description_des_infrastructures"
+  "criteriaComparison": {
+    "فرص القبول": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تفسير مفصل للنقطة باللغة العربية",
+        "details": "شرح مفصل عن سبب هذه النقطة وعوامل التقييم"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تفسير مفصل للنقطة باللغة العربية", 
+        "details": "شرح مفصل عن سبب هذه النقطة وعوامل التقييم"
+      }
+    },
+    "سوق العمل": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تقييم فرص العمل والطلب في السوق التونسي",
+        "details": "تحليل مفصل لوضع سوق العمل والفرص المتاحة"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تقييم فرص العمل والطلب في السوق التونسي",
+        "details": "تحليل مفصل لوضع سوق العمل والفرص المتاحة"
+      }
+    },
+    "المرتب المتوقع": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تقييم مستوى الراتب المتوقع في تونس",
+        "details": "معلومات مفصلة عن نطاق الرواتب والعوامل المؤثرة"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تقييم مستوى الراتب المتوقع في تونس",
+        "details": "معلومات مفصلة عن نطاق الرواتب والعوامل المؤثرة"
+      }
+    },
+    "صعوبة الدراسة": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تقييم مستوى صعوبة المنهج والدراسة",
+        "details": "تفاصيل عن طبيعة المواد ومتطلبات النجاح"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تقييم مستوى صعوبة المنهج والدراسة",
+        "details": "تفاصيل عن طبيعة المواد ومتطلبات النجاح"
+      }
+    },
+    "التطوير المهني": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تقييم فرص التطوير والتقدم المهني",
+        "details": "معلومات عن مسارات التطوير والدراسات العليا"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تقييم فرص التطوير والتقدم المهني",
+        "details": "معلومات عن مسارات التطوير والدراسات العليا"
+      }
+    },
+    "الاستقرار الوظيفي": {
+      "orientation1": {
+        "score": score_sur_100,
+        "note": "تقييم مدى الاستقرار في هذا المجال",
+        "details": "تحليل استقرار القطاع والأمان الوظيفي"
+      },
+      "orientation2": {
+        "score": score_sur_100,
+        "note": "تقييم مدى الاستقرار في هذا المجال",
+        "details": "تحليل استقرار القطاع والأمان الوظيفي"
+      }
     }
-  ]
+  },
+  "overallScores": {
+    "orientation1": {
+      "total": مجموع_النقاط_من_600,
+      "percentage": النسبة_المئوية,
+      "name": "اسم التخصص الأول"
+    },
+    "orientation2": {
+      "total": مجموع_النقاط_من_600,
+      "percentage": النسبة_المئوية,
+      "name": "اسم التخصص الثاني"
+    }
+  },
+  "finalRecommendation": {
+    "winner": "اسم التخصص الفائز",
+    "reasoning": "تفسير مفصل لسبب التوصية باللغة العربية",
+    "nextSteps": ["خطوة 1", "خطوة 2", "خطوة 3"]
+  }
 }
 
-Assure-toi que l'analyse soit:
-- Spécifique au contexte tunisien
-- Adaptée au score de l'étudiant
-- Realistic quant aux opportunités d'admission
-- Informative sur le marché de l'emploi local
+ملاحظات مهمة:
+- استخدم اللغة العربية في جميع النصوص والتفسيرات
+- اجعل النقاط واقعية ومبررة بناء على المعطيات
+- قدم تفاصيل مفيدة وعملية في كل قسم "details"
+- تأكد من أن مجموع النقاط من 600 (6 معايير × 100 نقطة)
 `;
 }
 

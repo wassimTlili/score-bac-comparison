@@ -1,7 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from '@clerk/nextjs';
 import { AppProvider } from '../context/AppContext';
-import { PomodoroProvider } from './contexts/PomodoroTimer';
+import { FloatingNexieProvider } from '../context/FloatingNexieContext';
 import { I18nProvider } from './i18n/client';
 import MainLayout from '../components/Layout/MainLayout';
 import ClientHydrationWrapper from '../components/ClientHydrationWrapper';
@@ -23,23 +24,25 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
-        suppressHydrationWarning
-      >
-        <I18nProvider locale="fr">
-          <AppProvider>
-            <PomodoroProvider>
-              <ClientHydrationWrapper>
-                <MainLayout>
-                  {children}
-                </MainLayout>
-              </ClientHydrationWrapper>
-            </PomodoroProvider>
-          </AppProvider>
-        </I18nProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="fr" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
+          suppressHydrationWarning
+        >
+          <I18nProvider locale="fr">
+            <AppProvider>
+              <FloatingNexieProvider>
+                <ClientHydrationWrapper>
+                  <MainLayout>
+                    {children}
+                  </MainLayout>
+                </ClientHydrationWrapper>
+              </FloatingNexieProvider>
+            </AppProvider>
+          </I18nProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

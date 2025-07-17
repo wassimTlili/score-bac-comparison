@@ -12,6 +12,57 @@ export default function ChatBot({ comparison, onExpand, isExpanded }) {
   const userProfile = comparison.userProfile || {};
   const comparisonData = comparison.aiAnalysis || {};
   
+  // If no AI analysis yet, show loading state
+  if (!comparison.aiAnalysis) {
+    return (
+      <div className="h-full flex flex-col rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-700/30">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.488-1.22L3 21l1.22-5.512A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white text-sm">المحادثة الذكية</h3>
+              <p className="text-xs text-gray-400">جاري التحضير...</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onExpand(isExpanded ? null : 'chat')}
+              className="p-1.5 hover:bg-slate-600 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isExpanded ? "M20 12H4" : "M4 8h16M4 16h16"} />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Loading Content */}
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center">
+            <div className="animate-spin w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <h4 className="text-white font-medium mb-2">جاري إعداد المحادثة الذكية...</h4>
+            <p className="text-sm text-gray-400 mb-4">
+              ستتم تفعيل المحادثة بعد الانتهاء من التحليل
+            </p>
+            <div className="bg-slate-800/50 rounded-lg p-4 max-w-md">
+              <p className="text-xs text-gray-400 text-right">
+                💡 ستتمكن قريباً من:
+                <br />• طرح أسئلة حول التخصصات
+                <br />• الحصول على نصائح مخصصة
+                <br />• معلومات عن فرص القبول
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: '/api/chat',
     body: {
@@ -23,20 +74,20 @@ export default function ChatBot({ comparison, onExpand, isExpanded }) {
     initialMessages: isFirstMessage ? [{
       id: 'welcome',
       role: 'assistant',
-      content: `Bonjour ! J'ai analysé votre comparaison entre **${comparison.orientation1.name || comparison.orientation1.licence}** et **${comparison.orientation2.name || comparison.orientation2.licence}**.
+      content: `مرحباً! لقد حللت مقارنتك بين **${comparison.orientation1.name || comparison.orientation1.licence}** و **${comparison.orientation2.name || comparison.orientation2.licence}**.
 
-📊 **Votre profil**: ${userProfile.score}/200 à ${userProfile.location}
+📊 **ملفك الشخصي**: ${userProfile.score}/200 في ${userProfile.location}
 
-🎯 **Recommandation**: ${comparisonData.recommendation?.preferred || 'En cours d\'analyse...'}
+🎯 **التوصية**: ${comparisonData.recommendation?.preferred || 'جاري التحليل...'}
 
-Je peux vous aider à comprendre cette analyse et répondre à vos questions sur :
-• Les chances d'admission dans les universités
-• Les perspectives de carrière et salaires
-• Les étapes de candidature et délais
-• Les alternatives à considérer
-• Les bourses et aides financières
+يمكنني مساعدتك في فهم هذا التحليل والإجابة على أسئلتك حول:
+• فرص القبول في الجامعات
+• آفاق المهنة والرواتب
+• خطوات التقديم والمواعيد
+• البدائل المتاحة
+• المنح والمساعدات المالية
 
-Que souhaitez-vous savoir ?`
+ما الذي تود معرفته؟`
     }] : [],
     onFinish: () => {
       if (isFirstMessage) setIsFirstMessage(false);
@@ -49,11 +100,11 @@ Que souhaitez-vous savoir ?`
 
   // Update suggested questions to match reference project
   const quickQuestions = [
-    "Quelles sont mes chances d'admission ?",
-    "Quels sont les débouchés les plus prometteurs ?",
-    "Comment me préparer pour ces études ?", 
-    "Quelles universités recommandez-vous ?",
-    "Quelles sont les alternatives à considérer ?"
+    "ما هي فرص قبولي؟",
+    "ما هي أفضل الآفاق المهنية؟",
+    "كيف أستعد لهذه الدراسات؟", 
+    "أي جامعات توصي بها؟",
+    "ما هي البدائل المتاحة؟"
   ];
 
   if (!comparison.aiAnalysis) {
@@ -78,8 +129,8 @@ Que souhaitez-vous savoir ?`
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold text-white text-sm">Assistant IA</h3>
-            <p className="text-xs text-gray-400">Chat interactif</p>
+            <h3 className="font-semibold text-white text-sm">المساعد الذكي</h3>
+            <p className="text-xs text-gray-400">محادثة تفاعلية</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">

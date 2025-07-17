@@ -6,13 +6,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image'
 import { ChevronDown, ChevronUp, Menu, X, LogOut, User, Download } from 'lucide-react'
-import DarkModeToggle from './darkModeToggle'
+
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/app/i18n/client'
  
-export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand }) {
+export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand, isMobile = false }) {
   const [isExpanded, setIsExpanded] = useState(true) // Internal state for fallback
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState({})
@@ -117,13 +117,6 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
           color: 'text-teal-500' 
         },
       ],
-    },
-    { 
-      name: dictionary.sidebar?.pomodoroTimer || 'Pomodoro Timer', 
-      iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwlA2Xmx78GCaSOHA4crsqN6xmZvByFj3UkdP1", 
-      darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwlA2Xmx78GCaSOHA4crsqN6xmZvByFj3UkdP1", 
-      href: '/pomodoro', 
-      color: 'text-red-500' 
     },
     { 
       name: 'Study With Me', 
@@ -250,8 +243,12 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
   }, [])
 
   const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev)
-  }, [])
+    if (isMobile && onToggleExpand) {
+      onToggleExpand();
+    } else {
+      setIsMobileMenuOpen(prev => !prev);
+    }
+  }, [isMobile, onToggleExpand])
 
   const toggleSection = useCallback((sectionName) => {
     setExpandedSections(prev => {
@@ -273,12 +270,17 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
     
     setActiveItem(href)
     
+    // Close mobile menu when item is clicked
+    if (isMobile && onToggleExpand) {
+      onToggleExpand();
+    }
+    
     if (href.startsWith('http://') || href.startsWith('https://')) {
       window.open(href, '_blank', 'noopener,noreferrer')
     } else {
       router.push(href)
     }
-  }, [router])
+  }, [router, isMobile, onToggleExpand])
 
   const handleSignOut = useCallback(() => {
     // Mock sign out for now
@@ -287,42 +289,59 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
 
   const SidebarContent = ({ isMobile = false }) => (
     <>
-      <div className="p-4 flex items-center justify-between">
-        <div className='flex justify-center items-center'>
-          <Image
-            className={`${!effectiveIsExpanded && !isMobile ? 'hidden' : ''}`}
-            src="https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwC5mratq5Az9VXH8BF0IkZUdTgcuet1i36Yyj"
-            width={35}
-            height={35}
-            alt="NextGen Logo"
-          />
-          <Link href={`/${locale}`}>
-            <h2 className={`text-xl font-bold mx-2 dark:text-[#79EFE8] text-[#51beb7] ${!effectiveIsExpanded && !isMobile ? 'hidden' : ''}`}>
-              NextGen.tn
-            </h2>
+      <div className={`p-4 flex items-center ${effectiveIsExpanded || isMobile ? 'justify-between' : 'justify-center'} border-b border-gray-200 dark:border-gray-700`}>
+        <div className={`flex items-center ${effectiveIsExpanded || isMobile ? 'space-x-3' : 'justify-center'}`}>
+          <Link href={`/${locale}`} className="flex items-center">
+            <Image
+              className={`${!effectiveIsExpanded && !isMobile ? 'w-8 h-8' : 'w-9 h-9'} transition-all duration-300`}
+              src="https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwC5mratq5Az9VXH8BF0IkZUdTgcuet1i36Yyj"
+              width={effectiveIsExpanded || isMobile ? 36 : 32}
+              height={effectiveIsExpanded || isMobile ? 36 : 32}
+              alt="NextGen Logo"
+            />
           </Link>
+          {(effectiveIsExpanded || isMobile) && (
+            <Link href={`/${locale}`}>
+              <span className="text-teal-400 font-bold text-lg">NextGen.tn</span>
+            </Link>
+          )}
         </div>
-       
-        {isMobile ? (
-          <button
-            onClick={toggleMobileMenu}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-            aria-label={dictionary.sidebar?.closeMobileMenu || "Close mobile menu"}
-          >
-            <X size={24} />
-          </button>
-        ) : (
-          <button
-            onClick={toggleExpand}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-            aria-label={effectiveIsExpanded ? dictionary.sidebar?.collapseSidebar || "Collapse sidebar" : dictionary.sidebar?.expandSidebar || "Expand sidebar"}
-          >
-            {effectiveIsExpanded ? (
-              isRtl ? <ChevronRight size={24} /> : <ChevronLeft size={24} />
-            ) : (
-              isRtl ? <ChevronLeft size={24} /> : <ChevronRight size={24} />
-            )}
-          </button>
+        
+        {(effectiveIsExpanded || isMobile) && (
+          isMobile ? (
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label={dictionary.sidebar?.closeMobileMenu || "Close mobile menu"}
+            >
+              <X size={24} />
+            </button>
+          ) : (
+            <button
+              onClick={toggleExpand}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label={effectiveIsExpanded ? dictionary.sidebar?.collapseSidebar || "Collapse sidebar" : dictionary.sidebar?.expandSidebar || "Expand sidebar"}
+            >
+              {effectiveIsExpanded ? (
+                isRtl ? <ChevronRight size={24} /> : <ChevronLeft size={24} />
+              ) : (
+                isRtl ? <ChevronLeft size={24} /> : <ChevronRight size={24} />
+              )}
+            </button>
+          )
+        )}
+        
+        {/* Collapsed state toggle button */}
+        {!effectiveIsExpanded && !isMobile && (
+          <div className="absolute top-4 right-2">
+            <button
+              onClick={toggleExpand}
+              className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              aria-label={dictionary.sidebar?.expandSidebar || "Expand sidebar"}
+            >
+              {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+            </button>
+          </div>
         )}
       </div>
       
@@ -342,7 +361,8 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                   }}
                   className={`flex items-center w-full py-3 px-4 transition-colors hover:bg-teal-100 dark:hover:bg-gray-800 ${
                     hasActiveChild ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : ''
-                  } ${!effectiveIsExpanded && !isMobile ? 'justify-center' : ''}`}
+                  } ${!effectiveIsExpanded && !isMobile ? 'justify-center tooltip-parent' : ''}`}
+                  title={!effectiveIsExpanded && !isMobile ? item.name : ''}
                 >
                   <Image 
                     src={item.iconSrc || "/placeholder.svg"} 
@@ -380,7 +400,10 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                             isActive ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                           } ${subItem.disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                           onClick={() => {
-                            setIsMobileMenuOpen(false)
+                            // Close mobile menu when sub-item is clicked
+                            if (isMobile && onToggleExpand) {
+                              onToggleExpand();
+                            }
                             handleMenuItemClick(subItem.name, subItem.href, subItem.disabled)
                           }}
                           disabled={subItem.disabled}
@@ -422,11 +445,15 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                   isActive ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                 } ${!effectiveIsExpanded && !isMobile ? 'justify-center' : ''} ${item.disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                 onClick={() => {
-                  setIsMobileMenuOpen(false)
+                  // Close mobile menu when item is clicked
+                  if (isMobile && onToggleExpand) {
+                    onToggleExpand();
+                  }
                   handleMenuItemClick(item.name, item.href, item.disabled)
                 }}
                 disabled={item.disabled}
                 aria-label={item.name}
+                title={!effectiveIsExpanded && !isMobile ? item.name : ''}
               >
                 <Image 
                   src={item.iconSrc || "/placeholder.svg"} 
@@ -457,6 +484,8 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
           }
         })}
         
+      {/* Bottom section - User Profile and Workspace */}
+      <div className="mt-auto border-t border-gray-200 dark:border-gray-700">
         {(effectiveIsExpanded || isMobile) && (
           <div className="mt-4 px-4">
             <div className="flex items-center">
@@ -489,6 +518,36 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             </Button>
           </div>
         )}
+        
+        {/* Collapsed workspace button */}
+        {!effectiveIsExpanded && !isMobile && (
+          <div className="p-2 flex justify-center">
+            <Button
+              onClick={() => {
+                setIsWorkspaceDialogOpen(true)
+                handleMenuItemClick('Workspace', '#')
+              }}
+              className="w-10 h-10 p-0 bg-blue-500 text-white dark:text-white hover:bg-blue-600 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg"
+              title={dictionary.sidebar?.yourWorkspace || "Your Workspace"}
+            >
+              <Image 
+                src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
+                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                width={20} 
+                height={20} 
+                className="dark:hidden"
+              />
+              <Image 
+                src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
+                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                width={20} 
+                height={20} 
+                className="hidden dark:block"
+              />
+            </Button>
+          </div>
+        )}
+      </div>
       </nav>
       
       {/* PWA Install Button - For expanded sidebar */}
@@ -517,16 +576,16 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
         </div>
       )}
       
-      {/* Dark Mode Toggle for collapsed sidebar */}
-      {!effectiveIsExpanded && !isMobile && isLoaded && (
+      {/* Future: Dark Mode Toggle for collapsed sidebar */}
+      {/* {!effectiveIsExpanded && !isMobile && isLoaded && (
         <div className="p-4 flex justify-center">
-          <DarkModeToggle />
+          // Dark mode toggle placeholder
         </div>
-      )}
+      )} */}
       
       {effectiveIsExpanded && !isSignedIn && isLoaded && (
         <div className="p-4 flex justify-center">
-          <DarkModeToggle />
+          {/* Future: Dark mode toggle placeholder */}
         </div>
       )}
       
@@ -551,7 +610,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
               </div>
             </div>
             
-            <DarkModeToggle />
+            {/* Future: Dark mode toggle placeholder */}
           </div>
           
           <Button 
@@ -571,25 +630,8 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className={`h-full bg-white ${isHome ? "dark:bg-black" : "dark:bg-gray-900"} text-gray-800 dark:text-gray-200 ${effectiveIsExpanded ? 'w-64' : 'w-16'} flex flex-col ${isRtl ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700`}>
+      <aside className={`h-full bg-white ${isHome ? "dark:bg-black" : "dark:bg-gray-900"} text-gray-800 dark:text-gray-200 ${effectiveIsExpanded ? 'w-64' : 'w-16'} flex flex-col ${isRtl ? 'border-l' : 'border-r'} border-gray-200 dark:border-gray-700 transition-all duration-300`}>
         <SidebarContent />
-      </aside>
-
-      {/* Mobile Sidebar */}
-      <div 
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`} 
-        onClick={toggleMobileMenu}
-        aria-hidden="true"
-      ></div>
-      <aside 
-        className={`fixed inset-y-0 ${isRtl ? 'right-0' : 'left-0'} w-64 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-transform duration-300 ease-in-out transform ${
-          isMobileMenuOpen 
-            ? 'translate-x-0' 
-            : isRtl ? 'translate-x-full' : '-translate-x-full'
-        } md:hidden z-50 overflow-y-auto`}
-        aria-label={dictionary.sidebar?.mobileSidebar || "Mobile sidebar"}
-      >
-        <SidebarContent isMobile={true} />
       </aside>
 
       {/* Workspace Feature Dialog */}

@@ -6,37 +6,44 @@ class ComparisonStorage {
     this.prisma = prisma;
   }
 
-  // Create a new comparison
+  // Create a new comparison with a completely different approach
   async create(comparisonData) {
     try {
-      // Validate data (simplified without ComparisonModel)
+      // Validate data
       if (!comparisonData.id || !comparisonData.orientation1 || !comparisonData.orientation2) {
         throw new Error('Invalid comparison data: missing required fields');
       }
 
-      // Store in database - use orientation codes as IDs since orientations are stored in JSON
-      const savedComparison = await this.prisma.comparison.create({
+      console.log('💾 Creating comparison with minimal fields:', comparisonData.id);
+
+      // Use absolute minimal fields to avoid any schema conflicts
+      const comparisonRecord = await this.prisma.comparison.create({
         data: {
           id: comparisonData.id,
-          orientation1Id: comparisonData.orientation1.code,
-          orientation2Id: comparisonData.orientation2.code,
-          userBacType: comparisonData.userProfile.bacType,
-          userScore: comparisonData.userProfile.score,
-          analysis: comparisonData.aiAnalysis ? JSON.stringify(comparisonData.aiAnalysis) : null,
-          metadata: JSON.stringify({
-            userProfile: comparisonData.userProfile,
+          userId: comparisonData.userId,
+          userScore: Number(comparisonData.userProfile?.score || comparisonData.userProfile?.fsScore || 0),
+          userBacType: comparisonData.userProfile?.bacType || comparisonData.userProfile?.filiere || 'unknown',
+          userLocation: comparisonData.userProfile?.location || comparisonData.userProfile?.wilaya || 'تونس',
+          // Store ALL data in aiAnalysis JSON field to avoid schema issues
+          aiAnalysis: {
             orientation1: comparisonData.orientation1,
             orientation2: comparisonData.orientation2,
+            userProfile: comparisonData.userProfile,
+            analysis: comparisonData.aiAnalysis,
             createdAt: comparisonData.createdAt
-          })
+          },
+          analysisStatus: 'pending',
+          isPublic: false,
+          title: `مقارنة بين ${comparisonData.orientation1?.name || comparisonData.orientation1?.licence || 'تخصص 1'} و ${comparisonData.orientation2?.name || comparisonData.orientation2?.licence || 'تخصص 2'}`
         }
       });
 
-      // Return plain object
+      console.log('✅ Comparison created successfully with minimal approach');
       return comparisonData;
+
     } catch (error) {
       console.error('❌ Error creating comparison:', error);
-      throw error;
+      throw new Error(`Failed to store comparison: ${error.message}`);
     }
   }
 
@@ -51,24 +58,29 @@ class ComparisonStorage {
         return null;
       }
 
-      // Parse metadata and reconstruct comparison object as plain object
-      const metadata = typeof dbComparison.metadata === 'string' 
-        ? JSON.parse(dbComparison.metadata) 
-        : dbComparison.metadata;
-
-      const analysis = dbComparison.analysis 
-        ? (typeof dbComparison.analysis === 'string' 
-           ? JSON.parse(dbComparison.analysis) 
-           : dbComparison.analysis)
-        : null;
-
-      // Return plain object instead of ComparisonModel instance
+      // Extract data from aiAnalysis JSON field
+      const aiAnalysisData = dbComparison.aiAnalysis || {};
+      
+      // Ensure userProfile is always present with fallback data
+      const userProfile = aiAnalysisData.userProfile || {
+        score: dbComparison.userScore || 0,
+        fsScore: dbComparison.userScore || 0,
+        bacType: dbComparison.userBacType || 'unknown',
+        filiere: dbComparison.userBacType || 'unknown',
+        location: dbComparison.userLocation || 'تونس',
+        wilaya: dbComparison.userLocation || 'تونس'
+      };
+      
+      // Return plain object with the structure expected by the client
       return {
         id: dbComparison.id,
-        userProfile: metadata.userProfile,
-        orientation1: metadata.orientation1,
-        orientation2: metadata.orientation2,
-        aiAnalysis: analysis,
+        userId: dbComparison.userId,
+        userProfile: userProfile,
+        orientation1: aiAnalysisData.orientation1 || {},
+        orientation2: aiAnalysisData.orientation2 || {},
+        aiAnalysis: aiAnalysisData.analysis || null,
+        analysisStatus: dbComparison.analysisStatus || 'pending',
+        title: dbComparison.title,
         createdAt: dbComparison.createdAt
       };
     } catch (error) {
@@ -92,7 +104,7 @@ class ComparisonStorage {
       await this.prisma.comparison.update({
         where: { id },
         data: {
-          analysis: existingComparison.aiAnalysis ? JSON.stringify(existingComparison.aiAnalysis) : null,
+          aiAnalysis: existingComparison.aiAnalysis ? JSON.stringify(existingComparison.aiAnalysis) : null,
           metadata: JSON.stringify({
             userProfile: existingComparison.userProfile,
             orientation1: existingComparison.orientation1,
@@ -113,24 +125,35 @@ class ComparisonStorage {
   // Update AI analysis for a comparison
   async updateAiAnalysis(id, aiAnalysis) {
     try {
-      const existingComparison = await this.getById(id);
+      const existingComparison = await this.prisma.comparison.findUnique({
+        where: { id }
+      });
+      
       if (!existingComparison) {
         throw new Error('Comparison not found');
       }
 
-      // Update the aiAnalysis in the plain object
-      existingComparison.aiAnalysis = aiAnalysis;
+      // Update the aiAnalysis field while preserving existing data
+      const currentAiAnalysis = existingComparison.aiAnalysis || {};
+      const updatedAiAnalysis = {
+        ...currentAiAnalysis,
+        analysis: aiAnalysis
+      };
 
       // Update in database
       await this.prisma.comparison.update({
         where: { id },
         data: {
-          analysis: JSON.stringify(aiAnalysis),
-          updatedAt: new Date()
+          aiAnalysis: updatedAiAnalysis,
+          analysisStatus: 'completed'
         }
       });
 
-      return existingComparison;
+      return {
+        ...existingComparison,
+        aiAnalysis: aiAnalysis,
+        analysisStatus: 'completed'
+      };
     } catch (error) {
       console.error('❌ Error updating AI analysis:', error);
       throw error;
@@ -324,7 +347,21 @@ class ComparisonStorage {
   }
 }
 
-// Singleton instance
+// Export only the database version - no localStorage fallback
 const comparisonStorage = new ComparisonStorage();
 
-export default comparisonStorage;
+const comparisonStorageAPI = {
+  async create(data) {
+    return await comparisonStorage.create(data);
+  },
+  
+  async getById(id) {
+    return await comparisonStorage.getById(id);
+  },
+  
+  async updateAiAnalysis(id, analysis) {
+    return await comparisonStorage.updateAiAnalysis(id, analysis);
+  }
+};
+
+export default comparisonStorageAPI;

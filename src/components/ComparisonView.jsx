@@ -6,12 +6,113 @@ import AIAnalysisLoader from './AIAnalysisLoader';
 export default function ComparisonView({ comparison, onExpand, isExpanded }) {
   const [activeTab, setActiveTab] = useState('overview');
 
+  const { userProfile, orientation1, orientation2 } = comparison;
+
+  // If no AI analysis, show basic comparison
   if (!comparison.aiAnalysis) {
-    return <AIAnalysisLoader comparisonId={comparison.id} />;
+    return (
+      <div className="h-full flex flex-col rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-700/30">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-[#1581f3]/20 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-[#1581f3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white text-sm">مقارنة التخصصات</h3>
+              <p className="text-xs text-gray-400">مقارنة أساسية</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onExpand(isExpanded ? null : 'analysis')}
+              className="p-1.5 hover:bg-slate-600 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isExpanded ? "M20 12H4" : "M4 8h16M4 16h16"} />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Basic Comparison Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-6">
+            {/* Comparison Table */}
+            <div className="bg-slate-800/50 rounded-lg p-4">
+              <h4 className="font-medium text-white mb-4 flex items-center">
+                <span className="mr-2">⚖️</span>
+                مقارنة سريعة
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-700">
+                      <th className="text-right py-2 text-gray-400">المعيار</th>
+                      <th className="text-center py-2 text-cyan-300">{orientation1?.name || orientation1?.licence}</th>
+                      <th className="text-center py-2 text-cyan-300">{orientation2?.name || orientation2?.licence}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700">
+                    <tr>
+                      <td className="py-3 text-gray-300">الجامعة</td>
+                      <td className="py-3 text-center text-white">{orientation1?.university || 'غير محدد'}</td>
+                      <td className="py-3 text-center text-white">{orientation2?.university || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 text-gray-300">القطب</td>
+                      <td className="py-3 text-center text-white">{orientation1?.hub || 'غير محدد'}</td>
+                      <td className="py-3 text-center text-white">{orientation2?.hub || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 text-gray-300">النقاط المطلوبة 2024</td>
+                      <td className="py-3 text-center text-white">{orientation1?.score2024 || orientation1?.seuil || 'غير محدد'}</td>
+                      <td className="py-3 text-center text-white">{orientation2?.score2024 || orientation2?.seuil || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 text-gray-300">النقاط المطلوبة 2023</td>
+                      <td className="py-3 text-center text-white">{orientation1?.score2023 || 'غير محدد'}</td>
+                      <td className="py-3 text-center text-white">{orientation2?.score2023 || 'غير محدد'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 text-gray-300">فرصة القبول</td>
+                      <td className="py-3 text-center">
+                        {userProfile?.score >= (orientation1?.score2024 || orientation1?.seuil || 0) ? 
+                          <span className="text-green-400">جيدة</span> : 
+                          <span className="text-red-400">ضعيفة</span>
+                        }
+                      </td>
+                      <td className="py-3 text-center">
+                        {userProfile?.score >= (orientation2?.score2024 || orientation2?.seuil || 0) ? 
+                          <span className="text-green-400">جيدة</span> : 
+                          <span className="text-red-400">ضعيفة</span>
+                        }
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* AI Analysis Loading */}
+            <div className="bg-slate-800/50 rounded-lg p-6">
+              <div className="text-center">
+                <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <h4 className="text-white font-medium mb-2">جاري إعداد التحليل الذكي...</h4>
+                <p className="text-sm text-gray-400">
+                  سيتم عرض تحليل مفصل وتوصيات مخصصة قريباً
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const { aiAnalysis } = comparison;
-  const { userProfile, orientation1, orientation2 } = comparison;
 
   // Safety check for AI analysis structure
   if (!aiAnalysis.orientation1Analysis || !aiAnalysis.orientation2Analysis) {
@@ -19,17 +120,17 @@ export default function ComparisonView({ comparison, onExpand, isExpanded }) {
       <div className="p-6">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white font-medium">Finalisation de l'analyse IA...</p>
-          <p className="text-sm text-gray-300 mt-2">Structure d'analyse en cours de génération</p>
+          <p className="text-white font-medium">إنهاء التحليل الذكي...</p>
+          <p className="text-sm text-gray-300 mt-2">جاري إعداد هيكل التحليل</p>
         </div>
       </div>
     );
   }
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: '📊' },
-    { id: 'orientations', label: 'Comparaison', icon: '⚖️' },
-    { id: 'action-plan', label: 'Plan d\'action', icon: '🎯' }
+    { id: 'overview', label: 'نظرة عامة', icon: '📊' },
+    { id: 'orientations', label: 'المقارنة', icon: '⚖️' },
+    { id: 'action-plan', label: 'خطة العمل', icon: '🎯' }
   ];
 
   return (
@@ -43,8 +144,8 @@ export default function ComparisonView({ comparison, onExpand, isExpanded }) {
             </svg>
           </div>
           <div>
-            <h3 className="font-semibold text-white text-sm">Analyse IA</h3>
-            <p className="text-xs text-gray-400">Comparaison détaillée</p>
+            <h3 className="font-semibold text-white text-sm">التحليل الذكي</h3>
+            <p className="text-xs text-gray-400">مقارنة تفصيلية</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">

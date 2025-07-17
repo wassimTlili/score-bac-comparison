@@ -1,0 +1,564 @@
+// Enhanced Prisma Schema for Big Updates
+// This is your updated Prisma schema file based on finale-data.json structure
+// and requirements for Clerk integration, user management, favorites, and RAG
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// USER MANAGEMENT & AUTHENTICATION (CLERK)
+// ==========================================
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique // Clerk user ID
+  email     String?  @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  
+  // User preferences
+  preferredLanguage String @default("ar") // "ar", "fr", "en"
+  theme            String @default("dark") // "dark", "light"
+  notifications    Boolean @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  profiles    UserProfile[]
+  favorites   Favorite[]
+  comparisons Comparison[]
+  conversations Conversation[]
+  
+  @@map("users")
+}
+
+// User Profile containing stepper data
+model UserProfile {
+  id       String @id @default(cuid())
+  userId   String
+  
+  // Stepper Data Fields
+  filiere     String // "math", "science", "info", "tech", "eco", "lettres", "sport"
+  wilaya      String
+  birthDate   DateTime?
+  gender      String? // "male", "female"
+  session     String? // "principale", "controle"
+  
+  // Academic Scores
+  mgScore     Float? // Moyenne Générale
+  fsScore     Float? // Formule Spécifique
+  
+  // Subject Grades (JSON for flexibility)
+  grades      Json // All subject grades from stepper
+  
+  // Metadata
+  isActive    Boolean @default(true)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comparisons  Comparison[]
+  conversations Conversation[]
+  
+  @@map("user_profiles")
+}
+
+// ==========================================
+// ENHANCED UNIVERSITY & ORIENTATION SYSTEM
+// ==========================================
+
+model University {
+  id          String @id @default(cuid())
+  
+  // Basic Info
+  universityId    String @unique // From finale-data "university_id"
+  name           String         // From finale-data "university_name"
+  nameAr         String?
+  
+  // Location & Classification
+  region         String?
+  wilaya         String?
+  isPublic       Boolean @default(true)
+  
+  // Metadata
+  website        String?
+  description    String?
+  establishedYear Int?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  orientations   Orientation[]
+  
+  @@map("universities")
+}
+
+model BacType {
+  id       String @id @default(cuid())
+  typeId   String @unique // From finale-data "bac_type_id"
+  name     String         // From finale-data "bac_type_name"
+  nameEn   String?
+  code     String?        // Short code like "MATH", "SC", etc.
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  orientations Orientation[]
+  
+  @@map("bac_types")
+}
+
+model FieldOfStudy {
+  id          String @id @default(cuid())
+  name        String @unique // From finale-data "field_of_study"
+  nameEn      String?
+  category    String? // Main category
+  subcategory String? // Subcategory
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  orientations Orientation[]
+  
+  @@map("fields_of_study")
+}
+
+model Institution {
+  id             String @id @default(cuid())
+  name           String // From finale-data "table_institution"
+  nameEn         String?
+  location       String // From finale-data "table_location"
+  universityId   String
+  
+  // Additional Info
+  type           String? // "معهد", "كلية", "مدرسة"
+  isSpecialized  Boolean @default(false)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  university     University @relation(fields: [universityId], references: [id])
+  orientations   Orientation[]
+  
+  @@map("institutions")
+}
+
+// Enhanced Orientation model based on finale-data structure
+model Orientation {
+  id              String @id @default(cuid())
+  
+  // Core Identification (from finale-data)
+  ramzCode        String @unique // "ramz_code"
+  ramzId          String @unique // "ramz_id"
+  ramzLink        String?        // "ramz_link"
+  
+  // Academic Information
+  specialization  String         // "table_specialization"
+  criteria        String         // "table_criteria" (FG+F, FG+PH, etc.)
+  
+  // Classifications
+  bacTypeId       String
+  universityId    String
+  institutionId   String?
+  fieldOfStudyId  String?
+  
+  // Historical Performance
+  historicalScores Json          // "historical_scores" object
+  sevenPercent    String?        // "seven_percent"
+  
+  // Calculated Fields
+  minScore2024    Float?         // Latest score requirement
+  minScore2023    Float?
+  minScore2022    Float?
+  averageScore    Float?         // Calculated average
+  trend           String?        // "increasing", "decreasing", "stable"
+  
+  // Additional Metadata
+  description     String?
+  duration        String?        // "3 ans", "5 ans"
+  degree          String?        // "Licence", "Master"
+  isActive        Boolean @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  bacType         BacType @relation(fields: [bacTypeId], references: [id])
+  university      University @relation(fields: [universityId], references: [id])
+  institution     Institution? @relation(fields: [institutionId], references: [id])
+  fieldOfStudy    FieldOfStudy? @relation(fields: [fieldOfStudyId], references: [id])
+  
+  // User interactions
+  favorites       Favorite[]
+  comparisons1    Comparison[] @relation("Orientation1")
+  comparisons2    Comparison[] @relation("Orientation2")
+  
+  // Search & embeddings
+  embeddings      OrientationEmbedding[]
+  
+  @@index([ramzCode])
+  @@index([bacTypeId])
+  @@index([universityId])
+  @@index([minScore2024])
+  @@map("orientations")
+}
+
+// ==========================================
+// FAVORITES SYSTEM
+// ==========================================
+
+model Favorite {
+  id            String @id @default(cuid())
+  userId        String
+  orientationId String
+  
+  // Favorite metadata
+  notes         String? // User's personal notes
+  priority      Int @default(0) // 1-5 priority rating
+  tags          String[] // User-defined tags
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orientation   Orientation @relation(fields: [orientationId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, orientationId])
+  @@map("favorites")
+}
+
+// ==========================================
+// ENHANCED COMPARISON SYSTEM
+// ==========================================
+
+model Comparison {
+  id             String @id @default(cuid())
+  userId         String?
+  userProfileId  String?
+  
+  // Orientation references
+  orientation1Id String
+  orientation2Id String
+  
+  // User context
+  userBacType    String
+  userScore      Float
+  userLocation   String?
+  
+  // AI Analysis
+  analysis       Json? // AI-generated comparison
+  status         String @default("pending") // "pending", "completed", "failed"
+  
+  // Metadata
+  title          String?
+  isPublic       Boolean @default(false)
+  viewCount      Int @default(0)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  user           User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userProfile    UserProfile? @relation(fields: [userProfileId], references: [id], onDelete: SetNull)
+  orientation1   Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
+  orientation2   Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
+  
+  // Enhanced chat system
+  conversations  Conversation[]
+  
+  @@index([userId])
+  @@index([orientation1Id, orientation2Id])
+  @@index([createdAt])
+  @@map("comparisons")
+}
+
+// ==========================================
+// ENHANCED CHAT & CONVERSATION SYSTEM
+// ==========================================
+
+model Conversation {
+  id              String @id @default(cuid())
+  userId          String?
+  userProfileId   String?
+  comparisonId    String?
+  
+  // Conversation details
+  title           String
+  context         String // "dashboard", "recommendations", "comparison", "fullscreen"
+  type            String @default("chat") // "chat", "consultation", "guidance"
+  
+  // State management
+  isActive        Boolean @default(true)
+  isPinned        Boolean @default(false)
+  lastMessageAt   DateTime?
+  
+  // Metadata
+  metadata        Json? // Additional context data
+  summary         String? // AI-generated summary
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userProfile     UserProfile? @relation(fields: [userProfileId], references: [id], onDelete: SetNull)
+  comparison      Comparison? @relation(fields: [comparisonId], references: [id], onDelete: SetNull)
+  
+  messages        Message[]
+  transfers       ConversationTransfer[] @relation("ToConversation")
+  
+  @@index([userId])
+  @@index([context])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String @id @default(cuid())
+  conversationId String
+  
+  // Message content
+  role           String // "user", "assistant", "system"
+  content        String
+  
+  // Message metadata
+  metadata       Json? // Additional data (prompts, context, etc.)
+  isVisible      Boolean @default(true)
+  isEdited       Boolean @default(false)
+  
+  // AI specific
+  tokenCount     Int?
+  model          String? // AI model used
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model ConversationTransfer {
+  id               String @id @default(cuid())
+  fromContext      String // Source context (sidebar, dashboard, etc.)
+  toConversationId String
+  
+  // Transfer metadata
+  messagesTransferred Int @default(0)
+  sourceData       Json? // Original context data
+  
+  createdAt        DateTime @default(now())
+  
+  // Relations
+  toConversation   Conversation @relation("ToConversation", fields: [toConversationId], references: [id], onDelete: Cascade)
+  
+  @@map("conversation_transfers")
+}
+
+// ==========================================
+// DYNAMIC PROMPTS SYSTEM
+// ==========================================
+
+model DynamicPrompt {
+  id              String @id @default(cuid())
+  
+  // Prompt targeting
+  path            String // "/recommendations", "/comparison", etc.
+  context         String // "general", "comparison", "recommendations"
+  userType        String @default("student") // "student", "counselor"
+  
+  // Prompt content
+  systemPrompt    String
+  suggestedPrompts Json // Array of suggested questions
+  
+  // Conditions & Logic
+  conditions      Json? // When to apply this prompt
+  priority        Int @default(0)
+  isActive        Boolean @default(true)
+  
+  // A/B Testing
+  version         String @default("1.0")
+  testGroup       String? // For A/B testing
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Analytics
+  analytics       PromptAnalytics[]
+  
+  @@unique([path, context, version])
+  @@index([path])
+  @@index([context])
+  @@map("dynamic_prompts")
+}
+
+model PromptAnalytics {
+  id           String @id @default(cuid())
+  promptId     String
+  
+  // Usage metrics
+  usageCount   Int @default(0)
+  clickRate    Float? // CTR for suggested prompts
+  engagement   Float? // User engagement score
+  
+  // Performance
+  responseTime Float? // Average response time
+  satisfaction Float? // User satisfaction rating
+  
+  // Date tracking
+  date         DateTime @default(now())
+  
+  // Relations
+  prompt       DynamicPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@unique([promptId, date])
+  @@map("prompt_analytics")
+}
+
+// ==========================================
+// RAG & EMBEDDINGS SYSTEM
+// ==========================================
+
+model OrientationEmbedding {
+  id            String @id @default(cuid())
+  orientationId String
+  
+  // Embedding data
+  content       String // Text content that was embedded
+  embedding     Unsupported("vector(1536)") // OpenAI embedding vector
+  contentType   String // "description", "careers", "requirements", etc.
+  
+  // Metadata
+  model         String @default("text-embedding-3-small")
+  tokenCount    Int?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  orientation   Orientation @relation(fields: [orientationId], references: [id], onDelete: Cascade)
+  
+  @@index([orientationId])
+  @@map("orientation_embeddings")
+}
+
+model DocumentEmbedding {
+  id          String @id @default(cuid())
+  
+  // Document info
+  title       String
+  content     String
+  docType     String // "guide", "faq", "regulation", "university_info"
+  source      String? // Source URL or reference
+  
+  // Embedding
+  embedding   Unsupported("vector(1536)")
+  
+  // Metadata
+  language    String @default("ar")
+  category    String?
+  tags        String[]
+  isActive    Boolean @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([docType])
+  @@index([category])
+  @@map("document_embeddings")
+}
+
+// ==========================================
+// ANALYTICS & INSIGHTS
+// ==========================================
+
+model UserActivity {
+  id          String @id @default(cuid())
+  userId      String?
+  sessionId   String
+  
+  // Activity details
+  action      String // "view_orientation", "compare", "favorite", "chat"
+  targetId    String? // ID of the target (orientation, comparison, etc.)
+  targetType  String? // "orientation", "comparison", "conversation"
+  
+  // Context
+  page        String
+  userAgent   String?
+  ipAddress   String?
+  
+  // Performance
+  duration    Int? // Time spent on action (ms)
+  successful  Boolean @default(true)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("user_activities")
+}
+
+model SystemMetrics {
+  id          String @id @default(cuid())
+  
+  // Metric details
+  metricType  String // "api_response_time", "db_query_time", "ai_generation_time"
+  value       Float
+  unit        String // "ms", "count", "percentage"
+  
+  // Context
+  endpoint    String?
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([metricType])
+  @@index([createdAt])
+  @@map("system_metrics")
+}
+
+// ==========================================
+// ENHANCED EXISTING MODELS
+// ==========================================
+
+// Keep existing models but enhance them
+model PomodoroSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  settings  Json
+  tasks     Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("pomodoro_settings")
+}
+
+model LofiSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  settings  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("lofi_settings")
+}

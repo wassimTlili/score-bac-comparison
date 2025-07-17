@@ -19,7 +19,6 @@ const mockDictionary = {
   sidebar: {
     chatWithNexie: "Chat avec Nexie",
     studyHelp: "Aide aux études",
-    pomodoroTimer: "Minuteur Pomodoro",
     documentChat: "Chat de document",
     summarize: "Résumer",
     quizMaker: "Créateur de quiz",
@@ -46,26 +45,6 @@ const mockDictionary = {
     workspaceFeature3: "Collaborer avec d'autres sur des espaces de travail partagés",
     workspaceFeature4: "Utiliser les fonctionnalités NextGen.tn directement sur le contenu de votre espace de travail",
     workspaceStayTuned: "Restez à l'écoute pour les mises à jour sur cette nouvelle fonctionnalité passionnante qui améliorera votre expérience d'apprentissage et de productivité !"
-  },
-  pomodoroTimer: {
-    pomodoro: "Pomodoro",
-    shortBreak: "Pause courte",
-    longBreak: "Pause longue",
-    start: "Démarrer",
-    pause: "Pause",
-    reset: "Réinitialiser",
-    skip: "Passer"
-  },
-  settingsDialog: {
-    setting: "Paramètres",
-    timer: "Minuteur",
-    timeMinutes: "Temps (minutes)",
-    autoStartBreaks: "Démarrage automatique des pauses",
-    autoStartPomodoros: "Démarrage automatique des pomodoros",
-    longBreakInterval: "Intervalle de pause longue",
-    hourFormat: "Format d'heure",
-    format12h: "12h",
-    format24h: "24h"
   }
 };
 

@@ -1,11 +1,17 @@
 'use client';
 
-import { useEffect } from 'react';
-import useHydrationFix from '../hooks/useHydrationFix';
+import { useEffect, useState } from 'react';
 
 export default function ClientHydrationWrapper({ children }) {
-  // Apply hydration fix
-  useHydrationFix();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  if (!isHydrated) {
+    return null;
+  }
 
   return children;
 }

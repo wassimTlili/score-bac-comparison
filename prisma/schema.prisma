@@ -1,5 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// COMPREHENSIVE ENHANCED PRISMA SCHEMA FOR UNIVERSITY ORIENTATION PLATFORM
+// VERSION: 2.0 - Major Database Upgrade
+// Features: Clerk Auth, Comprehensive Models, RAG, Analytics, Full Chat System
 
 generator client {
   provider = "prisma-client-js"
@@ -10,145 +11,592 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Universities/Academic Hubs
-model Hub {
-  id           String        @id @default(cuid())
-  name         String        @unique // "جامعة المنستير"
-  nameEn       String?       // English name (optional)
-  region       String?       // Geographic region
-  website      String?       // Official website
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  
-  universities University[]
-  
-  @@map("hubs")
-}
+// ============================================
+// CORE USER MANAGEMENT (Clerk Integration)
+// ============================================
 
-// Individual Universities/Institutions within a Hub
-model University {
+model User {
   id        String   @id @default(cuid())
-  name      String   // "كلية الصيدلة بالمنستير"
-  nameEn    String?  // English name (optional)
-  code      String?  // Institution code
-  hubId     String
-  website   String?
-  address   String?
+  clerkId   String   @unique // Clerk user ID
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  
+  // User preferences
+  preferredLanguage String @default("ar") // "ar", "fr", "en"
+  theme            String @default("dark") // "dark", "light"
+  notifications    Boolean @default(true)
+  
+  // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+  isActive  Boolean  @default(true)
   
-  hub         Hub         @relation(fields: [hubId], references: [id])
+  // Relations
+  profiles       UserProfile[]
+  favorites      Favorite[]
+  comparisons    Comparison[]
+  conversations  Conversation[]
+  activities       UserActivity[]
+  
+  @@map("users")
+}
+
+// User Profile containing stepper data and academic information
+model UserProfile {
+  id       String @id @default(cuid())
+  userId   String
+  
+  // Stepper Data Fields (from stepper form)
+  filiere     String // "math", "science", "info", "tech", "eco", "lettres", "sport"
+  wilaya      String // Governorate
+  birthDate   DateTime?
+  gender      String? // "male", "female"
+  session     String? // "principale", "controle"
+  
+  // Academic Scores (calculated from grades)
+  mgScore     Float? // Moyenne Générale
+  fsScore     Float? // Formule Spécifique
+  finalScore  Float? // Final calculated score
+  
+  // Subject Grades (JSON for flexibility with all subjects)
+  grades      Json // All subject grades from stepper form
+  
+  // Academic preferences
+  preferredRegions Json? // Preferred university regions
+  careerInterests  Json? // Career interests
+  
+  // Metadata
+  isActive    Boolean @default(true)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comparisons  Comparison[]
+  favorites    Favorite[]
+  
+  @@unique([userId, isActive]) // Only one active profile per user
+  @@map("user_profiles")
+}
+
+// ============================================
+// ACADEMIC DATA MODELS (Based on finale-data.json)
+// ============================================
+
+model University {
+  id          String   @id @default(cuid())
+  universityId String  @unique // From finale-data: "university_id"
+  name        String   // From finale-data: "university_name"
+  nameAr      String?  // Arabic name
+  nameEn      String?  // English name
+  region      String?  // Geographic region
+  website     String?
+  description String?
+  
+  // University metadata
+  ranking     Int?
+  isPublic    Boolean @default(true)
+  foundedYear Int?
+  
+  // Contact information
+  address     String?
+  phone       String?
+  email       String?
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isActive    Boolean @default(true)
+  
+  // Relations
   orientations Orientation[]
+  institutions Institution[]
   
   @@map("universities")
 }
 
-// Academic Orientations/Programs
-model Orientation {
-  id           String   @id @default(cuid())
-  code         String   @unique // "34701"
-  licence      String   // "الصيدلة"
-  licenceEn    String?  // English name (optional)
-  description  String?  // Detailed description
-  duration     String?  // "3 ans", "5 ans"
-  degree       String?  // "Licence", "Master", "Doctorat"
-  category     String?  // "Sciences", "Médecine", etc.
+model BacType {
+  id      String @id @default(cuid())
+  typeId  String @unique // From finale-data: "bac_type_id"
+  name    String // From finale-data: "bac_type_name" 
+  nameEn  String?
+  nameAr  String?
+  
+  // Bac type details
+  description String?
+  subjects    Json? // List of subjects for this bac type
+  
+  // Relations
+  orientations Orientation[]
+  
+  @@map("bac_types")
+}
+
+model FieldOfStudy {
+  id          String @id @default(cuid())
+  name        String // From finale-data: "field_of_study"
+  nameEn      String?
+  nameAr      String?
+  category    String?
+  description String?
+  
+  // Field metadata
+  demandLevel String? // "high", "medium", "low"
+  avgSalary   String?
+  jobMarket   Json?   // Job market information
+  
+  // Relations
+  orientations Orientation[]
+  
+  @@map("fields_of_study")
+}
+
+model Institution {
+  id           String @id @default(cuid())
+  name         String // From finale-data: "table_institution"
+  nameEn       String?
+  nameAr       String?
+  location     String // From finale-data: "table_location"
   universityId String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
   
+  // Institution details
+  type         String? // "faculty", "institute", "school"
+  website      String?
+  phone        String?
+  email        String?
+  
+  // Relations
   university   University @relation(fields: [universityId], references: [id])
-  bacScores    BacScore[]
-  // Remove the comparison relations since we're not using foreign keys
-  // comparisons1 Comparison[] @relation("Orientation1")
-  // comparisons2 Comparison[] @relation("Orientation2")
+  orientations Orientation[]
   
+  @@map("institutions")
+}
+
+// Main orientation model based on finale-data.json structure
+model Orientation {
+  id              String   @id @default(cuid())
+  ramzCode        String   @unique // From finale-data: "ramz_code"
+  ramzId          String   @unique // From finale-data: "ramz_id"
+  ramzLink        String?  // From finale-data: "ramz_link"
+  
+  // Academic Details
+  specialization  String   // From finale-data: "table_specialization"
+  criteria        String?  // From finale-data: "table_criteria"
+  sevenPercent    Boolean  @default(false) // From finale-data: "seven_percent"
+  
+  // Historical Scores (JSON for flexibility with yearly data)
+  historicalScores Json    // From finale-data: "historical_scores"
+  
+  // Additional orientation details
+  duration        String? // "3 years", "5 years"
+  degree          String? // "Licence", "Master", "Ingénieur"
+  language        String? // "ar", "fr", "en"
+  
+  // Career information
+  careerProspects Json?   // Career opportunities
+  skills          Json?   // Required/developed skills
+  
+  // Foreign Keys
+  bacTypeId       String
+  universityId    String
+  fieldOfStudyId  String?
+  institutionId   String?
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isActive        Boolean  @default(true)
+  popularity      Int      @default(0) // Track popularity
+  
+  // Relations
+  bacType         BacType @relation(fields: [bacTypeId], references: [id])
+  university      University @relation(fields: [universityId], references: [id])
+  fieldOfStudy    FieldOfStudy? @relation(fields: [fieldOfStudyId], references: [id])
+  institution     Institution? @relation(fields: [institutionId], references: [id])
+  
+  // User interactions
+  favorites       Favorite[]
+  embeddings      OrientationEmbedding[]
+  
+  @@index([bacTypeId])
+  @@index([universityId])
+  @@index([ramzCode])
+  @@index([popularity])
   @@map("orientations")
 }
 
-// Bac Score Requirements
-model BacScore {
-  id            String      @id @default(cuid())
-  orientationId String
-  bacType       String      // "آداب", "رياضيات", "علوم تجريبية", etc.
-  score2024     Float?      // Score for 2024
-  score2023     Float?      // Score for 2023
-  score2022     Float?      // Score for 2022
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+// ============================================
+// USER INTERACTIONS & FAVORITES
+// ============================================
+
+model Favorite {
+  id            String @id @default(cuid())
+  userId        String
+  userProfileId String?
+  orientationId String?  // Made optional for JSON data compatibility
+  orientationCode String? // Added for finale-data.json ramz_code support
   
-  orientation   Orientation @relation(fields: [orientationId], references: [id], onDelete: Cascade)
+  // Favorite metadata
+  notes         String?
+  priority      Int?    // User ranking 1-5
+  tags          Json?   // Array of tags
+  reason        String? // Why they favorited this
   
-  @@unique([orientationId, bacType])
-  @@map("bac_scores")
+  // Application tracking
+  applicationStatus String? // "interested", "applied", "accepted", "rejected"
+  applicationDate   DateTime?
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userProfile   UserProfile? @relation(fields: [userProfileId], references: [id])
+  orientation   Orientation? @relation(fields: [orientationId], references: [id])
+  
+  @@unique([userId, orientationId])
+  @@unique([userId, orientationCode])
+  @@map("favorites")
 }
 
-// User Comparisons
+// ============================================
+// COMPARISON & AI ANALYSIS
+// ============================================
+
 model Comparison {
-  id             String   @id @default(cuid())
-  orientation1Id String   // Store orientation code instead of DB ID
-  orientation2Id String   // Store orientation code instead of DB ID
-  userBacType    String   // User's bac type
-  userScore      Float    // User's bac score
-  analysis       Json?    // AI-generated comparison analysis
-  metadata       Json?    // Additional metadata (includes full orientation data)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  userId          String?
+  userProfileId   String?
   
-  // Remove foreign key constraints since orientations are in JSON files
-  // orientation1 Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
-  // orientation2 Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
-  chatSessions ChatSession[]
+  // Orientation references (made optional to avoid foreign key issues)
+  orientation1Id  String?
+  orientation2Id  String?
   
+  // User context at time of comparison
+  userScore       Float?   // Calculated score
+  userBacType     String?
+  userLocation    String?
+  
+  // AI Analysis Results
+  aiAnalysis      Json?    // Full AI analysis results
+  analysisStatus  String   @default("pending") // "pending", "completed", "failed"
+  analysisModel   String?  // AI model used
+  analysisTokens  Int?     // Tokens consumed
+  
+  // Comparison metadata
+  title           String?  // User-given title
+  summary         String?  // Brief summary
+  confidence      Float?   // AI confidence score
+  
+  // Sharing and visibility
+  isPublic        Boolean  @default(false)
+  shareToken      String?  // For sharing comparisons
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  viewCount       Int      @default(1)
+  
+  // Relations
+  user            User? @relation(fields: [userId], references: [id])
+  userProfile     UserProfile? @relation(fields: [userProfileId], references: [id])
+  // orientation1    Orientation @relation("Orientation1", fields: [orientation1Id], references: [id])
+  // orientation2    Orientation @relation("Orientation2", fields: [orientation2Id], references: [id])
+  conversations   Conversation[]
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([shareToken])
   @@map("comparisons")
 }
 
-// Chat Sessions for each comparison
-model ChatSession {
-  id           String    @id @default(cuid())
-  comparisonId String
-  messages     Json      // Array of chat messages
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+// ============================================
+// CHAT & CONVERSATIONS
+// ============================================
+
+model Conversation {
+  id           String   @id @default(cuid())
+  userId       String?
+  comparisonId String?
   
-  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  // Conversation metadata
+  title        String?
+  type         String   @default("comparison") // "comparison", "general", "support"
+  status       String   @default("active") // "active", "archived", "closed"
   
-  @@map("chat_sessions")
+  // Chat settings
+  isFullscreen Boolean  @default(false)
+  model        String?  // AI model being used
+  temperature  Float?   // AI temperature setting
+  
+  // Conversation context
+  context      Json?    // Additional context data
+  
+  // Metadata
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastMessageAt DateTime?
+  messageCount Int      @default(0)
+  
+  // Relations
+  user         User? @relation(fields: [userId], references: [id])
+  comparison   Comparison? @relation(fields: [comparisonId], references: [id])
+  messages     Message[]
+  transfers    ConversationTransfer[]
+  
+  @@index([userId])
+  @@index([comparisonId])
+  @@index([lastMessageAt])
+  @@map("conversations")
 }
 
-// Analytics and Usage Tracking
-model AnalyticsEvent {
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  
+  // Message content
+  content        String
+  role           String   // "user", "assistant", "system"
+  type           String   @default("text") // "text", "image", "file"
+  
+  // Message metadata
+  tokens         Int?
+  model          String?
+  temperature    Float?
+  responseTime   Int?     // Response time in ms
+  
+  // Message context
+  parentMessageId String? // For threaded conversations
+  metadata       Json?    // Additional metadata
+  
+  // Timestamps
+  createdAt      DateTime @default(now())
+  
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// Transfer conversations between sidebar and fullscreen
+model ConversationTransfer {
+  id             String   @id @default(cuid())
+  conversationId String
+  fromMode       String   // "sidebar", "fullscreen"
+  toMode         String   // "sidebar", "fullscreen"
+  reason         String?  // Why transferred
+  transferredAt  DateTime @default(now())
+  
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  
+  @@map("conversation_transfers")
+}
+
+// ============================================
+// DYNAMIC PROMPTS & ANALYTICS
+// ============================================
+
+model DynamicPrompt {
   id          String   @id @default(cuid())
-  eventType   String   // "comparison_created", "chat_interaction", etc.
-  eventData   Json?    // Event-specific data
-  userSession String?  // Session identifier
-  ipAddress   String?  // User IP (hashed for privacy)
-  userAgent   String?  // Browser info
+  route       String   // "/comparison", "/orientations", "/chatbot"
+  context     String?  // Additional context like "stepper_complete", "first_visit"
+  
+  // Prompt content
+  systemPrompt String
+  suggestedQuestions Json? // Array of suggested questions
+  
+  // Prompt metadata
+  isActive    Boolean  @default(true)
+  priority    Int      @default(1)
+  version     String   @default("1.0")
+  
+  // A/B testing
+  variant     String?  // "A", "B", "C" for testing
+  audience    String?  // Target audience
+  
+  // Performance tracking
+  useCount    Int      @default(0)
+  avgRating   Float?
+  
+  // Timestamps
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
-  @@index([eventType, createdAt])
-  @@map("analytics_events")
+  // Relations
+  analytics   PromptAnalytics[]
+  
+  @@unique([route, context, variant, isActive])
+  @@map("dynamic_prompts")
 }
 
-// Pomodoro Timer Settings
-model PomodoroSettings {
-  id        String   @id @default(cuid())
-  userId    String   @unique // User identifier from Clerk
-  settings  Json     // Pomodoro timer settings (durations, auto-start, etc.)
-  tasks     Json?    // User's tasks/todos
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model PromptAnalytics {
+  id         String   @id @default(cuid())
+  promptId   String
   
-  @@map("pomodoro_settings")
+  // Usage metrics
+  useCount   Int      @default(0)
+  avgRating  Float?
+  
+  // Performance metrics
+  avgResponseTime Float?
+  successRate     Float?
+  errorRate       Float?
+  
+  // User feedback
+  positiveReactions Int @default(0)
+  negativeReactions Int @default(0)
+  
+  // Date tracking
+  date       DateTime @default(now())
+  
+  // Relations
+  prompt     DynamicPrompt @relation(fields: [promptId], references: [id])
+  
+  @@unique([promptId, date])
+  @@map("prompt_analytics")
 }
 
-// Lofi Player Settings
-model LofiSettings {
-  id        String   @id @default(cuid())
-  userId    String   @unique // User identifier from Clerk
-  settings  Json     // Lofi player settings (volume, last track, etc.)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ============================================
+// RAG & EMBEDDINGS
+// ============================================
+
+model OrientationEmbedding {
+  id            String   @id @default(cuid())
+  orientationId String
   
-  @@map("lofi_settings")
+  // Embedding data
+  content       String   // Text used to generate embedding
+  embedding     Json     // Vector embedding as array
+  model         String   // "text-embedding-3-small", etc.
+  
+  // Metadata
+  contentType   String   // "description", "career_info", "requirements"
+  language      String   @default("ar") // "ar", "fr", "en"
+  version       String   @default("1.0")
+  
+  // Quality metrics
+  quality       Float?   // Embedding quality score
+  relevance     Float?   // Relevance score
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  orientation   Orientation @relation(fields: [orientationId], references: [id])
+  
+  @@index([orientationId])
+  @@index([contentType])
+  @@map("orientation_embeddings")
+}
+
+model DocumentEmbedding {
+  id          String   @id @default(cuid())
+  
+  // Document info
+  title       String
+  content     String
+  url         String?
+  source      String   // "website", "pdf", "manual_entry"
+  
+  // Embedding data
+  embedding   Json     // Vector embedding
+  model       String
+  
+  // Categories
+  category    String   // "university_info", "career_guide", "admission_process"
+  subcategory String?
+  tags        Json?    // Array of tags
+  
+  // Document metadata
+  language    String   @default("ar")
+  version     String   @default("1.0")
+  fileSize    Int?
+  mimeType    String?
+  
+  // Quality and relevance
+  quality     Float?
+  relevance   Float?
+  
+  // Access control
+  isPublic    Boolean  @default(true)
+  accessLevel String   @default("public") // "public", "registered", "premium"
+  
+  // Metadata
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+  @@index([language])
+  @@map("document_embeddings")
+}
+
+// ============================================
+// ANALYTICS & METRICS
+// ============================================
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  userId    String?
+  
+  // Activity data
+  action    String   // "page_view", "comparison_created", "chat_message", etc.
+  page      String?  // Current page/route
+  data      Json?    // Additional activity data
+  
+  // Session info
+  sessionId String?
+  userAgent String?
+  ipAddress String?  // Hashed for privacy
+  country   String?
+  city      String?
+  
+  // Performance tracking
+  loadTime  Int?     // Page load time in ms
+  duration  Int?     // Time spent on page
+  
+  // Timestamp
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User? @relation(fields: [userId], references: [id])
+  
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([sessionId])
+  @@map("user_activities")
+}
+
+model SystemMetrics {
+  id        String   @id @default(cuid())
+  
+  // Metric data
+  name      String   // "active_users", "comparisons_created", "ai_requests"
+  value     Float
+  unit      String?  // "count", "percentage", "ms"
+  
+  // Categorization
+  category  String   // "performance", "usage", "errors"
+  subcategory String?
+  tags      Json?    // Additional tags
+  
+  // Metric metadata
+  source    String?  // Where the metric came from
+  method    String?  // How it was calculated
+  
+  // Timestamp
+  date      DateTime @default(now())
+  hour      Int?     // Hour of day (0-23)
+  
+  @@index([name, date])
+  @@index([category, date])
+  @@index([hour])
+  @@map("system_metrics")
 }

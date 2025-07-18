@@ -2,121 +2,28 @@
 
 import { useRouter } from 'next/navigation';
 import { getComparisonStats } from '@/actions/enhanced-comparison-actions';
-import { getUserProfile } from '@/actions/profile-actions';
+import { getUserFavoritesByCode } from '@/actions/favorites-actions';
+import { debugComparisonCounts } from '@/actions/debug-comparison-stats';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { trackData, calculateMG, calculateFS, getScoreLevel } from '@/utils/calculations';
+import { useAuthRedirect, RedirectLoadingScreen } from '@/hooks/useAuthRedirect';
 
 // Debug trackData import
 console.log('TrackData imported:', Object.keys(trackData));
 
 export default function ComparisonLandingPage() {
   const router = useRouter();
-  const { isLoaded, isSignedIn, user } = useAuth();
+  const { isRedirecting, isReady, userProfile, isSignedIn, user } = useAuthRedirect({
+    requireAuth: true,
+    requireProfile: true
+  });
+
   const [stats, setStats] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [scores, setScores] = useState({ mg: 0, fs: 0 });
+  const [scores, setScores] = useState({ mg: 0, fs: 0, scoreLevel: { color: '#gray', text: 'غير محدد' } });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    async function fetchStats() {
-      const result = await getComparisonStats();
-      if (result.success) setStats(result.stats);
-    }
-    
-    // Redirect logic for authenticated users without profile
-    async function checkUserProfile() {
-      if (isLoaded && isSignedIn && user) {
-        try {
-          setLoading(true);
-          const result = await getUserProfile();
-          console.log('getUserProfile result:', result);
-          
-          if (!result.success || !result.profile) {
-            console.log('⚠️ User has no profile, redirecting to stepper from comparison');
-            router.push('/stepper');
-            return;
-          }
-          
-          // Load profile data if exists
-          const profile = result.profile;
-          console.log('User profile found:', profile);
-          
-          // Convert database profile to userData format
-          const userData = {
-            filiere: profile.filiere,
-            wilaya: profile.wilaya,
-            notes: profile.grades,
-            birthDate: profile.birthDate,
-            gender: profile.gender,
-            session: profile.session
-          };
-          
-          console.log('Setting userData:', userData);
-          setUserData(userData);
-          
-          // Calculate or use pre-calculated scores
-          if (profile.mgScore && profile.fsScore) {
-            console.log('Using pre-calculated scores:', { mg: profile.mgScore, fs: profile.fsScore });
-            setScores({
-              mg: profile.mgScore,
-              fs: profile.fsScore
-            });
-          } else if (profile.filiere && profile.grades) {
-            console.log('Calculating scores for filiere:', profile.filiere);
-            console.log('Grades:', profile.grades);
-            
-            // Map filiere to trackData key
-            const filiereMapping = {
-              'math': 'math',
-              'science': 'science', 
-              'tech': 'tech',
-              'eco': 'eco',
-              'info': 'info',
-              'sport': 'sport'
-            };
-            
-            const trackKey = filiereMapping[profile.filiere];
-            console.log('Track key:', trackKey);
-            
-            if (trackKey && trackData[trackKey]) {
-              const mappedGrades = mapGradesToCalculationFormat(profile.grades, profile.filiere);
-              console.log('Mapped grades:', mappedGrades);
-              
-              const track = { id: profile.filiere, name: trackData[trackKey].name };
-              
-              const mg = calculateMG(mappedGrades, track);
-              const fs = calculateFS(mappedGrades, track, mg);
-              
-              console.log('Calculated scores:', { mg, fs });
-              setScores({ mg, fs });
-            } else {
-              console.log('No track data found for filiere:', profile.filiere);
-              console.log('Available trackData keys:', Object.keys(trackData));
-            }
-          } else {
-            console.log('Missing filiere or grades:', { filiere: profile.filiere, grades: profile.grades });
-          }
-          
-          setLoading(false);
-        } catch (error) {
-          console.error('Error checking user profile:', error);
-          setError(error.message);
-          setLoading(false);
-          router.push('/stepper');
-        }
-      } else if (isLoaded && !isSignedIn) {
-        console.log('👤 User not signed in, redirecting to home');
-        router.push('/');
-      } else {
-        setLoading(false);
-      }
-    }
-    
-    fetchStats();
-    checkUserProfile();
-  }, [isLoaded, isSignedIn, user, router]);
+  const [favoritesCount, setFavoritesCount] = useState(0);
 
   // Map form grades to calculation format
   const mapGradesToCalculationFormat = (notes, filiere) => {
@@ -159,6 +66,148 @@ export default function ComparisonLandingPage() {
     return mappedGrades;
   };
 
+  // Get bac type mapping
+  const getBacTypeFromFiliere = (filiere) => {
+    const bacTypeMap = {
+      math: "رياضيات",
+      science: "علوم تجريبية", 
+      info: "علوم الإعلامية",
+      tech: "العلوم التقنية",
+      eco: "إقتصاد وتصرف",
+      lettres: "آداب",
+      sport: "رياضة"
+    };
+    return bacTypeMap[filiere] || filiere;
+  };
+
+  useEffect(() => {
+    // Load user data from userProfile (already available from useAuthRedirect)
+    const loadUserData = async () => {
+      if (userProfile) {
+        try {
+          // Use userProfile directly from the hook
+          const dbProfile = userProfile;
+          
+          const userData = {
+            filiere: dbProfile.filiere,
+            notes: dbProfile.grades || {},
+            birthday: new Date(dbProfile.birthDate),
+            gender: dbProfile.gender,
+            governorate: dbProfile.wilaya,
+            session: dbProfile.session,
+            finalScore: dbProfile.finalScore,
+            mgScore: dbProfile.mgScore,
+            fsScore: dbProfile.fsScore,
+            wilaya: dbProfile.wilaya
+          };
+          setUserData(userData);
+          
+          // Use pre-calculated scores from database if available
+          if (dbProfile.mgScore && dbProfile.fsScore) {
+            setScores({
+              mg: dbProfile.mgScore,
+              fs: dbProfile.fsScore,
+              scoreLevel: getScoreLevel(dbProfile.fsScore)
+            });
+          } else {
+            // Fallback to calculating scores
+            if (dbProfile.filiere && trackData[dbProfile.filiere] && dbProfile.grades) {
+              const mappedGrades = mapGradesToCalculationFormat(dbProfile.grades, dbProfile.filiere);
+              const track = { id: dbProfile.filiere, name: trackData[dbProfile.filiere].name };
+              
+              const mg = calculateMG(mappedGrades, track);
+              const fs = calculateFS(mappedGrades, track, mg);
+              const scoreLevel = getScoreLevel(fs);
+              
+              setScores({ mg, fs, scoreLevel });
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error loading user profile:', error);
+        }
+      }
+    };
+
+    // Load comparison stats
+    const loadStats = async () => {
+      try {
+        console.log('📊 Loading comparison stats...');
+        
+        // Add debug call
+        const debugResult = await debugComparisonCounts();
+        console.log('🔍 Debug result:', debugResult);
+        
+        const result = await getComparisonStats();
+        console.log('📊 Stats result:', result);
+        if (result.success) {
+          setStats(result.stats);
+          console.log('✅ Stats loaded:', result.stats);
+        } else {
+          console.error('❌ Stats loading failed:', result.error);
+        }
+      } catch (error) {
+        console.error('❌ Error loading comparison stats:', error);
+      }
+    };
+
+    // Load favorites count
+    const loadFavoritesCount = async () => {
+      try {
+        const favoritesResult = await getUserFavoritesByCode();
+        if (favoritesResult.success) {
+          setFavoritesCount(favoritesResult.favorites.length);
+        }
+      } catch (error) {
+        console.error('❌ Error loading favorites count:', error);
+      }
+    };
+
+    const loadAllData = async () => {
+      if (isReady && !isRedirecting && userProfile) {
+        setLoading(true);
+        await Promise.all([
+          loadUserData(),
+          loadStats(),
+          loadFavoritesCount()
+        ]);
+        setLoading(false);
+      } else if (isReady && !isRedirecting) {
+        setLoading(false);
+      }
+    };
+
+    loadAllData();
+  }, [isReady, isRedirecting, userProfile]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-400 border-t-transparent mx-auto mb-6"></div>
+          <h3 className="text-2xl font-bold mb-2">جاري التحميل...</h3>
+          <p className="text-gray-400">يرجى الانتظار</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
+        <div className="text-center bg-red-500/20 border border-red-400/50 rounded-2xl p-12 max-w-md">
+          <h3 className="text-2xl font-bold mb-4">خطأ</h3>
+          <p className="text-red-300 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-cyan-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-cyan-400 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const navigateToRecommendations = () => {
     router.push('/recommendations');
   };
@@ -170,35 +219,6 @@ export default function ComparisonLandingPage() {
   const navigateToGuide = () => {
     router.push('/guide');
   };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">جاري تحميل البيانات...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">خطأ في تحميل البيانات: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800" dir="rtl">
@@ -290,7 +310,16 @@ export default function ComparisonLandingPage() {
 
         {/* User Info Card */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">معلوماتك الشخصية</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">معلوماتك الشخصية</h2>
+            <button
+              onClick={() => router.push('/stepper/review')}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1"
+            >
+              <span>✏️</span>
+              تحديث البيانات
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <span className="text-gray-400">الشعبة:</span>
@@ -323,6 +352,19 @@ export default function ComparisonLandingPage() {
               </span>
             </div>
           </div>
+          <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
+            <p className="text-blue-200 text-sm flex items-center gap-2">
+              <span>💡</span>
+              يمكنك تحديث بياناتك الشخصية ودرجاتك من خلال 
+              <button
+                onClick={() => router.push('/stepper/review')}
+                className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors"
+              >
+                صفحة مراجعة البيانات
+              </button>
+              لضمان دقة التوصيات والمقارنات.
+            </p>
+          </div>
         </div>
 
         {/* Quick Stats Section */}
@@ -332,19 +374,21 @@ export default function ComparisonLandingPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">{stats?.total || 0}</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">{stats?.totalComparisons || 0}</div>
               <div className="text-gray-600 dark:text-gray-300">عدد المقارنات</div>
               <div className="text-sm text-gray-500">لك</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-purple-600 mb-2">{stats?.completed || 0}</div>
-              <div className="text-gray-600 dark:text-gray-300">تحليلات مكتملة</div>
-              <div className="text-sm text-gray-500">AI</div>
+              <div className="text-3xl font-bold text-green-600 mb-2">{favoritesCount}</div>
+              <div className="text-gray-600 dark:text-gray-300">المفضلة</div>
+              <div className="text-sm text-gray-500">التخصصات المحفوظة</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-green-600 mb-2">{stats?.favorites || 0}</div>
-              <div className="text-gray-600 dark:text-gray-300">المفضلة</div>
-              <div className="text-sm text-gray-500">مقارنات</div>
+              <div className="text-3xl font-bold text-orange-600 mb-2">
+                {scores.scoreLevel?.text || 'غير محدد'}
+              </div>
+              <div className="text-gray-600 dark:text-gray-300">مستوى النقاط</div>
+              <div className="text-sm text-gray-500">{scores.fs ? `${scores.fs.toFixed(1)} نقطة` : ''}</div>
             </div>
           </div>
         </div>

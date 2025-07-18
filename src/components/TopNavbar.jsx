@@ -6,17 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { useUser, SignInButton, UserButton } from '@clerk/nextjs';
+import { useUser, SignInButton } from '@clerk/nextjs';
 
 export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  // Set default to Tunisian Arabic
+  const [selectedLanguage, setSelectedLanguage] = useState("العربية");
   const { isSignedIn, user, isLoaded } = useUser();
 
   return (
     <nav className="h-16 bg-slate-900 text-white flex items-center justify-between px-6 border-b border-slate-700">
       {/* Left Section - Mobile Menu Button + Logo */}
       <div className="flex items-center space-x-4">
-        {/* Mobile Menu Button */}
         <button
           onClick={onToggleMobileMenu}
           className="p-2 rounded-lg hover:bg-slate-800 transition-colors lg:hidden"
@@ -24,8 +24,6 @@ export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
         >
           <Menu size={24} />
         </button>
-
-        {/* Logo - Show when sidebar is collapsed or on mobile */}
         <Link href="/" className={`flex items-center space-x-3 transition-opacity duration-300 ${isSidebarExpanded ? 'hidden lg:flex' : 'flex'}`}>
           <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
             <span className="text-sm font-bold text-white">N</span>
@@ -40,19 +38,19 @@ export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
         <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
           <SelectTrigger className="w-auto border-0 bg-slate-800 hover:bg-slate-700 text-white focus:ring-0 px-3 py-2 rounded-lg">
             <div className="flex items-center space-x-2">
-              <span className="text-lg">🇬🇧</span>
-              <SelectValue />
+              <span className="text-lg">🇹🇳</span>
+              <SelectValue placeholder="تونسي" />
               <ChevronDown size={14} />
             </div>
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-slate-600">
-            <SelectItem value="English" className="text-white hover:bg-slate-700 focus:bg-slate-700">
+            <SelectItem value="English" disabled className="text-gray-400 cursor-not-allowed">
               <div className="flex items-center space-x-2">
                 <span>🇬🇧</span>
                 <span>English</span>
               </div>
             </SelectItem>
-            <SelectItem value="Français" className="text-white hover:bg-slate-700 focus:bg-slate-700">
+            <SelectItem value="Français" disabled className="text-gray-400 cursor-not-allowed">
               <div className="flex items-center space-x-2">
                 <span>🇫🇷</span>
                 <span>Français</span>
@@ -102,7 +100,7 @@ export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
               </div>
               <DropdownMenuItem asChild>
                 <Link 
-                  href="/stepper" 
+                  href="/stepper/review" 
                   className="flex items-center space-x-2 text-white hover:bg-slate-700 cursor-pointer"
                 >
                   <User size={14} />
@@ -138,5 +136,3 @@ export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
     </nav>
   );
 }
-
-

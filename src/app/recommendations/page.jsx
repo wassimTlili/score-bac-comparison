@@ -35,23 +35,12 @@ export default function RecommendationsPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    console.log('🔍 Recommendations useEffect triggered:', {
-      isReady,
-      isRedirecting,
-      userProfile: !!userProfile,
-      isLoading
-    });
-
     // Load user data from userProfile (already available from useAuthRedirect)
     const loadUserData = async () => {
       if (userProfile) {
         try {
-          console.log('🔍 Using user profile from hook...');
-          console.log('📋 User profile:', userProfile);
-          
           // Use userProfile directly from the hook
           const dbProfile = userProfile;
-          console.log('📋 Database profile:', dbProfile);
           
           const userData = {
             filiere: dbProfile.filiere,
@@ -65,15 +54,10 @@ export default function RecommendationsPage() {
             fsScore: dbProfile.fsScore,
             wilaya: dbProfile.wilaya
           };
-          console.log('✅ Converted userData:', userData);
           setUserData(userData);
           
           // Use pre-calculated scores from database if available
           if (dbProfile.mgScore && dbProfile.fsScore) {
-            console.log('🔍 Using pre-calculated scores:', {
-              mg: dbProfile.mgScore,
-              fs: dbProfile.fsScore
-            });
             setScores({
               mg: dbProfile.mgScore,
               fs: dbProfile.fsScore,
@@ -89,7 +73,6 @@ export default function RecommendationsPage() {
               const fs = calculateFS(mappedGrades, track, mg);
               const scoreLevel = getScoreLevel(fs);
               
-              console.log('🔍 Calculated scores:', { mg, fs, scoreLevel });
               setScores({ mg, fs, scoreLevel });
             }
           }
@@ -100,18 +83,12 @@ export default function RecommendationsPage() {
     };
 
     const loadAllData = async () => {
-      console.log('🔍 loadAllData called with:', { isReady, isRedirecting, userProfile: !!userProfile });
-      
       if (isReady && !isRedirecting && userProfile) {
         setIsLoading(true);
-        console.log('🔍 Loading user data...');
         await loadUserData();
-        console.log('🔍 Loading favorites...');
         await loadUserFavorites();
-        console.log('✅ All data loaded, setting isLoading to false');
         setIsLoading(false);
       } else if (isReady && !isRedirecting) {
-        console.log('✅ Ready but no user profile, setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -138,27 +115,22 @@ export default function RecommendationsPage() {
       return;
     }
 
-    console.log('🔍 Toggling favorite for:', orientationCode);
     setLoadingFavorites(prev => ({ ...prev, [orientationCode]: true }));
 
     try {
       const isFavorite = favorites.includes(orientationCode);
       
       if (isFavorite) {
-        console.log('🔍 Removing from favorites...');
         const result = await removeFromFavoritesByCode(orientationCode);
         if (result.success) {
           setFavorites(prev => prev.filter(code => code !== orientationCode));
-          console.log('✅ Removed from favorites');
         } else {
           console.error('❌ Failed to remove from favorites:', result.error);
         }
       } else {
-        console.log('🔍 Adding to favorites...');
         const result = await addToFavoritesByCode(orientationCode);
         if (result.success) {
           setFavorites(prev => [...prev, orientationCode]);
-          console.log('✅ Added to favorites');
         } else {
           console.error('❌ Failed to add to favorites:', result.error);
         }
@@ -226,55 +198,58 @@ export default function RecommendationsPage() {
   };
 
   // Get unique values for filters
-  const filterOptions = useMemo(() => ({
-    locations: [...new Set(finaleData.map(r => r.table_location))].filter(Boolean),
-    universities: [...new Set(finaleData.map(r => r.university_name))].filter(Boolean),
-    specializations: [...new Set(finaleData.map(r => r.table_specialization))].filter(Boolean)
-  }), []);
+  const filterOptions = useMemo(() => {
+    // Get all unique locations, universities, and specializations from the data
+    const locations = [...new Set(finaleData.map(r => r.table_location))]
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'ar'));
+    
+    const universities = [...new Set(finaleData.map(r => r.university_name))]
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'ar'));
+    
+    const specializations = [...new Set(finaleData.map(r => r.table_specialization))]
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'ar'));
+
+    return {
+      locations,
+      universities,
+      specializations
+    };
+  }, []);
 
   // Filter recommendations based on user score and filters
   const filteredRecommendations = useMemo(() => {
-    console.log('🔍 Current state:', {
-      userData,
-      scores,
-      finaleDataLength: finaleData.length,
-      filters
-    });
-
     if (!userData) {
-      console.log('⚠️ No userData available');
       return [];
     }
 
     const userBacType = getBacTypeFromFiliere(userData.filiere);
     const userScore = scores.fs || 0;
 
-    console.log('🔍 Filtering with:', {
-      userFiliere: userData.filiere,
-      userBacType,
-      userScore,
-      totalData: finaleData.length
-    });
-
     const filtered = finaleData.filter(item => {
       // Must have 2024 score
       const score2024 = item.historical_scores?.["2024"];
       if (!score2024 || score2024 <= 0) return false;
       
-      // Must match user's BAC type
-      if (item.bac_type_name !== userBacType) return false;
-      
-      // Apply filters
+      // Score range filters
       if (filters.scoreRange && filters.scoreRange !== 'all') {
         if (filters.scoreRange === 'accessible' && userScore < score2024) return false;
         if (filters.scoreRange === 'stretch' && (userScore < score2024 - 10 || userScore > score2024 + 5)) return false;
         if (filters.scoreRange === 'safety' && userScore < score2024 + 10) return false;
       }
       
+      // Location filter
       if (filters.location && item.table_location !== filters.location) return false;
+      
+      // University filter
       if (filters.university && item.university_name !== filters.university) return false;
+      
+      // Specialization filter
       if (filters.specialization && item.table_specialization !== filters.specialization) return false;
       
+      // Search term filter
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase();
         return (
@@ -287,8 +262,6 @@ export default function RecommendationsPage() {
       
       return true;
     });
-
-    console.log('🔍 Filtered results count:', filtered.length);
 
     return filtered.map(item => {
       const score2024 = item.historical_scores?.["2024"] || 0;
@@ -305,7 +278,7 @@ export default function RecommendationsPage() {
         chanceIcon = '🎯';
       } else if (scoreDifference >= 5) {
         admissionChance = 'عالية';
-        chanceColor = 'text-green-300';
+        chanceColor = 'text-green-400';
         chanceIcon = '✅';
       } else if (scoreDifference >= -5) {
         admissionChance = 'متوسطة';
@@ -523,9 +496,6 @@ export default function RecommendationsPage() {
                     <Target className="w-4 h-4" />
                     شعبة: {userData?.filiere || 'غير محدد'}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    [Debug: mg={scores.mg}, fs={scores.fs}, userData={userData ? 'loaded' : 'null'}]
-                  </span>
                 </div>
               )}
             </div>
@@ -586,9 +556,11 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل المناطق</option>
+                <option value="">كل المناطق ({filterOptions.locations.length})</option>
                 {filterOptions.locations.map(location => (
-                  <option key={location} value={location}>{location}</option>
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
                 ))}
               </select>
 
@@ -598,9 +570,11 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, university: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل الجامعات</option>
+                <option value="">كل الجامعات ({filterOptions.universities.length})</option>
                 {filterOptions.universities.map(uni => (
-                  <option key={uni} value={uni}>{uni}</option>
+                  <option key={uni} value={uni}>
+                    {uni}
+                  </option>
                 ))}
               </select>
 
@@ -610,9 +584,11 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, specialization: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل التخصصات</option>
+                <option value="">كل التخصصات ({filterOptions.specializations.length})</option>
                 {filterOptions.specializations.map(spec => (
-                  <option key={spec} value={spec}>{spec.length > 40 ? spec.substring(0, 40) + '...' : spec}</option>
+                  <option key={spec} value={spec} title={spec}>
+                    {spec.length > 50 ? spec.substring(0, 47) + '...' : spec}
+                  </option>
                 ))}
               </select>
             </div>
@@ -683,7 +659,7 @@ export default function RecommendationsPage() {
             
             return (
               <div
-                key={item.ramz_code}
+                key={item.ramz_id}
                 className={`bg-slate-800/50 border-l-4 ${getCategoryStyle(category)} rounded-lg p-6 hover:shadow-lg transition-all duration-300 hover:scale-105 relative group`}
               >
                 {/* Favorites Button */}

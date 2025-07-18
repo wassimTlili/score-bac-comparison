@@ -513,6 +513,8 @@ export async function getComparisonStats() {
       throw new Error('User not authenticated');
     }
 
+    console.log('🔍 Getting comparison stats for clerkId:', clerkId);
+
     const user = await prisma.user.findUnique({
       where: { clerkId }
     });
@@ -520,6 +522,12 @@ export async function getComparisonStats() {
     if (!user) {
       throw new Error('User not found');
     }
+
+    console.log('👤 Found user:', { id: user.id, email: user.email });
+
+    // Debug: First check if table exists and has data
+    const totalAllComparisons = await prisma.comparison.count();
+    console.log('🌍 Total comparisons in database (all users):', totalAllComparisons);
 
     const [
       totalComparisons,
@@ -549,33 +557,35 @@ export async function getComparisonStats() {
       prisma.comparison.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          orientation1: { select: { specialization: true } },
-          orientation2: { select: { specialization: true } }
-        }
+        take: 5
       }),
       
-      // Get most compared orientations by this user
-      prisma.$queryRaw`
-        SELECT o.id, o.specialization, COUNT(*) as comparison_count
-        FROM orientations o
-        INNER JOIN (
-          SELECT orientation1_id as orientation_id FROM comparisons WHERE user_id = ${user.id}
-          UNION ALL
-          SELECT orientation2_id as orientation_id FROM comparisons WHERE user_id = ${user.id}
-        ) c ON o.id = c.orientation_id
-        GROUP BY o.id, o.specialization
-        ORDER BY comparison_count DESC
-        LIMIT 5
-      `
+      // Simplified query that doesn't depend on orientations table
+      []
     ]);
+
+    console.log('📊 Comparison stats:', {
+      totalComparisons,
+      completedAnalyses,
+      favoriteComparisons,
+      recentComparisons: recentComparisons.length,
+      totalAllComparisons
+    });
+
+    // If no comparisons found, check if there are comparisons with null userId
+    if (totalComparisons === 0 && totalAllComparisons > 0) {
+      const orphanedComparisons = await prisma.comparison.findMany({
+        where: { userId: null },
+        take: 5
+      });
+      console.log('� Found orphaned comparisons (null userId):', orphanedComparisons.length);
+    }
 
     return {
       success: true,
       stats: {
-        total: totalComparisons,
-        completed: completedAnalyses,
+        totalComparisons: totalComparisons,
+        completedAnalyses: completedAnalyses,
         favorites: favoriteComparisons,
         recent: recentComparisons,
         popularOrientations

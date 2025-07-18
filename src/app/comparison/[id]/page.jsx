@@ -23,6 +23,36 @@ export default function ComparisonResults() {
   const [userData, setUserData] = useState(null);
   const [scores, setScores] = useState({ mg: 0, fs: 0 });
 
+  // Helper function to extract location from university name
+  const getLocationFromUniversity = (universityName) => {
+    if (!universityName) return 'غير محدد';
+    
+    const locationMap = {
+      'تونس': ['تونس', 'قرطاج', 'منوبة'],
+      'سوسة': ['سوسة'],
+      'صفاقس': ['صفاقس'],
+      'المنستير': ['المنستير'],
+      'قابس': ['قابس'],
+      'قفصة': ['قفصة'],
+      'القيروان': ['القيروان'],
+      'جندوبة': ['جندوبة'],
+      'قصرين': ['قصرين'],
+      'الكاف': ['الكاف'],
+      'بوزيد': ['بوزيد'],
+      'مدنين': ['مدنين']
+    };
+    
+    for (const [location, keywords] of Object.entries(locationMap)) {
+      for (const keyword of keywords) {
+        if (universityName.includes(keyword)) {
+          return location;
+        }
+      }
+    }
+    
+    return 'غير محدد';
+  };
+
   useEffect(() => {
     // Redirect logic first
     const checkUserAndRedirect = async () => {
@@ -303,9 +333,8 @@ export default function ComparisonResults() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">النقطة المطلوبة:</span>
                     <span className="font-medium text-cyan-300">
-                      {comparison.orientation1?.seuil || 
-                       (comparison.orientation1?.bacScores && 
-                        comparison.orientation1.bacScores.find(s => s.score2024)?.score2024) ||
+                      {comparison.orientation1?.historical_scores?.["2024"] || 
+                       comparison.orientation1?.minimum_bac_average ||
                        (comparison.orientation1?.historical_scores && 
                         Object.values(comparison.orientation1.historical_scores).find(score => score > 0)) || 
                        'غير محدد'}
@@ -314,7 +343,8 @@ export default function ComparisonResults() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">الولاية:</span>
                     <span className="font-medium text-cyan-300">
-                      {comparison.orientation1?.hub || comparison.orientation1?.table_location || comparison.orientation1?.wilaya || comparison.orientation1?.location || 'غير محدد'}
+                      {comparison.orientation1?.table_location || 
+                       getLocationFromUniversity(comparison.orientation1?.university_name)}
                     </span>
                   </div>
                 </div>
@@ -338,9 +368,8 @@ export default function ComparisonResults() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">النقطة المطلوبة:</span>
                     <span className="font-medium text-cyan-300">
-                      {comparison.orientation2?.seuil || 
-                       (comparison.orientation2?.bacScores && 
-                        comparison.orientation2.bacScores.find(s => s.score2024)?.score2024) ||
+                      {comparison.orientation2?.historical_scores?.["2024"] || 
+                       comparison.orientation2?.minimum_bac_average ||
                        (comparison.orientation2?.historical_scores && 
                         Object.values(comparison.orientation2.historical_scores).find(score => score > 0)) || 
                        'غير محدد'}
@@ -349,7 +378,8 @@ export default function ComparisonResults() {
                   <div className="flex justify-between">
                     <span className="text-gray-400">الولاية:</span>
                     <span className="font-medium text-cyan-300">
-                      {comparison.orientation2?.hub || comparison.orientation2?.table_location || comparison.orientation2?.wilaya || comparison.orientation2?.location || 'غير محدد'}
+                      {comparison.orientation2?.table_location || 
+                       getLocationFromUniversity(comparison.orientation2?.university_name)}
                     </span>
                   </div>
                 </div>
@@ -388,12 +418,6 @@ export default function ComparisonResults() {
                           <div className="text-6xl font-bold text-blue-400 mb-3">
                             {aiAnalysis.overallScores?.orientation1?.percentage || 0}%
                           </div>
-                          <div className="text-lg text-gray-400 mb-4">
-                            النتيجة الإجمالية: {aiAnalysis.overallScores?.orientation1?.total || 0}/600 نقطة
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            المعدل: {Math.round((aiAnalysis.overallScores?.orientation1?.total || 0) / 6)}/100 لكل معيار
-                          </div>
                         </div>
                         <div className="w-full bg-gray-600 rounded-full h-4 overflow-hidden">
                           <div 
@@ -411,12 +435,6 @@ export default function ComparisonResults() {
                         <div className="relative mb-6">
                           <div className="text-6xl font-bold text-green-400 mb-3">
                             {aiAnalysis.overallScores?.orientation2?.percentage || 0}%
-                          </div>
-                          <div className="text-lg text-gray-400 mb-4">
-                            النتيجة الإجمالية: {aiAnalysis.overallScores?.orientation2?.total || 0}/600 نقطة
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            المعدل: {Math.round((aiAnalysis.overallScores?.orientation2?.total || 0) / 6)}/100 لكل معيار
                           </div>
                         </div>
                         <div className="w-full bg-gray-600 rounded-full h-4 overflow-hidden">

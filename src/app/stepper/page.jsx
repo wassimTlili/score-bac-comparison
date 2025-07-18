@@ -293,27 +293,6 @@ export default function StepperPage() {
             
             <div className="flex justify-center">
               <div className="w-80 space-y-4">
-                {/* Simple Date Input */}
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={formData.birthday ? formData.birthday.toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : null;
-                      setFormData(prev => ({ ...prev, birthday: date }));
-                    }}
-                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-xl text-white text-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent"
-                    max={new Date().toISOString().split('T')[0]} // Don't allow future dates
-                    min="1990-01-01" // Reasonable minimum date
-                  />
-                  <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                </div>
-
-                {/* Alternative: Manual Input Fields */}
-                <div className="text-center">
-                  <span className="text-gray-400 text-sm">أو أدخل التاريخ يدوياً</span>
-                </div>
-
                 <div className="grid grid-cols-3 gap-3">
                   {/* Day */}
                   <div>

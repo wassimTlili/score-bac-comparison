@@ -53,36 +53,55 @@ export async function createOrUpdateUserProfile(profileData) {
       }
     }
 
-    // Deactivate existing active profile
-    await prisma.userProfile.updateMany({
+    // Find existing active profile
+    const existingProfile = await prisma.userProfile.findFirst({
       where: {
         userId: user.id,
         isActive: true
-      },
-      data: {
-        isActive: false
       }
     });
 
-    // Create new active profile
-    const profile = await prisma.userProfile.create({
-      data: {
-        userId: user.id,
-        filiere: profileData.filiere,
-        wilaya: profileData.wilaya,
-        birthDate: formatBirthDate(profileData.birthDate || profileData.birthday),
-        gender: profileData.gender,
-        session: profileData.session,
-        mgScore: profileData.mgScore,
-        fsScore: profileData.fsScore,
-        finalScore: profileData.finalScore,
-        grades: profileData.grades || {},
-        preferredRegions: profileData.preferredRegions || [],
-        careerInterests: profileData.careerInterests || [],
-        isActive: true,
-        completedAt: new Date()
-      }
-    });
+    let profile;
+    if (existingProfile) {
+      // Update existing profile
+      profile = await prisma.userProfile.update({
+        where: { id: existingProfile.id },
+        data: {
+          filiere: profileData.filiere,
+          wilaya: profileData.wilaya,
+          birthDate: formatBirthDate(profileData.birthDate || profileData.birthday),
+          gender: profileData.gender,
+          session: profileData.session,
+          mgScore: profileData.mgScore,
+          fsScore: profileData.fsScore,
+          finalScore: profileData.finalScore,
+          grades: profileData.grades || {},
+          preferredRegions: profileData.preferredRegions || [],
+          careerInterests: profileData.careerInterests || [],
+          completedAt: new Date()
+        }
+      });
+    } else {
+      // Create new active profile
+      profile = await prisma.userProfile.create({
+        data: {
+          userId: user.id,
+          filiere: profileData.filiere,
+          wilaya: profileData.wilaya,
+          birthDate: formatBirthDate(profileData.birthDate || profileData.birthday),
+          gender: profileData.gender,
+          session: profileData.session,
+          mgScore: profileData.mgScore,
+          fsScore: profileData.fsScore,
+          finalScore: profileData.finalScore,
+          grades: profileData.grades || {},
+          preferredRegions: profileData.preferredRegions || [],
+          careerInterests: profileData.careerInterests || [],
+          isActive: true,
+          completedAt: new Date()
+        }
+      });
+    }
 
     revalidatePath('/profile');
     revalidatePath('/stepper');
@@ -346,4 +365,53 @@ function formatBirthDate(birthDate) {
   }
   
   return null;
+}
+
+/**
+ * Update specific fields in user profile
+ */
+export async function updateUserProfile(updateData) {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      throw new Error('User not authenticated');
+    }
+
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { clerkId }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Find the active profile
+    const profile = await prisma.userProfile.findFirst({
+      where: {
+        userId: user.id,
+        isActive: true
+      }
+    });
+
+    if (!profile) {
+      throw new Error('No active profile found');
+    }
+
+    // Update the profile with the provided data
+    const updatedProfile = await prisma.userProfile.update({
+      where: { id: profile.id },
+      data: {
+        ...updateData,
+        updatedAt: new Date()
+      }
+    });
+
+    revalidatePath('/profile');
+    revalidatePath('/stepper/review');
+    return { success: true, profile: updatedProfile };
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return { success: false, error: error.message };
+  }
 }

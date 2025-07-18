@@ -61,6 +61,11 @@ model UserProfile {
   fsScore     Float? // Formule Spécifique
   finalScore  Float? // Final calculated score
   
+  // Manual Score Overrides (for user corrections)
+  hasManualScores Boolean @default(false) // Flag indicating manual score override
+  manualMgScore   Float? // User-provided MG score override
+  manualFsScore   Float? // User-provided FS score override
+  
   // Subject Grades (JSON for flexibility with all subjects)
   grades      Json // All subject grades from stepper form
   

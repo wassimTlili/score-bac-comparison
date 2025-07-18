@@ -1,26 +1,43 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Heart, ExternalLink, MapPin, GraduationCap, Building2, Calendar, TrendingUp, BarChart3, Award, Users, Star, BookOpen, Download } from 'lucide-react';
+import {
+  ArrowLeft, Heart, ExternalLink, MapPin, GraduationCap, Building2,
+  TrendingUp, BarChart3, Award, Star, BookOpen
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import finaleData from '@/data/finale-data.json';
-import { addToFavoritesByCode, removeFromFavoritesByCode, getUserFavoritesByCode } from '@/actions/favorites-actions';
+import {
+  addToFavoritesByCode, removeFromFavoritesByCode, getUserFavoritesByCode
+} from '@/actions/favorites-actions';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+
+// Chart.js imports
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 export default function ProgramDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { id: ramz_id } = params;
-  const { isRedirecting, isReady, userProfile, isSignedIn, user } = useAuthRedirect({
+  const { isRedirecting, isReady, isSignedIn } = useAuthRedirect({
     requireAuth: false,
     requireProfile: false
   });
-  
+
   const [program, setProgram] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [relatedPrograms, setRelatedPrograms] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,15 +49,9 @@ export default function ProgramDetailPage() {
         setIsLoading(false);
       }
     };
-
     loadAllData();
+    // eslint-disable-next-line
   }, [ramz_id, isReady, isRedirecting]);
-
-  useEffect(() => {
-    if (program) {
-      loadRelatedPrograms();
-    }
-  }, [program]);
 
   const loadProgramData = async () => {
     try {
@@ -55,13 +66,11 @@ export default function ProgramDetailPage() {
     }
   };
 
-  // Load user favorites from database
   const loadUserFavorites = async () => {
     if (!isSignedIn) {
       setFavorites([]);
       return;
     }
-    
     try {
       const userFavorites = await getUserFavoritesByCode();
       if (userFavorites.success) {
@@ -72,73 +81,47 @@ export default function ProgramDetailPage() {
     }
   };
 
-  const loadRelatedPrograms = () => {
-    try {
-      // Find related programs by same university and field
-      const related = finaleData.filter(p => 
-        p.ramz_id !== program.ramz_id && 
-        (p.university_name === program.university_name || 
-         p.field_of_study === program.field_of_study)
-      ).slice(0, 6);
-      setRelatedPrograms(related);
-    } catch (error) {
-      console.error('Error loading related programs:', error);
-    }
-  };
-
-  // Handle favorites toggle with database
   const handleFavoriteToggle = async () => {
     if (!isSignedIn) {
       alert('يجب تسجيل الدخول لإضافة المفضلة');
       return;
     }
-
     const orientationCode = program?.ramz_code;
     if (!orientationCode) return;
-
-    console.log('🔍 Toggling favorite for:', orientationCode);
     setLoadingFavorites(true);
-
     try {
       const isFavorite = favorites.includes(orientationCode);
-      
       if (isFavorite) {
-        console.log('🔍 Removing from favorites...');
         const result = await removeFromFavoritesByCode(orientationCode);
         if (result.success) {
           setFavorites(prev => prev.filter(code => code !== orientationCode));
-          console.log('✅ Removed from favorites');
-        } else {
-          console.error('❌ Failed to remove from favorites:', result.error);
         }
       } else {
-        console.log('🔍 Adding to favorites...');
         const result = await addToFavoritesByCode(orientationCode);
         if (result.success) {
           setFavorites(prev => [...prev, orientationCode]);
-          console.log('✅ Added to favorites');
-        } else {
-          console.error('❌ Failed to add to favorites:', result.error);
         }
       }
     } catch (error) {
-      console.error('❌ Error toggling favorite:', error);
+      console.error('Error toggling favorite:', error);
     } finally {
       setLoadingFavorites(false);
     }
   };
 
+  // Only get the last 5 years of scores, most recent first
   const getHistoricalScoresData = () => {
     if (!program?.historical_scores) return [];
-    
-    const scores = [];
-    for (let year = 2024; year >= 2011; year--) {
-      const score = program.historical_scores[year.toString()];
-      if (score && score > 0) {
-        scores.push({ year, score });
-      }
-    }
-    return scores.reverse(); // Show chronologically
+    const years = Object.keys(program.historical_scores)
+      .map(Number)
+      .filter(year => year <= 2024)
+      .sort((a, b) => b - a)
+      .slice(0, 5)
+      .reverse();
+    return years.map(year => ({
+      year,
+      score: program.historical_scores[year.toString()]
+    })).filter(item => item.score && item.score > 0);
   };
 
   const getLatestScore = () => {
@@ -156,15 +139,61 @@ export default function ProgramDetailPage() {
   const getScoreTrend = () => {
     const scores = getHistoricalScoresData();
     if (scores.length < 2) return 'stable';
-    const recent = scores.slice(-3);
-    const firstScore = recent[0].score;
-    const lastScore = recent[recent.length - 1].score;
+    const firstScore = scores[0].score;
+    const lastScore = scores[scores.length - 1].score;
     const difference = lastScore - firstScore;
-    
     if (difference > 1) return 'increasing';
     if (difference < -1) return 'decreasing';
     return 'stable';
   };
+
+  // Chart.js data and options
+  const historicalScores = getHistoricalScoresData();
+  const getChartData = () => ({
+    labels: historicalScores.map(item => item.year),
+    datasets: [
+      {
+        label: 'نقطة القطع',
+        data: historicalScores.map(item => item.score),
+        fill: false,
+        borderColor: '#06b6d4',
+        backgroundColor: '#06b6d4',
+        tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: '#06b6d4',
+        pointBorderColor: '#fff',
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#0ea5e9',
+      }
+    ]
+  });
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => ` ${context.parsed.y}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#334155' },
+        ticks: { color: '#cbd5e1', font: { family: 'Tajawal' } }
+      },
+      y: {
+        grid: { color: '#334155' },
+        ticks: { color: '#cbd5e1', font: { family: 'Tajawal' } }
+      }
+    }
+  };
+
+  const latestScore = getLatestScore();
+  const averageScore = getAverageScore();
+  const trend = getScoreTrend();
+  const programIsFavorite = program ? favorites.includes(program.ramz_code) : false;
 
   if (isLoading) {
     return (
@@ -202,12 +231,6 @@ export default function ProgramDetailPage() {
       </div>
     );
   }
-
-  const historicalScores = getHistoricalScoresData();
-  const latestScore = getLatestScore();
-  const averageScore = getAverageScore();
-  const trend = getScoreTrend();
-  const programIsFavorite = program ? favorites.includes(program.ramz_code) : false;
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-gray-100">
@@ -252,7 +275,6 @@ export default function ProgramDetailPage() {
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -271,7 +293,6 @@ export default function ProgramDetailPage() {
                   </div>
                 )}
               </div>
-              
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 <div className="text-center p-3 bg-slate-700/30 rounded-lg">
                   <MapPin className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
@@ -295,7 +316,6 @@ export default function ProgramDetailPage() {
                 </div>
               </div>
             </div>
-
             {/* Admission Criteria */}
             {program.table_criteria && (
               <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
@@ -308,39 +328,17 @@ export default function ProgramDetailPage() {
                 </div>
               </div>
             )}
-
             {/* Historical Scores Chart */}
             {historicalScores.length > 0 && (
               <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
                 <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                   <BarChart3 className="w-5 h-5 text-cyan-400 mr-2" />
-                  نقاط القطع التاريخية
+                  نقاط القطع التاريخية (آخر 5 سنوات)
                 </h2>
-                
-                {/* Chart Visualization */}
+                {/* Chart.js Line Chart */}
                 <div className="mb-6">
-                  <div className="flex items-end space-x-2 h-40 bg-slate-700/20 rounded-lg p-4">
-                    {historicalScores.map((item, index) => {
-                      const maxScore = Math.max(...historicalScores.map(s => s.score));
-                      const height = (item.score / maxScore) * 100;
-                      return (
-                        <div key={item.year} className="flex-1 flex flex-col items-center">
-                          <div
-                            className="bg-gradient-to-t from-cyan-500 to-blue-400 rounded-t min-w-[20px] transition-all duration-300 hover:opacity-80"
-                            style={{ height: `${height}%` }}
-                          ></div>
-                          <div className="text-xs text-gray-400 mt-2 transform -rotate-45 origin-center">
-                            {item.year}
-                          </div>
-                          <div className="text-xs text-white font-medium">
-                            {item.score}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <Line data={getChartData()} options={chartOptions} />
                 </div>
-
                 {/* Scores Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -358,7 +356,7 @@ export default function ProgramDetailPage() {
                         return (
                           <tr key={item.year} className="border-b border-slate-700/50">
                             <td className="py-2 text-white">{item.year}</td>
-                            <td className="py-2 text-cyan-400 font-medium">{item.score}</td>
+                            <td className={`py-2 font-medium ${index === historicalScores.length - 1 ? 'text-cyan-400' : 'text-white'}`}>{item.score}</td>
                             <td className="py-2">
                               {change !== 0 && (
                                 <span className={`flex items-center ${change > 0 ? 'text-green-400' : 'text-red-400'}`}>
@@ -376,7 +374,6 @@ export default function ProgramDetailPage() {
               </div>
             )}
           </div>
-
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Score Statistics */}
@@ -386,7 +383,6 @@ export default function ProgramDetailPage() {
                   <TrendingUp className="w-5 h-5 text-green-400 mr-2" />
                   إحصائيات النقاط
                 </h3>
-                
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                     <span className="text-gray-400">آخر نقطة قطع</span>
@@ -395,14 +391,12 @@ export default function ProgramDetailPage() {
                       <span className="text-xs text-gray-500 block">({latestScore.year})</span>
                     </div>
                   </div>
-                  
                   {averageScore && (
                     <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                       <span className="text-gray-400">المتوسط العام</span>
                       <span className="text-lg font-bold text-blue-400">{averageScore}</span>
                     </div>
                   )}
-                  
                   <div className="flex justify-between items-center p-3 bg-slate-700/30 rounded-lg">
                     <span className="text-gray-400">الاتجاه</span>
                     <div className="flex items-center">
@@ -426,46 +420,9 @@ export default function ProgramDetailPage() {
                 </div>
               </div>
             )}
-
-            {/* Related Programs */}
-            {relatedPrograms.length > 0 && (
-              <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <Users className="w-5 h-5 text-purple-400 mr-2" />
-                  برامج ذات صلة
-                </h3>
-                
-                <div className="space-y-3">
-                  {relatedPrograms.slice(0, 4).map((relatedProgram) => (
-                    <div
-                      key={relatedProgram.ramz_id}
-                      onClick={() => router.push(`/guide/${relatedProgram.ramz_id}`)}
-                      className="p-3 bg-slate-700/30 rounded-lg cursor-pointer hover:bg-slate-700/40 transition-all duration-200"
-                    >
-                      <h4 className="text-sm font-medium text-white mb-1 line-clamp-2">
-                        {relatedProgram.table_specialization}
-                      </h4>
-                      <p className="text-xs text-gray-400">{relatedProgram.university_name}</p>
-                      <p className="text-xs text-gray-500">{relatedProgram.table_location}</p>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push('/guide')}
-                  className="w-full mt-4 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                >
-                  عرض المزيد
-                </Button>
-              </div>
-            )}
-
-            {/* Quick Actions */}
+            {/* Quick Actions (no imprimer/print) */}
             <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4">إجراءات سريعة</h3>
-              
               <div className="space-y-3">
                 <Button
                   variant="outline"
@@ -476,7 +433,6 @@ export default function ProgramDetailPage() {
                   <Star className="w-4 h-4 mr-2" />
                   مقارنة مع برامج أخرى
                 </Button>
-                
                 <Button
                   variant="outline"
                   size="sm"
@@ -485,16 +441,6 @@ export default function ProgramDetailPage() {
                 >
                   <BookOpen className="w-4 h-4 mr-2" />
                   استشارة المساعد الذكي
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.print()}
-                  className="w-full bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  طباعة التفاصيل
                 </Button>
               </div>
             </div>

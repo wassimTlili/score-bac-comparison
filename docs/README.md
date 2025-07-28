@@ -1,53 +1,142 @@
-# Documentation - Comparaison d'Orientations
+# 📚 NexieGuide - Documentation Complète
 
-Bienvenue dans la documentation complète de l'application de comparaison d'orientations universitaires tunisiennes.
+Bienvenue dans la documentation complète de **NexieGuide**, la plateforme d'orientation universitaire la plus avancée de Tunisie, combinant intelligence artificielle GPT-4o, assistant 3D interactif, et internationalisation native arabe.
 
-## 📋 Table des Matières
+## 🎯 Qu'est-ce que NexieGuide ?
 
-1. [Overview](./01-overview.md) - Vue d'ensemble du projet
-2. [Architecture](./02-architecture.md) - Architecture technique détaillée
-3. [AI Integration](./03-ai-integration.md) - Intégration de l'IA (Azure OpenAI)
-4. [Data Models](./04-data-models.md) - Modèles de données et schémas
-5. [Server Actions](./05-server-actions.md) - Actions serveur et logique métier
-6. [Components](./06-components.md) - Composants React et UI
-7. [API Routes](./07-api-routes.md) - Routes API et endpoints
-8. [Storage & Database](./08-storage-database.md) - Stockage et base de données
-9. [User Experience](./09-user-experience.md) - Parcours utilisateur et UX
-10. [Deployment & DevOps](./10-deployment-devops.md) - Déploiement et DevOps
-11. [Testing Strategy](./11-testing.md) - Stratégie de tests
-12. [Contributing Guide](./12-contributing.md) - Guide de contribution
+**NexieGuide** révolutionne l'orientation universitaire tunisienne en offrant:
+- 🤖 **Assistant IA Nexie** avec conversations persistantes et streaming temps réel
+- 🎭 **Personnage 3D animé** avec React Three Fiber et interactions contextuelles  
+- 🌍 **Système i18n avancé** avec pluralisation arabe native et support RTL/LTR
+- 📊 **Analyses comparatives** avec algorithmes propriétaires et données tunisiennes
+- 🎓 **Recommandations personnalisées** basées profil étudiant et marché emploi
+
+## � Table des Matières Documentation
+
+### 🏗️ Architecture & Fondations
+1. **[Overview](./01-overview.md)** - Vision, mission, et proposition de valeur unique
+2. **[Architecture](./02-architecture.md)** - Stack technique et principes architecturaux
+8. **[Storage & Database](./08-storage-database.md)** - Prisma, PostgreSQL, et gestion données
+
+### 🤖 Intelligence Artificielle
+3. **[AI Integration](./03-ai-integration.md)** - Azure OpenAI, Nexie Assistant, et prompt engineering
+13. **[Nexie 3D Assistant](./13-nexie-3d-assistant.md)** - Personnage 3D, animations, et interactions
+
+### 🌍 Internationalisation & UX
+14. **[Internationalization System](./14-internationalization-system.md)** - i18n arabe/français avec pluralisation
+9. **[User Experience](./09-user-experience.md)** - Design patterns, accessibilité, et responsive
+
+### 🧩 Composants & Développement
+4. **[Data Models](./04-data-models.md)** - Structures données et schémas Prisma
+5. **[Server Actions](./05-server-actions.md)** - Actions serveur et logique métier
+6. **[Components](./06-components.md)** - Composants React et architecture frontend
+7. **[API Routes](./07-api-routes.md)** - Endpoints API et intégrations
+
+### 🚀 Déploiement & Qualité
+10. **[Deployment & DevOps](./10-deployment-devops.md)** - Vercel, CI/CD, et optimisations
+11. **[Testing](./11-testing.md)** - Stratégies test et assurance qualité
+12. **[Contributing](./12-contributing.md)** - Guide contribution et standards code
 
 ## 🚀 Démarrage Rapide
 
 ```bash
-# Installation
+# Installation dependencies
 npm install
 
-# Configuration
+# Configuration environnement
 cp .env.example .env.local
-# Editez .env.local avec vos clés Azure OpenAI
+# Ajoutez vos clés Azure OpenAI dans .env.local
 
-# Développement
+# Base données et migrations
+npx prisma generate
+npx prisma db push
+npm run db:seed
+
+# Développement avec hot reload
 npm run dev
 
-# Build de production
+# Build optimisé production
 npm run build
 npm start
+
+# Tests complets
+npm run test
+npm run test:e2e
 ```
 
-## 🎯 Objectif du Projet
+## 🎯 Objectif et Innovation
 
-Cette application aide les étudiants tunisiens du baccalauréat à:
-- Comparer deux orientations universitaires avec l'IA
-- Obtenir des analyses personnalisées basées sur leur score et localisation
-- Poser des questions de suivi via un chatbot intelligent
-- Prendre des décisions éclairées pour leur avenir académique
+**NexieGuide** transforme l'orientation universitaire tunisienne avec plusieurs innovations techniques uniques:
 
-## 🏗️ Architecture Technique
+### 🎭 Assistant 3D Nexie
+- **Personnage 3D animé** guidant visuellement les étudiants
+- **Messages contextuels** adaptés à chaque étape du processus
+- **Interactions naturelles** avec suivi du regard et animations réalistes
+- **Performance optimisée** pour tous types d'appareils
 
-- **Framework**: Next.js 14 (App Router)
-- **IA**: Azure OpenAI (GPT-4o) avec Vercel AI SDK
-- **Stockage**: En mémoire (extensible vers base de données)
+### 🤖 IA Conversationnelle Avancée
+- **GPT-4o Azure OpenAI** avec prompts spécialisés système éducatif tunisien
+- **Conversations persistantes** multi-sessions avec mémoire intelligente
+- **3 modes interface**: Widget, Sidebar, Fullscreen avec transitions fluides
+- **Streaming temps réel** pour réponses instantanées
+
+### 🌍 i18n Révolutionnaire
+- **Pluralisation arabe native** respectant règles grammaticales (singulier/duel/pluriel)
+- **Support RTL/LTR** automatique avec adaptation layout
+- **Interpolation dynamique** variables dans traductions
+- **Fallbacks intelligents** gestion robuste erreurs traduction
+
+### 📊 Analyses Personnalisées
+- **Algorithmes propriétaires** scoring multi-critères orientations
+- **Données tunisiennes exhaustives** universités, gouvernorats, marché emploi
+- **Prédictions admission** basées données historiques réelles
+- **Recommandations adaptatives** selon profil étudiant complet
+
+## 🏗️ Stack Technique Moderne
+
+- **Frontend**: Next.js 15.3.4 (App Router) + React 19
+- **IA**: Azure OpenAI GPT-4o + Vercel AI SDK v4.3.16
+- **3D Engine**: React Three Fiber + Drei pour animations Nexie
+- **Base Données**: Prisma + PostgreSQL avec migrations
+- **Styling**: Tailwind CSS 4 + Framer Motion
+- **i18n**: Custom client avec pluralisation arabe native
+- **Auth**: Clerk integration complète
+- **Deployment**: Vercel avec optimisations performance
+
+## 🎨 Fonctionnalités Clés Démonstrables
+
+### Assistant Conversationnel Multi-Mode
+```javascript
+// Widget flottant, sidebar intégrée, ou fullscreen
+<ChatBotEnhanced 
+  mode="widget|sidebar|fullscreen"
+  persistentConversations={true}
+  contextualResponses={true}
+  arabicSupport={true}
+/>
+```
+
+### Pluralisation Arabe Grammaticale
+```javascript
+// Gestion automatique formes grammaticales arabes
+const { tAdvanced } = useTranslation();
+
+tAdvanced('choicesCount', { count: 1 });  // "اختيار واحد" (singulier)
+tAdvanced('choicesCount', { count: 2 });  // "اختياران" (duel)
+tAdvanced('choicesCount', { count: 5 });  // "5 اختيارات" (pluriel)
+tAdvanced('choicesCount', { count: 15 }); // "اختيار واحد" (retour singulier)
+```
+
+### Personnage 3D Contextuel
+```javascript
+// Assistant 3D avec messages adaptatifs selon page
+<FloatingNexie
+  contextualMessages={true}    // Messages selon progression
+  mouseTracking={true}         // Regard suit curseur
+  performanceOptimized={true}  // Adaptation GPU automatique
+  animations="breathing|speaking|listening"
+/>
+```
 - **UI**: Tailwind CSS avec composants React
 - **Actions**: Server Actions pour la logique métier
 

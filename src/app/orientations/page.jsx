@@ -14,7 +14,7 @@ import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import { getUserProfile } from '@/actions/profile-actions';
 import { trackData, calculateMG, calculateFS, getScoreLevel } from '@/utils/calculations';
 import FloatingNexie from '@/components/FloatingNexie';
-
+import { useTranslation } from '../i18n/client';
 // Main orientation page component
 function OrientationPageContent() {
   const router = useRouter();
@@ -22,6 +22,7 @@ function OrientationPageContent() {
     requireAuth: true,
     requireProfile: true
   });
+  const { t, pluralize, tAdvanced, loading: translationLoading } = useTranslation('orientations');
 
   // State management
   const [userData, setUserData] = useState(null);
@@ -167,12 +168,12 @@ function OrientationPageContent() {
   // Add choice to list
   const addChoice = (program) => {
     if (userChoices.length >= 10) {
-      alert('لا يمكن إضافة أكثر من 10 اختيارات');
+      alert(t ? t('orientations.maxChoicesExceeded', 'errors') : 'Maximum number of choices exceeded');
       return;
     }
 
     if (userChoices.some(choice => choice.ramz_code === program.ramz_code)) {
-      alert('هذا البرنامج موجود بالفعل في قائمة اختياراتك');
+      alert(t ? t('orientations.programAlreadyExists', 'errors') : 'Program already exists in your choices');
       return;
     }
 
@@ -255,19 +256,19 @@ function OrientationPageContent() {
     if (program) {
       addChoice(program);
     } else {
-      alert('لم يتم العثور على برنامج بهذا الرمز');
+      alert(t ? t('orientations.programNotFound', 'errors') : 'Program not found');
     }
   };
 
   // Handle AI Analysis
   const handleAnalyzeChoices = async () => {
     if (userChoices.length < 6) {
-      alert('يجب إضافة 6 اختيارات على الأقل لإجراء التحليل');
+      alert(t ? t('orientations.minimumChoicesRequired', 'errors') : 'Minimum 6 choices required');
       return;
     }
 
     if (!userData || (!userData.fsScore && !userData.finalScore)) {
-      alert('يجب إكمال بيانات الملف الشخصي أولاً لإجراء التحليل');
+      alert(t ? t('orientations.profileIncomplete', 'errors') : 'Profile incomplete');
       return;
     }
 
@@ -277,7 +278,7 @@ function OrientationPageContent() {
       const userGpa = userData.fsScore || userData.finalScore || userData.mgScore || 0;
       
       if (userGpa < 60) {
-        alert('المعدل منخفض جداً لإجراء تحليل دقيق. يرجى التأكد من صحة البيانات.');
+        alert(t ? t('orientations.gradesTooLow', 'errors') : 'Grades too low for analysis');
         setIsAnalyzing(false);
         return;
       }
@@ -300,7 +301,7 @@ function OrientationPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'فشل في تحليل الاختيارات');
+        throw new Error(errorData.error || (t ? t('errors.analysisFailed') : 'Analysis failed'));
       }
 
       const result = await response.json();
@@ -311,7 +312,7 @@ function OrientationPageContent() {
       }
     } catch (error) {
       console.error('Error analyzing choices:', error);
-      alert('حدث خطأ أثناء تحليل الاختيارات. يرجى المحاولة مرة أخرى.');
+      alert(t ? t('errors.analysisError') : 'Analysis error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -320,7 +321,7 @@ function OrientationPageContent() {
   // Handle favorites toggle
   const handleFavoriteToggle = async (orientationCode) => {
     if (!isSignedIn) {
-      alert('يجب تسجيل الدخول لإضافة المفضلة');
+      alert(t ? t('favorites.loginRequired') : 'Login required');
       return;
     }
 
@@ -347,7 +348,7 @@ function OrientationPageContent() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || translationLoading || !t) {
     return (
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -359,8 +360,8 @@ function OrientationPageContent() {
               <Target className="w-6 h-6 text-white animate-pulse" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">جاري تحميل بيانات التوجيه</h2>
-          <p className="text-gray-400">تحضير اختياراتك الجامعية...</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{(!t || translationLoading) ? 'Loading...' : t('loading.title')}</h2>
+          <p className="text-gray-400">{(!t || translationLoading) ? 'Loading translations...' : t('loading.description')}</p>
         </div>
       </div>
     );
@@ -378,11 +379,11 @@ function OrientationPageContent() {
                 className="flex items-center text-gray-400 hover:text-white transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                العودة
+                {t ? t('back', 'common') : 'Back'}
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-white">جدول الاختيارات التوجيه</h1>
-                <p className="text-gray-400">اختر 6-10 برامج واحصل على تحليل ذكي لزيادة فرص قبولك</p>
+                <h1 className="text-2xl font-bold text-white">{t ? t('title') : 'Orientation Choices'}</h1>
+                <p className="text-gray-400">{t ? t('subtitle') : 'Choose your university programs'}</p>
               </div>
             </div>
             
@@ -395,12 +396,12 @@ function OrientationPageContent() {
                 {isAnalyzing ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    جاري التحليل...
+                    {t ? t('analysis.analyzing') : 'Analyzing...'}
                   </>
                 ) : (
                   <>
                     <BarChart3 className="w-4 h-4 mr-2" />
-                    تحليل الاختيارات
+                    {t ? t('analysis.button') : 'Analyze Choices'}
                   </>
                 )}
               </Button>
@@ -433,15 +434,17 @@ function OrientationPageContent() {
               onCodeInput={handleCodeInput}
               onFavoriteToggle={handleFavoriteToggle}
               loadingFavorites={loadingFavorites}
+              t={t}
+              pluralize={pluralize}
             />
           </div>
 
           {/* Right Column - Analysis Results */}
           <div className="space-y-6">
             {analysisResults ? (
-              <AnalysisResults analysis={analysisResults} />
+              <AnalysisResults analysis={analysisResults} t={t} />
             ) : (
-              <AnalysisPlaceholder choicesCount={userChoices.length} />
+              <AnalysisPlaceholder choicesCount={userChoices.length} t={t} tAdvanced={tAdvanced} />
             )}
           </div>
         </div>
@@ -469,7 +472,9 @@ function ChoiceInputSection({
   onMoveChoice,
   onCodeInput,
   onFavoriteToggle,
-  loadingFavorites
+  loadingFavorites,
+  t,
+  pluralize
 }) {
   const favoritePrograms = availablePrograms.filter(program => 
     favorites.includes(program.ramz_code)
@@ -480,9 +485,9 @@ function ChoiceInputSection({
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4 rounded-t-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">جدول الاختيارات التوجيه</h2>
+          <h2 className="text-xl font-bold text-white">{t ? t('choices.listTitle') : 'Orientation Choices Table'}</h2>
           <div className="text-sm text-purple-100">
-            {userChoices.length}/10 اختيارات
+            {userChoices.length}/10 {pluralize ? pluralize('choices.choicesCount', userChoices.length) : 'choices'}
           </div>
         </div>
       </div>
@@ -493,8 +498,8 @@ function ChoiceInputSection({
           <div className="flex items-start space-x-3">
             <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-200">
-              <p className="font-medium mb-1">نصيحة هامة للتوجيه الجامعي:</p>
-              <p>يجب إضافة على الأقل <span className="font-bold text-blue-300">6 اختيارات</span> وبحد أقصى <span className="font-bold text-blue-300">10 اختيارات</span> للحصول على التحليل الذكي المكتمل من الذكاء الاصطناعي</p>
+              <p className="font-medium mb-1">{t ? t('choices.tip.title') : 'Important Tip'}</p>
+              <div dangerouslySetInnerHTML={{ __html: t ? t('choices.tip.description') : 'Select 6-10 choices for the best analysis results.' }} />
             </div>
           </div>
         </div>
@@ -507,7 +512,7 @@ function ChoiceInputSection({
               className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium py-3"
             >
               <Plus className="w-5 h-5 mr-2" />
-              إضافة اختيار جديد
+              {t ? t('choices.addNew') : 'Add New Choice'}
             </Button>
           </div>
         )}
@@ -529,6 +534,7 @@ function ChoiceInputSection({
             onFavoriteToggle={onFavoriteToggle}
             loadingFavorites={loadingFavorites}
             favorites={favorites}
+            t={t}
           />
         )}
 
@@ -543,6 +549,7 @@ function ChoiceInputSection({
               onRemove={() => onRemoveChoice(choice.ramz_code)}
               onMoveUp={() => onMoveChoice(index, 'up')}
               onMoveDown={() => onMoveChoice(index, 'down')}
+              t={t}
             />
           ))}
         </div>
@@ -551,8 +558,8 @@ function ChoiceInputSection({
         {userChoices.length === 0 && (
           <div className="text-center py-12">
             <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">لم تضف أي اختيارات بعد</h3>
-            <p className="text-gray-500 mb-6">ابدأ بإضافة اختياراتك الجامعية للحصول على التحليل الذكي</p>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">{t ? t('choices.empty.title') : 'No Choices Yet'}</h3>
+            <p className="text-gray-500 mb-6">{t ? t('choices.empty.description') : 'Start by adding your preferred university programs'}</p>
           </div>
         )}
       </div>
@@ -561,15 +568,42 @@ function ChoiceInputSection({
 }
 
 // Analysis Placeholder Component  
-function AnalysisPlaceholder({ choicesCount }) {
+function AnalysisPlaceholder({ choicesCount, t, tAdvanced }) {
+  const remainingChoices = Math.max(0, 6 - choicesCount);
+  
+  // Get the appropriate translation based on count
+  const getAnalysisText = () => {
+    if (!t) return `Add ${remainingChoices} more choices for analysis`;
+    
+    // Try to get translations, with Arabic fallbacks
+    const zeroText = t('choices.addMoreAnalysis_zero');
+    const singularText = t('choices.addMoreAnalysis_singular');
+    const dualText = t('choices.addMoreAnalysis_dual');
+    const pluralText = t('choices.addMoreAnalysis_plural');
+    
+    if (remainingChoices === 0) {
+      return zeroText !== 'choices.addMoreAnalysis_zero' ? zeroText : 'جاهز للتحليل الذكي!';
+    } else if (remainingChoices === 1) {
+      return singularText !== 'choices.addMoreAnalysis_singular' ? singularText : 'أضف اختيار واحد للحصول على التحليل';
+    } else if (remainingChoices === 2) {
+      return dualText !== 'choices.addMoreAnalysis_dual' ? dualText : 'أضف اختيارين للحصول على التحليل';
+    } else {
+      if (pluralText !== 'choices.addMoreAnalysis_plural') {
+        return pluralText.replace('{{count}}', remainingChoices);
+      } else {
+        return `أضف ${remainingChoices} اختيارات للحصول على التحليل`;
+      }
+    }
+  };
+
   return (
     <div className="bg-slate-800/50 rounded-lg border border-slate-700 p-6 text-center">
       <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
         <BarChart3 className="w-8 h-8 text-purple-400" />
       </div>
-      <h3 className="text-lg font-semibold text-white mb-2">التحليل الذكي</h3>
+      <h3 className="text-lg font-semibold text-white mb-2">{t ? t('analysis.title') : 'Smart Analysis'}</h3>
       <p className="text-gray-400 text-sm mb-4">
-        أضف {Math.max(0, 6 - choicesCount)} اختيار{choicesCount < 5 ? 'ات' : ''} إضافية للحصول على التحليل
+        {getAnalysisText()}
       </p>
       <div className="w-full bg-slate-700 rounded-full h-2">
         <div 
@@ -597,14 +631,15 @@ function AddChoiceModal({
   onCodeInput,
   onFavoriteToggle,
   loadingFavorites,
-  favorites
+  favorites,
+  t
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-slate-800 rounded-lg border border-slate-700 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h3 className="text-lg font-semibold text-white">إضافة اختيار جديد</h3>
+          <h3 className="text-lg font-semibold text-white">{t ? t('addChoice.title') : 'Add New Choice'}</h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
@@ -625,7 +660,7 @@ function AddChoiceModal({
               }`}
             >
               <Search className="w-4 h-4 inline mr-2" />
-              بحث
+              {t ? t('addChoice.methods.search') : 'Search'}
             </button>
             <button
               onClick={() => setInputMethod('code')}
@@ -635,7 +670,7 @@ function AddChoiceModal({
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              رمز البرنامج
+              {t ? t('addChoice.methods.code') : 'Code'}
             </button>
             <button
               onClick={() => setInputMethod('favorites')}
@@ -646,7 +681,7 @@ function AddChoiceModal({
               }`}
             >
               <Heart className="w-4 h-4 inline mr-2" />
-              المفضلة
+              {t ? t('addChoice.methods.favorites') : 'Favorites'}
             </button>
           </div>
 
@@ -657,7 +692,7 @@ function AddChoiceModal({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="ابحث عن البرنامج أو الجامعة..."
+                  placeholder={t ? t('addChoice.search.placeholder') : 'Search for programs...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
@@ -686,7 +721,7 @@ function AddChoiceModal({
               <div className="flex space-x-2">
                 <input
                   type="text"
-                  placeholder="أدخل رمز البرنامج..."
+                  placeholder={t ? t('addChoice.code.placeholder') : 'Enter program code...'}
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
                   className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
@@ -696,7 +731,7 @@ function AddChoiceModal({
                   disabled={!codeInput.trim()}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6"
                 >
-                  إضافة
+                  {t ? t('choices.addButtonText') : 'Add'}
                 </Button>
               </div>
             </div>
@@ -721,7 +756,7 @@ function AddChoiceModal({
               ) : (
                 <div className="text-center py-8">
                   <Heart className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-400">لا توجد برامج في المفضلة</p>
+                  <p className="text-gray-400">{t ? t('choices.noFavorites') : 'No favorite programs yet'}</p>
                 </div>
               )}
             </div>
@@ -769,7 +804,7 @@ function ProgramOption({ program, onSelect, onFavoriteToggle, isFavorite, loadin
 }
 
 // Choice Card Component
-function ChoiceCard({ choice, index, totalChoices, onRemove, onMoveUp, onMoveDown }) {
+function ChoiceCard({ choice, index, totalChoices, onRemove, onMoveUp, onMoveDown, t }) {
   const getAcceptanceColor = (rate) => {
     if (rate >= 85) return 'text-green-400 bg-green-400/20';
     if (rate >= 70) return 'text-yellow-400 bg-yellow-400/20';
@@ -778,10 +813,10 @@ function ChoiceCard({ choice, index, totalChoices, onRemove, onMoveUp, onMoveDow
   };
 
   const getAcceptanceLabel = (rate) => {
-    if (rate >= 85) return 'ممتاز';
-    if (rate >= 70) return 'جيد';
-    if (rate >= 50) return 'متوسط';
-    return 'ضعيف';
+    if (rate >= 85) return t ? t('analysis.acceptanceRatings.excellent') : 'Excellent';
+    if (rate >= 70) return t ? t('analysis.acceptanceRatings.good') : 'Good';
+    if (rate >= 50) return t ? t('analysis.acceptanceRatings.average') : 'Average';
+    return t ? t('analysis.acceptanceRatings.poor') : 'Poor';
   };
 
   return (
@@ -842,34 +877,35 @@ function ChoiceCard({ choice, index, totalChoices, onRemove, onMoveUp, onMoveDow
 }
 
 // Analysis Results Component
-function AnalysisResults({ analysis }) {
+function AnalysisResults({ analysis, t }) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isMostProbableExpanded, setIsMostProbableExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
   const tabs = [
-    { id: 'overview', label: 'نظرة عامة', icon: '📊' },
-    { id: 'details', label: 'التفاصيل', icon: '📋' },
-    { id: 'recommendations', label: 'التوصيات', icon: '💡' }
+    { id: 'overview', label: t ? t('analysis.tabs.overview') : 'Overview', icon: '📊' },
+    { id: 'details', label: t ? t('analysis.tabs.details') : 'Details', icon: '📋' },
+    { id: 'recommendations', label: t ? t('analysis.tabs.recommendations') : 'Recommendations', icon: '💡' }
   ];
 
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-1 backdrop-blur-sm">
-        <div className="flex space-x-1">
+      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-1 backdrop-blur-sm w-full">
+        <div className="flex space-x-1 w-full">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 transform hover:scale-[1.02] ${
+              className={`flex-1 py-3 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 transform hover:scale-[1.02] min-w-0 ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-2xl shadow-blue-500/25 scale-[1.02]'
                   : 'text-gray-400 hover:text-white hover:bg-slate-700/60'
               }`}
             >
               <span className="text-lg">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span className="truncate hidden sm:inline">{tab.label}</span>
+              <span className="truncate sm:hidden text-xs">{tab.label.slice(0, 6)}</span>
             </button>
           ))}
         </div>
@@ -887,10 +923,10 @@ function AnalysisResults({ analysis }) {
                   {analysis.overallAcceptanceRate}%
                 </div>
                 <div className="text-green-300 font-semibold mb-2 text-lg">
-                  نسبة القبول المتوقعة الإجمالية
+                  {t ? t('choices.analysisOverall') : 'Overall Analysis'}
                 </div>
                 <div className="text-sm text-green-200 bg-green-500/20 rounded-full px-4 py-2 inline-block">
-                  بناءً على معدلك واختياراتك الحالية
+                  {t ? t('choices.basedOnGrades') : 'Based on your grades'}
                 </div>
               </div>
             </div>
@@ -910,13 +946,13 @@ function AnalysisResults({ analysis }) {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-semibold text-white">التحليل الشامل لاستراتيجية الاختيارات</h3>
-                    <p className="text-gray-400 text-sm">تحليل مفصل لنقاط القوة والضعف في اختياراتك</p>
+                    <h3 className="text-xl font-semibold text-white">{t ? t('choices.comprehensiveAnalysis') : 'Comprehensive Analysis'}</h3>
+                    <p className="text-gray-400 text-sm">{t ? t('choices.analysisDescription') : 'Detailed analysis description'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-400 bg-slate-700/50 px-3 py-1 rounded-full">
-                    {isDescriptionExpanded ? 'إخفاء' : 'عرض'}
+                    {isDescriptionExpanded ? (t ? t('analysis.overview.showLess') : 'Show Less') : (t ? t('analysis.overview.showMore') : 'Show More')}
                   </span>
                   <svg 
                     className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDescriptionExpanded ? 'rotate-180' : ''}`} 
@@ -955,8 +991,8 @@ function AnalysisResults({ analysis }) {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-semibold text-white">الاختيار الأكثر احتمالاً للقبول</h3>
-                    <p className="text-gray-400 text-sm">التخصص الذي يحمل أعلى نسبة قبول متوقعة</p>
+                    <h3 className="text-xl font-semibold text-white">{t ? t('choices.mostLikelyChoice') : 'Most Likely Choice'}</h3>
+                    <p className="text-gray-400 text-sm">{t ? t('choices.mostLikelySubtitle') : 'Highest probability choice'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -964,10 +1000,10 @@ function AnalysisResults({ analysis }) {
                     <div className="text-2xl font-bold text-amber-400">
                       {analysis.mostProbableChoice.probability}%
                     </div>
-                    <div className="text-xs text-amber-300">احتمالية</div>
+                    <div className="text-xs text-amber-300">{t ? t('choices.probability') : 'Probability'}</div>
                   </div>
                   <span className="text-sm text-gray-400 bg-amber-500/20 px-3 py-1 rounded-full">
-                    {isMostProbableExpanded ? 'إخفاء' : 'عرض التفاصيل'}
+                    {isMostProbableExpanded ? (t ? t('analysis.overview.showLess') : 'Show Less') : (t ? t('analysis.overview.showMore') : 'Show More')}
                   </span>
                   <svg 
                     className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isMostProbableExpanded ? 'rotate-180' : ''}`} 
@@ -997,7 +1033,7 @@ function AnalysisResults({ analysis }) {
                         <div className="text-3xl font-bold text-amber-400">
                           {analysis.mostProbableChoice.probability}%
                         </div>
-                        <div className="text-xs text-amber-300">احتمالية القبول</div>
+                        <div className="text-xs text-amber-300">{t ? t('choices.acceptanceProbability') : 'Acceptance Probability'}</div>
                       </div>
                     </div>
                     <div className="bg-gradient-to-r from-slate-600/40 to-slate-500/40 rounded-lg p-4 border-l-4 border-amber-500 backdrop-blur-sm">
@@ -1005,7 +1041,7 @@ function AnalysisResults({ analysis }) {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        تحليل مفصل:
+                        {t ? t('choices.detailedAnalysis') : 'Detailed Analysis'}
                       </h5>
                       <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                         {analysis.mostProbableChoice.reasoning}
@@ -1024,23 +1060,23 @@ function AnalysisResults({ analysis }) {
                 <svg className="w-6 h-6 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                توزيع مستويات المخاطر
+                {t ? t('choices.riskDistribution') : 'Risk Distribution'}
               </h3>
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center p-5 bg-green-500/20 rounded-xl border border-green-500/30 hover:bg-green-500/30 transition-colors duration-200">
                   <div className="text-4xl font-bold text-green-400 mb-2">{analysis.choiceDistribution.safe}</div>
-                  <div className="text-sm text-green-300 font-medium">اختيارات آمنة</div>
-                  <div className="text-xs text-green-200 mt-1">احتمالية عالية</div>
+                  <div className="text-sm text-green-300 font-medium">{t ? t('choices.safeChoices') : 'Safe Choices'}</div>
+                  <div className="text-xs text-green-200 mt-1">{t ? t('choices.highProbability') : 'High Probability'}</div>
                 </div>
                 <div className="text-center p-5 bg-yellow-500/20 rounded-xl border border-yellow-500/30 hover:bg-yellow-500/30 transition-colors duration-200">
                   <div className="text-4xl font-bold text-yellow-400 mb-2">{analysis.choiceDistribution.moderate}</div>
-                  <div className="text-sm text-yellow-300 font-medium">اختيارات متوسطة</div>
-                  <div className="text-xs text-yellow-200 mt-1">احتمالية متوسطة</div>
+                  <div className="text-sm text-yellow-300 font-medium">{t ? t('choices.moderateChoices') : 'Moderate Choices'}</div>
+                  <div className="text-xs text-yellow-200 mt-1">{t ? t('choices.moderateProbability') : 'Moderate Probability'}</div>
                 </div>
                 <div className="text-center p-5 bg-red-500/20 rounded-xl border border-red-500/30 hover:bg-red-500/30 transition-colors duration-200">
                   <div className="text-4xl font-bold text-red-400 mb-2">{analysis.choiceDistribution.risky}</div>
-                  <div className="text-sm text-red-300 font-medium">اختيارات مخاطرة</div>
-                  <div className="text-xs text-red-200 mt-1">احتمالية منخفضة</div>
+                  <div className="text-sm text-red-300 font-medium">{t ? t('choices.riskyChoices') : 'Risky Choices'}</div>
+                  <div className="text-xs text-red-200 mt-1">{t ? t('choices.lowProbability') : 'Low Probability'}</div>
                 </div>
               </div>
             </div>
@@ -1058,7 +1094,7 @@ function AnalysisResults({ analysis }) {
                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                اقتراحات التحسين البديلة
+                {t ? t('choices.alternativeImprovements') : 'Alternative Improvements'}
               </h3>
             </div>
             
@@ -1081,14 +1117,14 @@ function AnalysisResults({ analysis }) {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-green-400">{improvement.improvementPercentage}%</div>
-                    <div className="text-xs text-green-300">تحسين متوقع</div>
+                    <div className="text-xs text-green-300">{t ? t('choices.expectedImprovement') : 'Expected Improvement'}</div>
                   </div>
                 </div>
               )) || (
                 <div className="text-center py-8">
                   <div className="text-6xl mb-4">🎯</div>
-                  <p className="text-gray-400 text-lg">لا توجد اقتراحات تحسينية متاحة حالياً</p>
-                  <p className="text-gray-500 text-sm mt-2">اختياراتك الحالية مناسبة جداً!</p>
+                  <p className="text-gray-400 text-lg">{t ? t('choices.noImprovementSuggestions') : 'No improvement suggestions'}</p>
+                  <p className="text-gray-500 text-sm mt-2">{t ? t('choices.choicesAreExcellent') : 'Your choices are excellent'}</p>
                 </div>
               )}
             </div>
@@ -1100,16 +1136,16 @@ function AnalysisResults({ analysis }) {
               <svg className="w-6 h-6 mr-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
-              تقييم المخاطر والنقاط
+              {t ? t('choices.riskAssessment') : 'Risk Assessment'}
             </h3>
             <div className="space-y-6">
               <div className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
-                <span className="text-gray-400 font-medium">مستوى المخاطر العام:</span>
+                <span className="text-gray-400 font-medium">{t ? t('choices.overallRiskLevel') : 'Overall Risk Level'}</span>
                 <span className={`font-bold text-lg px-4 py-2 rounded-full ${
-                  analysis.riskLevel === 'منخفض' ? 'text-green-400 bg-green-500/20' :
-                  analysis.riskLevel === 'متوسط' ? 'text-yellow-400 bg-yellow-500/20' : 'text-red-400 bg-red-500/20'
+                  analysis.riskLevel === (t ? t('analysis.riskLevels.low') : 'Low') ? 'text-green-400 bg-green-500/20' :
+                  analysis.riskLevel === (t ? t('analysis.riskLevels.medium') : 'Medium') ? 'text-yellow-400 bg-yellow-500/20' : 'text-red-400 bg-red-500/20'
                 }`}>
-                  {analysis.riskLevel || 'غير محدد'}
+                  {analysis.riskLevel || (t ? t('analysis.riskLevels.undefined') : 'Undefined')}
                 </span>
               </div>
               
@@ -1121,7 +1157,7 @@ function AnalysisResults({ analysis }) {
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      عوامل المخاطر
+                      {t ? t('choices.riskFactors') : 'Risk Factors'}
                     </h4>
                     <ul className="space-y-3">
                       {analysis.riskFactors.map((factor, index) => (
@@ -1141,7 +1177,7 @@ function AnalysisResults({ analysis }) {
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                       </svg>
-                      نقاط القوة
+                      {t ? t('choices.strengths') : 'Strengths'}
                     </h4>
                     <ul className="space-y-3">
                       {analysis.strengths.map((strength, index) => (
@@ -1170,9 +1206,9 @@ function AnalysisResults({ analysis }) {
                   <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
-                  التوصيات الاستراتيجية
+                  {t ? t('choices.strategicRecommendations') : 'Strategic Recommendations'}
                 </h3>
-                <p className="text-indigo-200 text-sm mt-2">خطوات عملية لتحسين فرص القبول</p>
+                <p className="text-indigo-200 text-sm mt-2">{t ? t('choices.practicalSteps') : 'Practical steps to improve your chances'}</p>
               </div>
               <div className="p-6 space-y-4">
                 {analysis.strategicRecommendations.map((recommendation, index) => (
@@ -1198,23 +1234,23 @@ function AnalysisResults({ analysis }) {
               <svg className="w-6 h-6 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              خطوات العمل التالية
+              {t ? t('choices.nextActionSteps') : 'Next Action Steps'}
             </h3>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-slate-700/30 rounded-lg p-4">
-                <h4 className="text-blue-400 font-medium mb-2">📋 قريب المدى</h4>
+                <h4 className="text-blue-400 font-medium mb-2">{t ? t('choices.shortTerm') : 'Short Term'}</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
-                  <li>• مراجعة ترتيب الأولويات</li>
-                  <li>• التأكد من استكمال الوثائق</li>
-                  <li>• متابعة تواريخ التسجيل</li>
+                  <li>{t ? t('choices.reviewPriorities') : 'Review your priorities'}</li>
+                  <li>{t ? t('choices.completeDocuments') : 'Complete required documents'}</li>
+                  <li>{t ? t('choices.followRegistrationDates') : 'Follow registration dates'}</li>
                 </ul>
               </div>
               <div className="bg-slate-700/30 rounded-lg p-4">
-                <h4 className="text-purple-400 font-medium mb-2">🎯 طويل المدى</h4>
+                <h4 className="text-purple-400 font-medium mb-2">{t ? t('choices.longTerm') : 'Long Term'}</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
-                  <li>• التواصل مع المستشارين</li>
-                  <li>• إعداد خطة بديلة</li>
-                  <li>• تطوير المهارات المطلوبة</li>
+                  <li>{t ? t('choices.contactAdvisors') : 'Contact academic advisors'}</li>
+                  <li>{t ? t('choices.prepareAlternativePlan') : 'Prepare alternative plan'}</li>
+                  <li>{t ? t('choices.developRequiredSkills') : 'Develop required skills'}</li>
                 </ul>
               </div>
             </div>

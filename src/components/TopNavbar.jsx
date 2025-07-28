@@ -3,14 +3,12 @@
 import React, { useState } from 'react';
 import { ChevronDown, Menu, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { useUser, SignInButton } from '@clerk/nextjs';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
-  // Set default to Tunisian Arabic
-  const [selectedLanguage, setSelectedLanguage] = useState("العربية");
   const { isSignedIn, user, isLoaded } = useUser();
 
   return (
@@ -32,39 +30,11 @@ export default function TopNavbar({ isSidebarExpanded, onToggleMobileMenu }) {
         </Link>
       </div>
 
-      {/* Right Section - Language and Sign In */}
+      {/* Right Section - Language and Authentication */}
       <div className="flex items-center space-x-4">
-        {/* Language Selector */}
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-          <SelectTrigger className="w-auto border-0 bg-slate-800 hover:bg-slate-700 text-white focus:ring-0 px-3 py-2 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">🇹🇳</span>
-              <SelectValue placeholder="تونسي" />
-              <ChevronDown size={14} />
-            </div>
-          </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600">
-            <SelectItem value="English" disabled className="text-gray-400 cursor-not-allowed">
-              <div className="flex items-center space-x-2">
-                <span>🇬🇧</span>
-                <span>English</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="Français" disabled className="text-gray-400 cursor-not-allowed">
-              <div className="flex items-center space-x-2">
-                <span>🇫🇷</span>
-                <span>Français</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="العربية" className="text-white hover:bg-slate-700 focus:bg-slate-700">
-              <div className="flex items-center space-x-2">
-                <span>🇹🇳</span>
-                <span>تونسي</span>
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+        
         {/* Authentication Section */}
         {!isLoaded ? (
           <div className="w-24 h-10 bg-slate-800 rounded-lg animate-pulse"></div>

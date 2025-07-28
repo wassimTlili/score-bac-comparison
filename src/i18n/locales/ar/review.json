@@ -1,0 +1,117 @@
+{
+  "title": "مراجعة وتعديل البيانات",
+  "subtitle": "راجع بياناتك وقم بتعديلها إذا لزم الأمر قبل الحصول على نتائج التوجه الجامعي",
+  "editTip": "انقر على أي قسم للتعديل",
+  "loading": "جاري تحميل البيانات...",
+  
+  "sections": {
+    "personalInfo": {
+      "title": "المعلومات الشخصية",
+      "fields": {
+        "branch": "الشعبة",
+        "gender": "الجنس",
+        "governorate": "الولاية",
+        "session": "نوع الدورة",
+        "optionalSubject": "المادة الاختيارية",
+        "birthday": "تاريخ الميلاد"
+      },
+      "placeholders": {
+        "selectBranch": "اختر الشعبة",
+        "selectGender": "اختر الجنس",
+        "enterGovernorate": "أدخل الولاية",
+        "selectSession": "اختر نوع الدورة",
+        "enterOptionalSubject": "أدخل المادة الاختيارية"
+      },
+      "options": {
+        "male": "ذكر",
+        "female": "أنثى",
+        "principal": "الدورة الرئيسية",
+        "controle": "دورة المراقبة"
+      }
+    },
+    
+    "grades": {
+      "title": "النقاط",
+      "coefficient": "معامل",
+      "subjects": {
+        "mathematics": "الرياضيات",
+        "physics": "الفيزياء",
+        "chemistry": "الكيمياء", 
+        "biology": "علوم الطبيعة والحياة",
+        "french": "الفرنسية",
+        "arabic": "العربية",
+        "english": "الإنجليزية",
+        "philosophy": "الفلسفة",
+        "history": "التاريخ",
+        "geography": "الجغرافيا",
+        "optional": "المادة الاختيارية"
+      },
+      "gradeColors": {
+        "excellent": "ممتاز",
+        "good": "جيد",
+        "average": "متوسط", 
+        "poor": "ضعيف",
+        "undefined": "غير محدد"
+      }
+    },
+    
+    "summary": {
+      "title": "ملخص الدرجات",
+      "manuallyAdjusted": "نقاط مُعدّلة يدوياً",
+      "useAutomaticCalculation": "استخدام الحساب التلقائي",
+      "editScoresManually": "تعديل النقاط يدوياً",
+      "mgScore": "المعدل العام (MG)",
+      "fsScore": "النقطة الخاصة (FS)",
+      "evaluation": "التقييم",
+      "branch": "الشعبة",
+      "manualScoreEditing": "تعديل النقاط يدوياً",
+      "manualScoreDescription": "يمكنك تعديل النقاط يدوياً إذا كانت حساباتنا غير صحيحة. المعدل العام (0-20)، النقطة الخاصة (0-999). تأكد من إدخال النقاط الصحيحة لضمان دقة التوصيات."
+    },
+    
+    "subjects": {
+      "mathematics": "الرياضيات",
+      "physics": "الفيزياء",
+      "chemistry": "الكيمياء",
+      "biology": "علوم الطبيعة والحياة",
+      "french": "الفرنسية",
+      "arabic": "العربية",
+      "english": "الإنجليزية",
+      "philosophy": "الفلسفة",
+      "history": "التاريخ",
+      "geography": "الجغرافيا",
+      "optional": "المادة الاختيارية"
+    },
+    
+    "nextSteps": {
+      "title": "جاهز لاكتشاف توجهك الجامعي؟",
+      "description": "سنقوم الآن بتحليل بياناتك وحساب أفضل التوجهات المناسبة لك بناءً على درجاتك وتخصصك",
+      "calculateButton": "احسب التوجهات المناسبة",
+      "backButton": "العودة إلى النموذج",
+      "saving": "جاري الحفظ..."
+    }
+  },
+  
+  "branches": {
+    "math": "رياضيات",
+    "science": "علوم تجريبية",
+    "info": "علوم إعلامية", 
+    "tech": "تقنية",
+    "eco": "إقتصاد وتصرف",
+    "lettres": "آداب",
+    "sport": "رياضة"
+  },
+  
+  "actions": {
+    "edit": "تعديل",
+    "save": "حفظ", 
+    "cancel": "إلغاء",
+    "saving": "جاري الحفظ...",
+    "calculateOrientations": "احسب التوجهات المناسبة",
+    "backToForm": "العودة إلى النموذج"
+  },  "errors": {
+    "invalidScores": "النقاط غير صحيحة. يرجى التحقق من القيم المدخلة.",
+    "missingFields": "يرجى ملء جميع الحقول المطلوبة.",
+    "saveError": "خطأ في حفظ الملف الشخصي: {{error}}",
+    "saveGeneralError": "حدث خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى."
+  }
+}

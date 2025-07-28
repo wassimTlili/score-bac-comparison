@@ -1,22 +1,10 @@
 import { prisma } from '../../../lib/prisma.js';
 
 export async function GET() {
-  try {
-    console.log('🔄 Testing database connection...');
-    
-    // Test basic connection
-    await prisma.$connect();
-    console.log('✅ Database connected successfully');
-    
-    // Test query execution
-    const result = await prisma.$queryRaw`SELECT 1 as test`;
-    console.log('✅ Query execution successful');
-    
-    // Test comparison table access
-    const count = await prisma.comparison.count();
-    console.log(`✅ Comparison table accessible. Current count: ${count}`);
-    
-    return Response.json({ 
+  try {// Test basic connection
+    await prisma.$connect();// Test query execution
+    const result = await prisma.$queryRaw`SELECT 1 as test`;// Test comparison table access
+    const count = await prisma.comparison.count();return Response.json({ 
       success: true, 
       message: 'Database connection successful',
       comparisonCount: count,

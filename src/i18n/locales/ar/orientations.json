@@ -1,0 +1,158 @@
+{
+  "title": "التوجيهات الجامعية",
+  "subtitle": "اختياراتك الجامعية الذكية",
+  "loading": {
+    "title": "جاري تحميل البيانات",
+    "description": "نحن نجهز لك أفضل الاختيارات الجامعية"
+  },
+  "choices": {
+    "title": "اختياراتك الجامعية",
+    "addNew": "إضافة اختيار جديد",
+    "empty": {
+      "title": "لا توجد اختيارات بعد",
+      "description": "ابدأ بإضافة اختياراتك الجامعية للحصول على التحليل الذكي",
+      "action": "إضافة أول اختيار"
+    },
+    "counter": "{{count}} من 12 اختيار",
+    "addMoreAnalysis": "أضف {{count}} اختيار{{plural}} إضافية للحصول على التحليل",
+    "addMoreAnalysis_zero": "جاهز للتحليل الذكي!",
+    "addMoreAnalysis_singular": "أضف اختيار واحد للحصول على التحليل", 
+    "addMoreAnalysis_dual": "أضف اختيارين للحصول على التحليل",
+    "addMoreAnalysis_plural": "أضف {{count}} اختيارات للحصول على التحليل",
+    "remove": "إزالة الاختيار",
+    "move": "تحريك",
+    "tip": {
+      "title": "نصيحة هامة للتوجيه الجامعي:",
+      "description": "يجب إضافة على الأقل <span class=\"font-bold text-blue-300\">6 اختيارات</span> وبحد أقصى <span class=\"font-bold text-blue-300\">10 اختيارات</span> للحصول على التحليل الذكي المكتمل من الذكاء الاصطناعي"
+    },
+    "listTitle": "جدول الاختيارات التوجيه",
+    "choicesCount": "اختيارات",
+    "choicesCount_singular": "اختيار",
+    "choicesCount_dual": "اختياران", 
+    "choicesCount_plural": "اختيارات",
+    "choicesCount_zero": "اختيارات",
+    "addButtonText": "إضافة",
+    "noFavorites": "لا توجد برامج في المفضلة",
+    "analysisOverall": "نسبة القبول المتوقعة الإجمالية",
+    "basedOnGrades": "بناءً على معدلك واختياراتك الحالية",
+    "comprehensiveAnalysis": "التحليل الشامل لاستراتيجية الاختيارات",
+    "analysisDescription": "تحليل مفصل لنقاط القوة والضعف في اختياراتك",
+    "mostLikelyChoice": "الاختيار الأكثر احتمالاً للقبول",
+    "mostLikelySubtitle": "التخصص الذي يحمل أعلى نسبة قبول متوقعة",
+    "probability": "احتمالية",
+    "acceptanceProbability": "احتمالية القبول",
+    "detailedAnalysis": "تحليل مفصل:",
+    "pluralSuffix": "ات",
+    "riskDistribution": "توزيع مستويات المخاطر",
+    "safeChoices": "اختيارات آمنة",
+    "highProbability": "احتمالية عالية",
+    "moderateChoices": "اختيارات متوسطة",
+    "moderateProbability": "احتمالية متوسطة",
+    "riskyChoices": "اختيارات محفوفة بالمخاطر",
+    "lowProbability": "احتمالية منخفضة",
+    "alternativeImprovements": "اقتراحات التحسين البديلة",
+    "expectedImprovement": "تحسين متوقع",
+    "noImprovementSuggestions": "لا توجد اقتراحات تحسينية متاحة حالياً",
+    "choicesAreExcellent": "اختياراتك الحالية مناسبة جداً!",
+    "riskAssessment": "تقييم المخاطر والنقاط",
+    "overallRiskLevel": "مستوى المخاطر العام:",
+    "riskFactors": "عوامل المخاطر",
+    "strengths": "نقاط القوة",
+    "strategicRecommendations": "التوصيات الاستراتيجية",
+    "practicalSteps": "خطوات عملية لتحسين فرص القبول",
+    "nextActionSteps": "خطوات العمل التالية",
+    "shortTerm": "📋 قريب المدى",
+    "longTerm": "🎯 بعيد المدى",
+    "reviewPriorities": "• مراجعة ترتيب الأولويات",
+    "completeDocuments": "• التأكد من استكمال الوثائق",
+    "followRegistrationDates": "• متابعة تواريخ التسجيل",
+    "contactAdvisors": "• التواصل مع المستشارين",
+    "prepareBackupPlans": "• تحضير الخطط البديلة",
+    "prepareAlternativePlan": "• إعداد خطة بديلة",
+    "developRequiredSkills": "• تطوير المهارات المطلوبة"
+  },
+  "addChoice": {
+    "title": "إضافة اختيار جديد",
+    "methods": {
+      "search": "بحث",
+      "code": "رمز",
+      "favorites": "المفضلة"
+    },
+    "search": {
+      "placeholder": "ابحث عن البرنامج أو الجامعة...",
+      "results": "نتائج البحث",
+      "noResults": "لا توجد نتائج"
+    },
+    "code": {
+      "placeholder": "أدخل رمز البرنامج...",
+      "add": "إضافة",
+      "invalid": "رمز غير صالح"
+    },
+    "favorites": {
+      "title": "برامجك المفضلة",
+      "empty": "لا توجد برامج مفضلة"
+    },
+    "actions": {
+      "add": "إضافة",
+      "cancel": "إلغاء",
+      "close": "إغلاق"
+    }
+  },
+  "analysis": {
+    "title": "التحليل الذكي",
+    "subtitle": "تحليل مفصل لاختياراتك الجامعية",
+    "button": "تحليل الاختيارات",
+    "analyzing": "جاري التحليل...",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "details": "التفاصيل", 
+      "recommendations": "توصيات"
+    },
+    "overview": {
+      "summary": "ملخص التحليل",
+      "averageAcceptance": "متوسط القبول",
+      "riskLevel": "مستوى المخاطرة",
+      "mostProbable": "الأكثر احتمالاً للقبول",
+      "showMore": "عرض التفاصيل",
+      "showLess": "إخفاء"
+    },
+    "riskLevels": {
+      "low": "منخفض",
+      "medium": "متوسط", 
+      "high": "عالي",
+      "undefined": "غير محدد"
+    },
+    "acceptanceRatings": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "average": "متوسط",
+      "poor": "ضعيف"
+    }
+  },
+  "favorites": {
+    "add": "إضافة للمفضلة",
+    "remove": "إزالة من المفضلة",
+    "loginRequired": "يجب تسجيل الدخول لإضافة المفضلة"
+  },
+  "errors": {
+    "maxChoicesExceeded": "لا يمكنك إضافة أكثر من 12 اختياراً",
+    "programAlreadyExists": "هذا البرنامج موجود بالفعل في قائمة اختياراتك",
+    "programNotFound": "لم يتم العثور على البرنامج بهذا الرمز",
+    "minimumChoicesRequired": "يجب إضافة 6 اختيارات على الأقل للتحليل",
+    "profileIncomplete": "يجب إكمال ملفك الشخصي أولاً",
+    "gradesTooLow": "درجاتك منخفضة جداً للتحليل",
+    "analysisError": "حدث خطأ أثناء تحليل الاختيارات. يرجى المحاولة مرة أخرى.",
+    "analysisFailed": "فشل في تحليل الاختيارات"
+  },
+  "details": {
+    "university": "الجامعة",
+    "institution": "المؤسسة",
+    "location": "الموقع",
+    "code": "الرمز",
+    "score2024": "نقطة 2024",
+    "score2023": "نقطة 2023",
+    "score2022": "نقطة 2022",
+    "acceptanceRate": "معدل القبول",
+    "fieldOfStudy": "مجال الدراسة"
+  }
+}

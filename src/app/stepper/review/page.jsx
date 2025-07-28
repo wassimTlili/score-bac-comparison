@@ -13,6 +13,7 @@ import { trackData, calculateMG, calculateFS, getScoreLevel } from '@/utils/calc
 import { createOrUpdateUserProfile } from '@/actions/profile-actions';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import FloatingNexie from '@/components/FloatingNexie';
+import { useTranslation } from '../../i18n/client';
 
 
 export default function ReviewPage() {
@@ -21,6 +22,7 @@ export default function ReviewPage() {
     requireAuth: true,
     requireProfile: false // Allow access even without profile to create one
   });
+  const { t, loading: translationLoading } = useTranslation('review');
 
   // Initialize with empty data, will be populated from localStorage or database
   const [formData, setFormData] = useState({
@@ -69,13 +71,13 @@ export default function ReviewPage() {
       
       // Validate scores before saving
       if (!mg || !fs || mg < 0 || fs < 0 || mg > 20 || fs > 999) {
-        alert('خطأ: النقاط غير صحيحة. تأكد من إدخال جميع الدرجات بشكل صحيح.');
+        alert(t ? t('errors.invalidScores') : 'Invalid scores');
         return;
       }
       
       // Validate required fields
       if (!formData.filiere || !formData.governorate || !formData.gender || !formData.session) {
-        alert('خطأ: يرجى ملء جميع الحقول المطلوبة.');
+        alert(t ? t('errors.missingFields') : 'Missing required fields');
         return;
       }
       
@@ -102,10 +104,10 @@ export default function ReviewPage() {
         // Navigate to comparison page
         router.push('/comparison');
       } else {
-        alert('خطأ في حفظ البيانات: ' + result.error);
+        alert(t ? t('errors.saveError', { error: result.error }) : `Save error: ${result.error}`);
       }
     } catch (error) {
-      alert('حدث خطأ أثناء حفظ البيانات');
+      alert(t ? t('errors.saveGeneralError') : 'An error occurred while saving');
     } finally {
       setIsSaving(false);
     }
@@ -244,13 +246,13 @@ export default function ReviewPage() {
 
 
   const filieres = {
-    'math': { name: 'رياضيات', icon: '📐', color: 'cyan' },
-    'science': { name: 'علوم تجريبية', icon: '🔬', color: 'blue' },
-    'info': { name: 'علوم إعلامية', icon: '💻', color: 'purple' },
-    'tech': { name: 'تقنية', icon: '⚙️', color: 'green' },
-    'eco': { name: 'إقتصاد وتصرف', icon: '📈', color: 'orange' },
-    'lettres': { name: 'آداب', icon: '📚', color: 'pink' },
-    'sport': { name: 'رياضة', icon: '🏃', color: 'red' }
+    'math': { name: t ? t('branches.math') : 'رياضيات', icon: '📐', color: 'cyan' },
+    'science': { name: t ? t('branches.science') : 'علوم تجريبية', icon: '🔬', color: 'blue' },
+    'info': { name: t ? t('branches.info') : 'علوم إعلامية', icon: '💻', color: 'purple' },
+    'tech': { name: t ? t('branches.tech') : 'تقنية', icon: '⚙️', color: 'green' },
+    'eco': { name: t ? t('branches.eco') : 'إقتصاد وتصرف', icon: '📈', color: 'orange' },
+    'lettres': { name: t ? t('branches.lettres') : 'آداب', icon: '📚', color: 'pink' },
+    'sport': { name: t ? t('branches.sport') : 'رياضة', icon: '🏃', color: 'red' }
   };
 
   // Map form grades to calculation format
@@ -358,12 +360,12 @@ export default function ReviewPage() {
     // If invalid, don't update the state (ignore the input)
   };
 
-  if (isLoading || isRedirecting) {
+  if (isLoading || isRedirecting || translationLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-300">جاري تحميل البيانات...</p>
+          <p className="text-gray-300">{t ? t('loading') : 'Loading data...'}</p>
         </div>
       </div>
     );
@@ -375,14 +377,14 @@ export default function ReviewPage() {
         {/* Header */}
         <div className={`text-center mb-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10'}`}>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
-            مراجعة وتعديل البيانات
+            {t ? t('title') : 'Review and Edit Data'}
           </h1>
           <p className="text-gray-300 text-lg mb-4">
-            راجع بياناتك وقم بتعديلها إذا لزم الأمر قبل الحصول على نتائج التوجه الجامعي
+            {t ? t('subtitle') : 'Review your data and edit it if necessary before getting your university orientation results'}
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
             <Edit3 className="w-4 h-4" />
-            <span>انقر على أي قسم للتعديل</span>
+            <span>{t ? t('editTip') : 'Click on any section to edit'}</span>
           </div>
         </div>
 
@@ -393,7 +395,7 @@ export default function ReviewPage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
                 <User className="w-6 h-6 text-cyan-400 mr-3" />
-                <h2 className="text-xl font-semibold text-white">المعلومات الشخصية</h2>
+                <h2 className="text-xl font-semibold text-white">{t ? t('sections.personalInfo.title') : 'Personal Information'}</h2>
               </div>
               <div className="flex items-center gap-2">
                 {editingSection === 'personal' ? (
@@ -431,14 +433,14 @@ export default function ReviewPage() {
             <div className="space-y-4">
               {/* Filiere */}
               <div className="p-4 bg-gray-700/50 rounded-lg">
-                <Label className="text-gray-300 text-sm mb-2 block">الشعبة</Label>
+                <Label className="text-gray-300 text-sm mb-2 block">{t ? t('sections.personalInfo.fields.branch') : 'Branch'}</Label>
                 {editingSection === 'personal' ? (
                   <Select 
                     value={tempData.filiere || formData.filiere} 
                     onValueChange={(value) => handleInputChange('filiere', value)}
                   >
                     <SelectTrigger className="w-full bg-gray-600/50 border-gray-600 text-white">
-                      <SelectValue placeholder="اختر الشعبة" />
+                      <SelectValue placeholder={t ? t('sections.personalInfo.placeholders.selectBranch') : 'Select branch'} />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(filieres).map(([key, value]) => (
@@ -454,33 +456,33 @@ export default function ReviewPage() {
                 ) : (
                   <div className="flex items-center text-cyan-400 font-medium">
                     <span className="mr-2">{filieres[formData.filiere]?.icon}</span>
-                    {filieres[formData.filiere]?.name || 'غير محدد'}
+                    {filieres[formData.filiere]?.name || (t ? t('common.notSpecified') : 'Not specified')}
                   </div>
                 )}
               </div>
               
               {/* Gender */}
               <div className="p-4 bg-gray-700/50 rounded-lg">
-                <Label className="text-gray-300 text-sm mb-2 block">الجنس</Label>
+                <Label className="text-gray-300 text-sm mb-2 block">{t ? t('sections.personalInfo.fields.gender') : 'Gender'}</Label>
                 {editingSection === 'personal' ? (
                   <Select 
                     value={tempData.gender || formData.gender} 
                     onValueChange={(value) => handleInputChange('gender', value)}
                   >
                     <SelectTrigger className="w-full bg-gray-600/50 border-gray-600 text-white">
-                      <SelectValue placeholder="اختر الجنس" />
+                      <SelectValue placeholder={t ? t('sections.personalInfo.placeholders.selectGender') : 'Select gender'} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="male">
                         <div className="flex items-center">
                           <span className="mr-2">👨</span>
-                          ذكر
+                          {t ? t('sections.personalInfo.options.male') : 'Male'}
                         </div>
                       </SelectItem>
                       <SelectItem value="female">
                         <div className="flex items-center">
                           <span className="mr-2">👩</span>
-                          أنثى
+                          {t ? t('sections.personalInfo.options.female') : 'Female'}
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -488,51 +490,53 @@ export default function ReviewPage() {
                 ) : (
                   <div className="flex items-center text-cyan-400 font-medium">
                     <span className="mr-2">{formData.gender === 'male' ? '👨' : formData.gender === 'female' ? '👩' : '❓'}</span>
-                    {formData.gender === 'male' ? 'ذكر' : formData.gender === 'female' ? 'أنثى' : 'غير محدد'}
+                    {formData.gender === 'male' ? (t ? t('sections.personalInfo.options.male') : 'Male') : 
+                     formData.gender === 'female' ? (t ? t('sections.personalInfo.options.female') : 'Female') : 
+                     (t ? t('common.notSpecified') : 'Not specified')}
                   </div>
                 )}
               </div>
               
               {/* Governorate */}
               <div className="p-4 bg-gray-700/50 rounded-lg">
-                <Label className="text-gray-300 text-sm mb-2 block">الولاية</Label>
+                <Label className="text-gray-300 text-sm mb-2 block">{t ? t('sections.personalInfo.fields.governorate') : 'Governorate'}</Label>
                 {editingSection === 'personal' ? (
                   <Input
                     value={tempData.governorate || formData.governorate}
                     onChange={(e) => handleInputChange('governorate', e.target.value)}
                     className="bg-gray-600/50 border-gray-600 text-white"
-                    placeholder="أدخل الولاية"
+                    placeholder={t ? t('sections.personalInfo.placeholders.enterGovernorate') : 'Enter governorate'}
                   />
                 ) : (
                   <div className="flex items-center text-cyan-400 font-medium">
                     <span className="mr-2">🏛️</span>
-                    {formData.governorate || 'غير محدد'}
+                    {formData.governorate || (t ? t('common.notSpecified') : 'Not specified')}
                   </div>
                 )}
               </div>
               
               {/* Session */}
               <div className="p-4 bg-gray-700/50 rounded-lg">
-                <Label className="text-gray-300 text-sm mb-2 block">نوع الدورة</Label>
+                <Label className="text-gray-300 text-sm mb-2 block">{t ? t('sections.personalInfo.fields.session') : 'Session Type'}</Label>
                 {editingSection === 'personal' ? (
                   <Select 
                     value={tempData.session || formData.session} 
                     onValueChange={(value) => handleInputChange('session', value)}
                   >
                     <SelectTrigger className="w-full bg-gray-600/50 border-gray-600 text-white">
-                      <SelectValue placeholder="اختر نوع الدورة" />
+                      <SelectValue placeholder={t ? t('sections.personalInfo.placeholders.selectSession') : 'Select session type'} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="principal">
                         <div className="flex items-center">
                           <span className="mr-2">🎯</span>
-                          الدورة الرئيسية
+                          {t ? t('sections.personalInfo.options.principal') : 'Principal Session'}
                         </div>
                       </SelectItem>
                       <SelectItem value="controle">
                         <div className="flex items-center">
                           <span className="mr-2">🔄</span>
-                          دورة المراقبة
+                          {t ? t('sections.personalInfo.options.controle') : 'Control Session'}
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -540,26 +544,27 @@ export default function ReviewPage() {
                 ) : (
                   <div className="flex items-center text-cyan-400 font-medium">
                     <span className="mr-2">{formData.session === 'principal' ? '🎯' : '🔄'}</span>
-                    {formData.session === 'principal' ? 'الدورة الرئيسية' : 
-                     formData.session === 'controle' ? 'دورة المراقبة' : 'غير محدد'}
+                    {formData.session === 'principal' ? (t ? t('sections.personalInfo.options.principal') : 'Principal Session') : 
+                     formData.session === 'controle' ? (t ? t('sections.personalInfo.options.controle') : 'Control Session') : 
+                     (t ? t('common.notSpecified') : 'Not specified')}
                   </div>
                 )}
               </div>
 
               {/* Optional Subject */}
               <div className="p-4 bg-gray-700/50 rounded-lg">
-                <Label className="text-gray-300 text-sm mb-2 block">المادة الاختيارية</Label>
+                <Label className="text-gray-300 text-sm mb-2 block">{t ? t('sections.personalInfo.fields.optionalSubject') : 'Optional Subject'}</Label>
                 {editingSection === 'personal' ? (
                   <Input
                     value={tempData.optionalSubject || formData.optionalSubject}
                     onChange={(e) => handleInputChange('optionalSubject', e.target.value)}
                     className="bg-gray-600/50 border-gray-600 text-white"
-                    placeholder="أدخل المادة الاختيارية"
+                    placeholder={t ? t('sections.personalInfo.placeholders.enterOptionalSubject') : 'Enter optional subject'}
                   />
                 ) : (
                   <div className="flex items-center text-cyan-400 font-medium">
                     <span className="mr-2">📋</span>
-                    {formData.optionalSubject || 'غير محدد'}
+                    {formData.optionalSubject || (t ? t('common.notSpecified') : 'Not specified')}
                   </div>
                 )}
               </div>
@@ -571,7 +576,7 @@ export default function ReviewPage() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
                 <BookOpen className="w-6 h-6 text-cyan-400 mr-3" />
-                <h2 className="text-xl font-semibold text-white">النقاط</h2>
+                <h2 className="text-xl font-semibold text-white">{t ? t('sections.grades.title') : 'Grades'}</h2>
               </div>
               <div className="flex items-center gap-2">
                 {editingSection === 'grades' ? (
@@ -630,17 +635,17 @@ export default function ReviewPage() {
                 };
 
                 const subjectNames = {
-                  mathematics: 'الرياضيات',
-                  physics: 'الفيزياء',
-                  chemistry: 'الكيمياء',
-                  biology: 'علوم الطبيعة والحياة',
-                  french: 'الفرنسية',
-                  arabic: 'العربية',
-                  english: 'الإنجليزية',
-                  philosophy: 'الفلسفة',
-                  history: 'التاريخ',
-                  geography: 'الجغرافيا',
-                  optional: 'المادة الاختيارية'
+                  mathematics: t ? t('subjects.mathematics') : 'Mathematics',
+                  physics: t ? t('subjects.physics') : 'Physics',
+                  chemistry: t ? t('subjects.chemistry') : 'Chemistry',
+                  biology: t ? t('subjects.biology') : 'Biology and Life Sciences',
+                  french: t ? t('subjects.french') : 'French',
+                  arabic: t ? t('subjects.arabic') : 'Arabic',
+                  english: t ? t('subjects.english') : 'English',
+                  philosophy: t ? t('subjects.philosophy') : 'Philosophy',
+                  history: t ? t('subjects.history') : 'History',
+                  geography: t ? t('subjects.geography') : 'Geography',
+                  optional: t ? t('subjects.optional') : 'Optional Subject'
                 };
 
                 const subjectIcons = {
@@ -682,7 +687,7 @@ export default function ReviewPage() {
                           </Label>
                         </div>
                         <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                          معامل {coefficient}
+                          {t ? t('sections.grades.coefficient') : 'Coefficient'} {coefficient}
                         </span>
                       </div>
                       
@@ -710,7 +715,7 @@ export default function ReviewPage() {
                             parseFloat(currentGrade) >= 10 ? 'text-orange-400' : 
                             parseFloat(currentGrade) > 0 ? 'text-red-400' : 'text-gray-500'
                           }`}>
-                            {currentGrade ? `${currentGrade}/20` : 'غير محدد'}
+                            {currentGrade ? `${currentGrade}/20` : (t ? t('common.notSpecified') : 'Not specified')}
                           </span>
                           {parseFloat(currentGrade) > 0 && (
                             <div className="mt-1">
@@ -747,12 +752,12 @@ export default function ReviewPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <Trophy className="w-6 h-6 text-cyan-400 mr-3" />
-                    <h2 className="text-xl font-semibold text-white">ملخص الدرجات</h2>
+                    <h2 className="text-xl font-semibold text-white">{t ? t('sections.summary.title') : 'Score Summary'}</h2>
                   </div>
                   <div className="flex items-center space-x-2">
                     {isManual && (
                       <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full border border-yellow-500/30">
-                        نقاط مُعدّلة يدوياً
+                        {t ? t('sections.summary.manuallyAdjusted') : 'Manually Adjusted Scores'}
                       </span>
                     )}
                     <Button
@@ -766,7 +771,7 @@ export default function ReviewPage() {
                       }`}
                     >
                       <Edit3 className="w-3 h-3 mr-1" />
-                      {manualScores.useManual ? 'استخدام الحساب التلقائي' : 'تعديل النقاط يدوياً'}
+                      {manualScores.useManual ? (t ? t('sections.summary.useAutomaticCalculation') : 'Use Automatic Calculation') : (t ? t('sections.summary.editScoresManually') : 'Edit Scores Manually')}
                     </Button>
                   </div>
                 </div>
@@ -776,7 +781,7 @@ export default function ReviewPage() {
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-cyan-500/20">
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">📊</span>
-                      <span className="text-gray-300 font-medium">المعدل العام (MG)</span>
+                      <span className="text-gray-300 font-medium">{t ? t('sections.summary.mgScore') : 'General Average (MG)'}</span>
                     </div>
                     {manualScores.useManual ? (
                       <div className="flex items-center space-x-2">
@@ -807,7 +812,7 @@ export default function ReviewPage() {
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-blue-500/20">
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">🎯</span>
-                      <span className="text-gray-300 font-medium">النقطة الخاصة (FS)</span>
+                      <span className="text-gray-300 font-medium">{t ? t('sections.summary.fsScore') : 'Special Score (FS)'}</span>
                     </div>
                     {manualScores.useManual ? (
                       <Input
@@ -830,7 +835,7 @@ export default function ReviewPage() {
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-purple-500/20">
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">⭐</span>
-                      <span className="text-gray-300 font-medium">التقييم</span>
+                      <span className="text-gray-300 font-medium">{t ? t('sections.summary.evaluation') : 'Evaluation'}</span>
                     </div>
                     <span 
                       className="font-bold text-lg px-3 py-1 rounded-full text-white"
@@ -843,10 +848,10 @@ export default function ReviewPage() {
                   <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg border border-gray-500/20">
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">🏫</span>
-                      <span className="text-gray-300 font-medium">الشعبة</span>
+                      <span className="text-gray-300 font-medium">{t ? t('sections.summary.branch') : 'Branch'}</span>
                     </div>
                     <span className="font-bold text-lg text-cyan-400">
-                      {trackData[formData.filiere]?.name || 'غير محدد'}
+                      {trackData[formData.filiere]?.name || (t ? t('common.notSpecified') : 'Not specified')}
                     </span>
                   </div>
                   
@@ -856,11 +861,9 @@ export default function ReviewPage() {
                       <div className="flex items-start">
                         <span className="text-yellow-400 mr-2">⚠️</span>
                         <div className="text-sm text-yellow-200">
-                          <p className="font-medium mb-1">تعديل النقاط يدوياً</p>
+                          <p className="font-medium mb-1">{t ? t('sections.summary.manualScoreEditing') : 'Manual Score Editing'}</p>
                           <p className="text-yellow-300">
-                            يمكنك تعديل النقاط يدوياً إذا كانت حساباتنا غير صحيحة. 
-                            المعدل العام (0-20)، النقطة الخاصة (0-999).
-                            تأكد من إدخال النقاط الصحيحة لضمان دقة التوصيات.
+                            {t ? t('sections.summary.manualScoreDescription') : 'You can manually edit scores if our calculations are incorrect. General Average (0-20), Special Score (0-999). Make sure to enter correct scores for accurate recommendations.'}
                           </p>
                         </div>
                       </div>
@@ -873,10 +876,10 @@ export default function ReviewPage() {
               <div className="text-center">
                 <div className="text-6xl mb-4">🎯</div>
                 <h3 className="text-xl font-semibold text-cyan-300 mb-3">
-                  جاهز لاكتشاف توجهك الجامعي؟
+                  {t ? t('sections.nextSteps.title') : 'Ready to discover your university path?'}
                 </h3>
                 <p className="text-gray-300 mb-6">
-                  سنقوم الآن بتحليل بياناتك وحساب أفضل التوجهات المناسبة لك بناءً على درجاتك وتخصصك
+                  {t ? t('sections.nextSteps.description') : 'We will now analyze your data and calculate the best orientations suitable for you based on your grades and specialization'}
                 </p>
                 
                 <div className="space-y-3">
@@ -888,12 +891,12 @@ export default function ReviewPage() {
                     {isSaving ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        جاري الحفظ...
+                        {t ? t('actions.saving') : 'Saving...'}
                       </>
                     ) : (
                       <>
                         <School className="w-5 h-5 mr-2" />
-                        احسب التوجهات المناسبة
+                        {t ? t('actions.calculateOrientations') : 'Calculate Suitable Orientations'}
                       </>
                     )}
                   </Button>
@@ -903,7 +906,7 @@ export default function ReviewPage() {
                     className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                     onClick={() => window.location.href = '/stepper'}
                   >
-                    العودة إلى النموذج
+                    {t ? t('actions.backToForm') : 'Back to Form'}
                   </Button>
                 </div>
               </div>

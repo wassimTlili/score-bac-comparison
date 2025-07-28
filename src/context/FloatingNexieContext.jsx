@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import { debugLog } from '@/utils/debug';
 
 const FloatingNexieContext = createContext();
 
@@ -89,15 +88,11 @@ export function FloatingNexieProvider({ children }) {
   }, [pathname, shouldShowOnCurrentPath]);
 
   const requestActivation = useCallback((route) => {
-    debugLog('FloatingNexieContext', 'requestActivation called', { route, shouldShowOnCurrentPath, isActive, activeRoute });
-    
     if (!shouldShowOnCurrentPath) {
-      debugLog('FloatingNexieContext', 'Not showing on current path');
       return false;
     }
     
     if (!isActive) {
-      debugLog('FloatingNexieContext', 'Activating on route:', route);
       setIsActive(true);
       setActiveRoute(route);
       return true;
@@ -105,14 +100,11 @@ export function FloatingNexieProvider({ children }) {
     
     // If already active on the same route, allow it
     const canActivate = activeRoute === route;
-    debugLog('FloatingNexieContext', 'Already active, canActivate:', canActivate);
     return canActivate;
   }, [shouldShowOnCurrentPath, isActive, activeRoute]);
 
   const releaseActivation = useCallback((route) => {
-    debugLog('FloatingNexieContext', 'releaseActivation called', { route, activeRoute });
     if (activeRoute === route) {
-      debugLog('FloatingNexieContext', 'Deactivating route:', route);
       setIsActive(false);
       setActiveRoute(null);
     }

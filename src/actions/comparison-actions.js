@@ -27,10 +27,7 @@ async function getOrCreateUser(clerkId) {
             imageUrl: clerkUser.imageUrl,
             lastLogin: new Date()
           }
-        });
-        
-        console.log('✅ Created new user in comparison:', user.id);
-      } catch (clerkError) {
+        });} catch (clerkError) {
         console.error('Error fetching user from Clerk:', clerkError);
         user = await prisma.user.create({
           data: {
@@ -52,9 +49,7 @@ async function getOrCreateUser(clerkId) {
 export async function createComparison(formData) {
   try {
     // Check authentication
-    const { userId: clerkId } = await auth();
-    console.log('🔑 Auth check - clerkId:', clerkId);
-    if (!clerkId) {
+    const { userId: clerkId } = await auth();if (!clerkId) {
       throw new Error('يجب تسجيل الدخول لإنشاء مقارنة');
     }
 

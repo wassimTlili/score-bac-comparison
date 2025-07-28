@@ -1,0 +1,119 @@
+{
+  "title": "Review and Edit Data",
+  "subtitle": "Review all the data you entered and edit it if necessary before getting your university orientation results",
+  "editTip": "Click on any section to edit",
+  "loading": "Loading data...",
+  
+  "sections": {
+    "personalInfo": {
+      "title": "Personal Information",
+      "fields": {
+        "branch": "Branch",
+        "gender": "Gender",
+        "governorate": "Governorate",
+        "session": "Session Type",
+        "optionalSubject": "Optional Subject",
+        "birthday": "Birthday"
+      },
+      "placeholders": {
+        "selectBranch": "Select branch",
+        "selectGender": "Select gender",
+        "enterGovernorate": "Enter governorate",
+        "selectSession": "Select session type",
+        "enterOptionalSubject": "Enter optional subject"
+      },
+      "options": {
+        "male": "Male",
+        "female": "Female",
+        "principal": "Principal Session",
+        "controle": "Control Session"
+      }
+    },
+    
+    "grades": {
+      "title": "Grades",
+      "coefficient": "Coefficient",
+      "subjects": {
+        "mathematics": "Mathematics",
+        "physics": "Physics", 
+        "chemistry": "Chemistry",
+        "biology": "Life and Earth Sciences",
+        "french": "French",
+        "arabic": "Arabic",
+        "english": "English",
+        "philosophy": "Philosophy",
+        "history": "History",
+        "geography": "Geography",
+        "optional": "Optional Subject"
+      },
+      "gradeColors": {
+        "excellent": "Excellent",
+        "good": "Good", 
+        "average": "Average",
+        "poor": "Poor",
+        "undefined": "Not specified"
+      }
+    },
+    
+    "summary": {
+      "title": "Score Summary",
+      "manuallyAdjusted": "Manually Adjusted Scores",
+      "useAutomaticCalculation": "Use Automatic Calculation",
+      "editScoresManually": "Edit Scores Manually",
+      "mgScore": "General Average (MG)",
+      "fsScore": "Special Score (FS)", 
+      "evaluation": "Evaluation",
+      "branch": "Branch",
+      "manualScoreEditing": "Manual Score Editing",
+      "manualScoreDescription": "You can manually edit scores if our calculations are incorrect. General Average (0-20), Special Score (0-999). Make sure to enter the correct scores to ensure accurate recommendations."
+    },
+    
+    "subjects": {
+      "mathematics": "Mathematics",
+      "physics": "Physics",
+      "chemistry": "Chemistry",
+      "biology": "Biology and Life Sciences",
+      "french": "French",
+      "arabic": "Arabic",
+      "english": "English",
+      "philosophy": "Philosophy",
+      "history": "History",
+      "geography": "Geography",
+      "optional": "Optional Subject"
+    },
+    
+    "nextSteps": {
+      "title": "Ready to discover your university orientation?",
+      "description": "We will now analyze your data and calculate the best orientations suitable for you based on your grades and specialization",
+      "calculateButton": "Calculate Suitable Orientations",
+      "backButton": "Back to Form",
+      "saving": "Saving..."
+    }
+  },
+  
+  "branches": {
+    "math": "Mathematics",
+    "science": "Experimental Sciences", 
+    "info": "Computer Sciences",
+    "tech": "Technical",
+    "eco": "Economics and Management",
+    "lettres": "Literature",
+    "sport": "Sports"
+  },
+  
+  "actions": {
+    "edit": "Edit",
+    "save": "Save", 
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "calculateOrientations": "Calculate Suitable Orientations",
+    "backToForm": "Back to Form"
+  },
+  
+  "errors": {
+    "invalidScores": "Invalid scores. Please check the entered values.",
+    "missingFields": "Please fill in all required fields.",
+    "saveError": "Error saving profile: {{error}}",
+    "saveGeneralError": "An error occurred while saving. Please try again."
+  }
+}

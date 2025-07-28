@@ -46,12 +46,9 @@ export function GradeForm({ track, onBack, onSubmit }) {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault();// Debug log
     
-    console.log('Form submitted!'); // Debug log
-    
-    if (!validateGrades()) {
-      console.log('Validation failed'); // Debug log
+    if (!validateGrades()) {// Debug log
       return;
     }
 
@@ -59,14 +56,10 @@ export function GradeForm({ track, onBack, onSubmit }) {
     const numericGrades = {};
     Object.keys(subjects).forEach(subjectId => {
       numericGrades[subjectId] = parseFloat(localGrades[subjectId]);
-    });
-
-    console.log('Numeric grades:', numericGrades); // Debug log
+    });// Debug log
 
     // Calculate scores with correct parameter order: grades first, then trackId
-    const results = calculateScores(numericGrades, track.id);
-    
-    console.log('Calculation results:', results); // Debug log
+    const results = calculateScores(numericGrades, track.id);// Debug log
     
     if (!results) {
       console.error('Calculation failed');

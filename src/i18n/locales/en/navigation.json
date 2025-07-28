@@ -1,0 +1,17 @@
+{
+  "menu": "Menu",
+  "navigation": "Navigation",
+  "mainMenu": "Main Menu",
+  "userMenu": "User Menu",
+  "languageSelector": "Language Selector",
+  "switchLanguage": "Switch Language",
+  "selectLanguage": "Select Language",
+  "currentLanguage": "Current Language",
+  "changeLanguage": "Change Language",
+  "menuToggle": "Toggle Menu",
+  "openMenu": "Open Menu",
+  "closeMenu": "Close Menu",
+  "skipToContent": "Skip to main content",
+  "mobileMenu": "Mobile Menu",
+  "desktopMenu": "Desktop Menu"
+}

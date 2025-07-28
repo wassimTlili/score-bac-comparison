@@ -6,13 +6,16 @@ import { Filter, Search, Star, TrendingUp, MapPin, Award, ChevronDown, X, ArrowL
 import finaleData from '@/data/finale-data.json';
 import { Button } from '@/components/ui/button';
 import FloatingNexie from '@/components/FloatingNexie';
+import ChatSidebar from '@/components/ChatSidebar';
 import { trackData, calculateMG, calculateFS, getScoreLevel } from '@/utils/calculations';
 import { addToFavoritesByCode, removeFromFavoritesByCode, getUserFavoritesByCode } from '@/actions/favorites-actions';
 import { getUserProfile } from '@/actions/profile-actions';
 import { useAuthRedirect, RedirectLoadingScreen } from '@/hooks/useAuthRedirect';
+import { useTranslation } from '../i18n/client';
 
 export default function RecommendationsPage() {
   const router = useRouter();
+  const { t, loading: translationLoading } = useTranslation('recommendations');
   const { isRedirecting, isReady, userProfile, isSignedIn, user } = useAuthRedirect({
     requireAuth: true,
     requireProfile: true
@@ -23,6 +26,7 @@ export default function RecommendationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState({});
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -82,6 +86,18 @@ export default function RecommendationsPage() {
       }
     };
 
+    // Load user favorites
+    const loadUserFavorites = async () => {
+      try {
+        const userFavorites = await getUserFavoritesByCode();
+        if (userFavorites.success) {
+          setFavorites(userFavorites.favorites.map(fav => fav.orientationCode));
+        }
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      }
+    };
+
     const loadAllData = async () => {
       if (isReady && !isRedirecting && userProfile) {
         setIsLoading(true);
@@ -96,26 +112,12 @@ export default function RecommendationsPage() {
     loadAllData();
   }, [isReady, isRedirecting, userProfile]);
 
-  // Load user favorites
-  const loadUserFavorites = async () => {
-    try {
-      const userFavorites = await getUserFavoritesByCode();
-      if (userFavorites.success) {
-        setFavorites(userFavorites.favorites.map(fav => fav.orientationCode));
-      }
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-    }
-  };
-
-  // Handle favorites toggle
-  const handleFavoriteToggle = async (orientationCode) => {
-    if (!isSignedIn) {
-      alert('يجب تسجيل الدخول لإضافة المفضلة');
-      return;
-    }
-
-    setLoadingFavorites(prev => ({ ...prev, [orientationCode]: true }));
+    // Handle favorites toggle
+    const handleFavoriteToggle = async (orientationCode) => {
+      if (!isSignedIn) {
+        alert(t('actions.loginRequired'));
+        return;
+      }    setLoadingFavorites(prev => ({ ...prev, [orientationCode]: true }));
 
     try {
       const isFavorite = favorites.includes(orientationCode);
@@ -162,6 +164,8 @@ export default function RecommendationsPage() {
     switch (filiere) {
       case 'info':
         if (notes.algorithmics) mappedGrades.algo = parseFloat(notes.algorithmics);
+        if (notes.management) mappedGrades.gestion = parseFloat(notes.management);
+        if (notes.economics) mappedGrades.eco = parseFloat(notes.economics);
         if (notes.ict) mappedGrades.tic = parseFloat(notes.ict);
         if (notes.database) mappedGrades.bdd = parseFloat(notes.database);
         break;
@@ -234,7 +238,7 @@ export default function RecommendationsPage() {
       if (!score2024 || score2024 <= 0) return false;
       
       // Score range filters
-      if (filters.scoreRange && filters.scoreRange !== 'all') {
+      if (filters.scoreRange !== 'all') {
         if (filters.scoreRange === 'accessible' && userScore < score2024) return false;
         if (filters.scoreRange === 'stretch' && (userScore < score2024 - 10 || userScore > score2024 + 5)) return false;
         if (filters.scoreRange === 'safety' && userScore < score2024 + 10) return false;
@@ -243,13 +247,13 @@ export default function RecommendationsPage() {
       // Location filter
       if (filters.location && item.table_location !== filters.location) return false;
       
-      // University filter
+      // University filter  
       if (filters.university && item.university_name !== filters.university) return false;
       
       // Specialization filter
       if (filters.specialization && item.table_specialization !== filters.specialization) return false;
       
-      // Search term filter
+      // Search filter
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase();
         return (
@@ -261,35 +265,30 @@ export default function RecommendationsPage() {
       }
       
       return true;
-    });
-
-    return filtered.map(item => {
+    }).map(item => {
       const score2024 = item.historical_scores?.["2024"] || 0;
-      const userScore = scores.fs || 0;
       const scoreDifference = userScore - score2024;
       
-      let admissionChance = 'متوسطة';
-      let chanceColor = 'text-yellow-400';
-      let chanceIcon = '⚠️';
-      
+      // Determine admission chance
+      let admissionChance, chanceColor, chanceIcon;
       if (scoreDifference >= 15) {
-        admissionChance = 'عالية جداً';
+        admissionChance = t('admissionChances.veryHigh');
         chanceColor = 'text-green-400';
         chanceIcon = '🎯';
       } else if (scoreDifference >= 5) {
-        admissionChance = 'عالية';
+        admissionChance = t('admissionChances.high');
         chanceColor = 'text-green-400';
         chanceIcon = '✅';
       } else if (scoreDifference >= -5) {
-        admissionChance = 'متوسطة';
+        admissionChance = t('admissionChances.medium');
         chanceColor = 'text-yellow-400';
         chanceIcon = '⚠️';
       } else if (scoreDifference >= -15) {
-        admissionChance = 'منخفضة';
+        admissionChance = t('admissionChances.low');
         chanceColor = 'text-orange-400';
         chanceIcon = '⚡';
       } else {
-        admissionChance = 'صعبة جداً';
+        admissionChance = t('admissionChances.veryDifficult');
         chanceColor = 'text-red-400';
         chanceIcon = '🔥';
       }
@@ -303,6 +302,8 @@ export default function RecommendationsPage() {
         chanceIcon
       };
     }).sort((a, b) => Math.abs(a.scoreDifference) - Math.abs(b.scoreDifference));
+    
+    return filtered;
   }, [userData, scores, filters]);
 
   // Get recommendation category for styling
@@ -333,16 +334,16 @@ export default function RecommendationsPage() {
 
   const getCategoryText = (category) => {
     switch (category) {
-      case 'accessible': return 'متاح لك';
-      case 'stretch': return 'محتمل';
-      case 'reach': return 'تحدي';
-      default: return 'غير محدد';
+      case 'accessible': return t('categories.accessible');
+      case 'stretch': return t('categories.stretch');
+      case 'reach': return t('categories.reach');
+      default: return t('categories.undefined');
     }
   };
 
-  // Show loading while redirecting
-  if (isRedirecting || !isReady) {
-    return <RedirectLoadingScreen message="جاري التحقق من ملفك الشخصي..." />;
+  // Show loading while redirecting or translations loading
+  if (isRedirecting || !isReady || translationLoading) {
+    return <RedirectLoadingScreen message="Loading..." />;
   }
 
   if (isLoading) {
@@ -363,14 +364,14 @@ export default function RecommendationsPage() {
 
           {/* Loading Text */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-white">جاري تحميل التوصيات</h2>
+            <h2 className="text-2xl font-bold text-white">{t('loading.title')}</h2>
             <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce animation-delay-200"></div>
               <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce animation-delay-400"></div>
             </div>
             <p className="text-gray-400 max-w-md mx-auto">
-              نحن نحلل درجاتك ونجهز أفضل التوصيات الجامعية المناسبة لك
+              {t('loading.description')}
             </p>
           </div>
 
@@ -378,15 +379,15 @@ export default function RecommendationsPage() {
           <div className="mt-12 space-y-3">
             <div className="flex items-center justify-center text-sm text-gray-500">
               <Zap className="w-4 h-4 mr-2 text-cyan-400" />
-              <span>تحليل الدرجات والمعطيات</span>
+              <span>{t('loading.steps.analyzing')}</span>
             </div>
             <div className="flex items-center justify-center text-sm text-gray-500">
               <TrendingUp className="w-4 h-4 mr-2 text-blue-400" />
-              <span>حساب المعدلات والنقاط</span>
+              <span>{t('loading.steps.calculating')}</span>
             </div>
             <div className="flex items-center justify-center text-sm text-gray-500">
               <Award className="w-4 h-4 mr-2 text-purple-400" />
-              <span>إعداد التوصيات المخصصة</span>
+              <span>{t('loading.steps.preparing')}</span>
             </div>
           </div>
         </div>
@@ -410,15 +411,14 @@ export default function RecommendationsPage() {
             </div>
 
             <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              مرحبا بك في صفحة التوصيات
+              {t('welcomeTitle')}
             </h1>
-            
             <div className="max-w-2xl mx-auto space-y-4 mb-12">
               <p className="text-gray-300 text-xl leading-relaxed">
-                للحصول على توصيات جامعية مخصصة بناءً على درجاتك ومعدلك
+                {t('welcomeDescription')}
               </p>
               <p className="text-gray-400 text-lg">
-                يجب إكمال إدخال الدرجات في ملفك الشخصي أولاً
+                {t('needProfile')}
               </p>
             </div>
 
@@ -426,18 +426,18 @@ export default function RecommendationsPage() {
             <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
                 <TrendingUp className="w-8 h-8 text-cyan-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">تحليل دقيق</h3>
-                <p className="text-gray-400 text-sm">تحليل شامل لدرجاتك ومعدلك لتقديم أفضل الخيارات</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('benefits.accurateAnalysis.title')}</h3>
+                <p className="text-gray-400 text-sm">{t('benefits.accurateAnalysis.description')}</p>
               </div>
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
                 <Award className="w-8 h-8 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">توصيات مخصصة</h3>
-                <p className="text-gray-400 text-sm">اقتراحات جامعية تناسب قدراتك وأهدافك الأكاديمية</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('benefits.customRecommendations.title')}</h3>
+                <p className="text-gray-400 text-sm">{t('benefits.customRecommendations.description')}</p>
               </div>
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
                 <Heart className="w-8 h-8 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">إدارة المفضلة</h3>
-                <p className="text-gray-400 text-sm">احفظ واتبع التخصصات التي تهتم بها</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{t('benefits.favoritesManagement.title')}</h3>
+                <p className="text-gray-400 text-sm">{t('benefits.favoritesManagement.description')}</p>
               </div>
             </div>
 
@@ -447,7 +447,7 @@ export default function RecommendationsPage() {
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-10 py-4 text-lg rounded-xl font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 <Target className="w-5 h-5 mr-2" />
-                إنشاء ملف شخصي جديد
+                {t('actions.createProfile')}
               </Button>
               {isSignedIn && (
                 <Button
@@ -456,7 +456,7 @@ export default function RecommendationsPage() {
                   className="border-slate-600 text-white hover:bg-slate-700/50 px-10 py-4 text-lg rounded-xl font-semibold transition-all duration-200"
                 >
                   <Search className="w-5 h-5 mr-2" />
-                  إعادة تحميل البيانات
+                  {t('actions.reloadData')}
                 </Button>
               )}
             </div>
@@ -476,17 +476,17 @@ export default function RecommendationsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                التوصيات المخصصة لك
+                {t('title')}
               </h1>
               {userData && (
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-300">
                   <span className="flex items-center gap-1">
                     <Star className="w-4 h-4" />
-                    معدل: {scores.mg ? scores.mg.toFixed(2) : '0.00'}/20
+                    {t('stats.average')}: {scores.mg ? scores.mg.toFixed(2) : '0.00'}/20
                   </span>
                   <span className="flex items-center gap-1">
                     <Award className="w-4 h-4" />
-                    نقطة: {scores.fs ? scores.fs.toFixed(2) : '0.00'}
+                    {t('stats.score')}: {scores.fs ? scores.fs.toFixed(2) : '0.00'}
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
@@ -507,7 +507,7 @@ export default function RecommendationsPage() {
                 className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 <Filter className="w-4 h-4 mr-2" />
-                فلترة
+                {t('filters.filter')}
               </Button>
               <Button
                 variant="outline"
@@ -515,7 +515,7 @@ export default function RecommendationsPage() {
                 className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                رجوع
+                {t('actions.back')}
               </Button>
             </div>
           </div>
@@ -531,7 +531,7 @@ export default function RecommendationsPage() {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="البحث في التخصصات..."
+                  placeholder={t('filters.search')}
                   value={filters.searchTerm}
                   onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
                   className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -544,10 +544,10 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, scoreRange: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="all">جميع النتائج</option>
-                <option value="accessible">متاح (معدلك كافي)</option>
-                <option value="stretch">محتمل (قريب من معدلك)</option>
-                <option value="safety">آمن (أقل من معدلك)</option>
+                <option value="all">{t('filters.allResults')}</option>
+                <option value="accessible">{t('filters.accessible')}</option>
+                <option value="stretch">{t('filters.stretch')}</option>
+                <option value="safety">{t('filters.safety')}</option>
               </select>
 
               {/* Location Filter */}
@@ -556,7 +556,7 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل المناطق ({filterOptions.locations.length})</option>
+                <option value="">{t('filters.allLocations')} ({filterOptions.locations.length})</option>
                 {filterOptions.locations.map(location => (
                   <option key={location} value={location}>
                     {location}
@@ -570,7 +570,7 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, university: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل الجامعات ({filterOptions.universities.length})</option>
+                <option value="">{t('filters.allUniversities')} ({filterOptions.universities.length})</option>
                 {filterOptions.universities.map(uni => (
                   <option key={uni} value={uni}>
                     {uni}
@@ -584,7 +584,7 @@ export default function RecommendationsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, specialization: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">كل التخصصات ({filterOptions.specializations.length})</option>
+                <option value="">{t('filters.allSpecializations')} ({filterOptions.specializations.length})</option>
                 {filterOptions.specializations.map(spec => (
                   <option key={spec} value={spec} title={spec}>
                     {spec.length > 50 ? spec.substring(0, 47) + '...' : spec}
@@ -602,7 +602,7 @@ export default function RecommendationsPage() {
                 className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 <X className="w-4 h-4 mr-2" />
-                مسح الفلاتر
+                {t('filters.clearFilters')}
               </Button>
             </div>
           </div>
@@ -616,7 +616,7 @@ export default function RecommendationsPage() {
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm border border-green-500/30 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-300 text-sm">متاح لك</p>
+                <p className="text-green-300 text-sm">{t('stats.accessible')}</p>
                 <p className="text-2xl font-bold text-green-400">
                   {filteredRecommendations.filter(item => getRecommendationCategory(item) === 'accessible').length}
                 </p>
@@ -628,7 +628,7 @@ export default function RecommendationsPage() {
           <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-300 text-sm">محتمل</p>
+                <p className="text-yellow-300 text-sm">{t('stats.possible')}</p>
                 <p className="text-2xl font-bold text-yellow-400">
                   {filteredRecommendations.filter(item => getRecommendationCategory(item) === 'stretch').length}
                 </p>
@@ -640,7 +640,7 @@ export default function RecommendationsPage() {
           <div className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-300 text-sm">تحدي</p>
+                <p className="text-red-300 text-sm">{t('stats.challenge')}</p>
                 <p className="text-2xl font-bold text-red-400">
                   {filteredRecommendations.filter(item => getRecommendationCategory(item) === 'reach').length}
                 </p>
@@ -723,21 +723,21 @@ export default function RecommendationsPage() {
 
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">المنطقة:</span>
+                      <span className="text-gray-400">{t('details.location')}</span>
                       <span className="text-white">{item.table_location}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">الكود:</span>
+                      <span className="text-gray-400">{t('details.code')}</span>
                       <span className="text-white">{item.ramz_code}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">فرص القبول:</span>
+                      <span className="text-gray-400">{t('details.admissionChance')}</span>
                       <span className={`font-medium ${item.chanceColor}`}>
                         {item.chanceIcon} {item.admissionChance}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">الفارق من معدلك:</span>
+                      <span className="text-gray-400">{t('details.scoreDifference')}</span>
                       <span className={`font-medium ${item.scoreDifference >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {item.scoreDifference >= 0 ? '+' : ''}{item.scoreDifference.toFixed(1)}
                       </span>
@@ -756,7 +756,7 @@ export default function RecommendationsPage() {
                     
                     {/* Match Percentage */}
                     <div className="text-right">
-                      <div className="text-sm text-gray-400">نسبة التطابق</div>
+                      <div className="text-sm text-gray-400">{t('details.matchPercentage')}</div>
                       <div className="text-lg font-bold text-cyan-400">
                         {category === 'accessible' ? '95%' : 
                          category === 'stretch' ? '75%' : '50%'}
@@ -773,24 +773,21 @@ export default function RecommendationsPage() {
         {filteredRecommendations.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-white mb-2">لا توجد نتائج</h3>
-            <p className="text-gray-400 mb-6">جرب تغيير المرشحات أو معايير البحث</p>
+            <h3 className="text-xl font-semibold text-white mb-2">{t('noResults.title')}</h3>
+            <p className="text-gray-400 mb-6">{t('noResults.description')}</p>
             <Button
               onClick={() => setFilters({ location: '', university: '', specialization: '', scoreRange: 'all', searchTerm: '' })}
               className="bg-[#1581f3] hover:bg-blue-600 text-white"
             >
-              إعادة تعيين المرشحات
+              {t('noResults.resetFilters')}
             </Button>
           </div>
         )}
       </div>
 
       {/* FloatingNexie */}
-      <FloatingNexie
-        currentStep={1}
-        isVisible={true}
-        showChatPrompt={true}
-      />
+      <FloatingNexie onChatToggle={setIsChatOpen} />
+      <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 }

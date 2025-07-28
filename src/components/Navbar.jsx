@@ -14,32 +14,36 @@ import {
   GraduationCapIcon,
   LogOutIcon
 } from 'lucide-react';
-
-const navigation = [
-  {
-    name: 'Calculateur',
-    href: '/',
-    icon: CalculatorIcon,
-    description: 'Calculez votre score BAC'
-  },
-  {
-    name: 'Comparaison',
-    href: '/comparison',
-    icon: GitCompareIcon,
-    description: 'Comparez les orientations'
-  },
-  {
-    name: 'Assistant IA',
-    href: '/chatbot',
-    icon: Bot ,
-    description: 'Aide et orientation'
-  }
-];
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from '../app/i18n/client';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { signOut } = useClerk();
+  const { t } = useTranslation('common');
+
+  // Dynamic navigation with translations
+  const navigation = [
+    {
+      name: t('calculator', 'Calculateur'),
+      href: '/',
+      icon: CalculatorIcon,
+      description: t('calculateScore', 'Calculez votre score BAC')
+    },
+    {
+      name: t('comparison', 'Comparaison'),
+      href: '/comparison',
+      icon: GitCompareIcon,
+      description: t('compareOrientations', 'Comparez les orientations')
+    },
+    {
+      name: t('aiAssistant', 'Assistant IA'),
+      href: '/chatbot',
+      icon: Bot ,
+      description: t('helpOrientation', 'Aide et orientation')
+    }
+  ];
 
   const isActive = (href) => {
     if (href === '/') {
@@ -59,9 +63,9 @@ export default function Navbar() {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                OrientaTN
+                {t('orientaTN', 'OrientaTN')}
               </h1>
-              <p className="text-xs text-gray-400">Plateforme d'orientation</p>
+              <p className="text-xs text-gray-400">{t('orientationPlatform', 'Plateforme d\'orientation')}</p>
             </div>
           </Link>
 
@@ -104,6 +108,9 @@ export default function Navbar() {
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+            
             <SignedOut>
               <SignInButton mode="modal">
                 <motion.button
@@ -111,7 +118,7 @@ export default function Navbar() {
                   whileTap={{ scale: 0.95 }}
                   className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-200 shadow-lg"
                 >
-                  تسجيل الدخول
+                  {t('signIn', 'تسجيل الدخول')}
                 </motion.button>
               </SignInButton>
             </SignedOut>
@@ -123,10 +130,6 @@ export default function Navbar() {
                   },
                   variables: {
                     colorText: '#fff',
-                  },
-                  // Relabel sign out button to Arabic
-                  signOutButton: {
-                    label: 'تسجيل الخروج',
                   }
                 }}
                 afterSignOutUrl="/"
@@ -143,7 +146,7 @@ export default function Navbar() {
                   whileTap={{ scale: 0.95 }}
                   className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg text-sm font-medium"
                 >
-                  دخول
+                  {t('signIn', 'دخول')}
                 </motion.button>
               </SignInButton>
             </SignedOut>
@@ -203,6 +206,11 @@ export default function Navbar() {
               </Link>
             );
           })}
+          
+          {/* Mobile Language Switcher */}
+          <div className="border-t border-slate-700 pt-3 mt-3">
+            <LanguageSwitcher isMobile={true} />
+          </div>
         </div>
       </motion.div>
     </nav>

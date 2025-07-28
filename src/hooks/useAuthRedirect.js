@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { getUserProfile } from '@/actions/profile-actions';
+import { useTranslation } from '../app/i18n/client';
 
 /**
  * useAuthRedirect Hook
@@ -38,9 +39,7 @@ export function useAuthRedirect(options = {}) {
         setIsRedirecting(true);
 
         // Check authentication requirement
-        if (requireAuth && !isSignedIn) {
-          console.log('🔒 Auth required but user not signed in, redirecting to home');
-          router.push('/');
+        if (requireAuth && !isSignedIn) {router.push('/');
           return;
         }
 
@@ -54,16 +53,12 @@ export function useAuthRedirect(options = {}) {
           }
 
           // Redirect if has profile but shouldn't (like stepper page)
-          if (redirectIfHasProfile && hasProfile) {
-            console.log('✅ User has profile, redirecting to:', redirectTo);
-            router.push(redirectTo);
+          if (redirectIfHasProfile && hasProfile) {router.push(redirectTo);
             return;
           }
 
           // Redirect if requires profile but doesn't have one
-          if (requireProfile && !hasProfile) {
-            console.log('⚠️ Profile required but not found, redirecting to stepper');
-            router.push('/stepper');
+          if (requireProfile && !hasProfile) {router.push('/stepper');
             return;
           }
         }
@@ -99,7 +94,10 @@ export function useAuthRedirect(options = {}) {
  * RedirectLoadingScreen Component
  * Shows a loading screen while redirecting
  */
-export function RedirectLoadingScreen({ message = "جاري التحقق من حالة الحساب..." }) {
+export function RedirectLoadingScreen({ message }) {
+  const { t } = useTranslation('common');
+  const displayMessage = message || t('checkingAccountStatus', 'جاري التحقق من حالة الحساب...');
+  
   return (
     <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
       <div className="text-center">
@@ -115,7 +113,7 @@ export function RedirectLoadingScreen({ message = "جاري التحقق من ح
             </div>
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-4">جاري التحقق من حالة الحساب</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">{displayMessage}</h2>
         <div className="flex items-center justify-center space-x-2 rtl:space-x-reverse">
           <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
           <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce animation-delay-200"></div>

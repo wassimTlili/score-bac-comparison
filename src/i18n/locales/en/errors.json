@@ -1,0 +1,44 @@
+{
+  "general": "An error occurred. Please try again.",
+  "network": "Network error. Please check your connection.",
+  "timeout": "Request timed out. Please try again.",
+  "unauthorized": "You are not authorized to perform this action.",
+  "forbidden": "Access forbidden.",
+  "notFound": "The requested resource was not found.",
+  "serverError": "Internal server error. Please try again later.",
+  "validation": "Validation error. Please check your input.",
+  "fileUpload": "File upload failed. Please try again.",
+  "fileTooLarge": "File is too large. Maximum size is {maxSize}.",
+  "unsupportedFileType": "Unsupported file type. Please use {supportedTypes}.",
+  "sessionExpired": "Your session has expired. Please sign in again.",
+  "accountDisabled": "Your account has been disabled.",
+  "emailNotVerified": "Please verify your email address.",
+  "weakPassword": "Password is too weak. Please use a stronger password.",
+  "invalidCredentials": "Invalid email or password.",
+  "emailAlreadyExists": "An account with this email already exists.",
+  "usernameAlreadyExists": "This username is already taken.",
+  "tokenExpired": "Token has expired. Please request a new one.",
+  "invalidToken": "Invalid token. Please request a new one.",
+  "rateLimitExceeded": "Too many requests. Please wait before trying again.",
+  "maintenance": "The system is currently under maintenance. Please try again later.",
+  
+  "stepper": {
+    "invalidScores": "Error: Invalid scores. Please make sure all grades are entered correctly.",
+    "missingFields": "Error: Please fill in all required fields.",
+    "saveError": "Error saving data: {error}",
+    "saveGeneralError": "An error occurred while saving data"
+  },
+  
+  "orientations": {
+    "maxChoicesExceeded": "Cannot add more than 10 choices",
+    "programAlreadyExists": "This program is already in your choices list",
+    "programNotFound": "No program found with this code",
+    "minimumChoicesRequired": "You must add at least 6 choices to perform analysis",
+    "profileIncomplete": "You must complete your profile data first to perform analysis", 
+    "gradesTooLow": "GPA is too low to perform accurate analysis. Please verify your data is correct."
+  },
+  
+  "favorites": {
+    "loginRequired": "You must be logged in to add favorites"
+  }
+}

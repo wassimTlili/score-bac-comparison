@@ -1,0 +1,17 @@
+{
+  "menu": "Menu",
+  "navigation": "Navigation",
+  "mainMenu": "Menu Principal",
+  "userMenu": "Menu Utilisateur",
+  "languageSelector": "Sélecteur de Langue",
+  "switchLanguage": "Changer de Langue",
+  "selectLanguage": "Sélectionner la Langue",
+  "currentLanguage": "Langue Actuelle",
+  "changeLanguage": "Changer de Langue",
+  "menuToggle": "Basculer le Menu",
+  "openMenu": "Ouvrir le Menu",
+  "closeMenu": "Fermer le Menu",
+  "skipToContent": "Passer au contenu principal",
+  "mobileMenu": "Menu Mobile",
+  "desktopMenu": "Menu Bureau"
+}

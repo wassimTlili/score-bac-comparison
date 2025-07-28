@@ -1,0 +1,80 @@
+{
+  "title": "Your Personalized Recommendations",
+  "welcomeTitle": "Welcome to the recommendations page",
+  "welcomeDescription": "To get personalized university recommendations based on your grades and average",
+  "needProfile": "You must first complete entering grades in your profile",
+  "loading": {
+    "title": "Loading recommendations",
+    "description": "We're analyzing your grades and preparing the best university recommendations for you",
+    "steps": {
+      "analyzing": "Analyzing grades and data",
+      "calculating": "Calculating averages and points",
+      "preparing": "Preparing personalized recommendations"
+    }
+  },
+  "filters": {
+    "filter": "Filter",
+    "search": "Search in specializations...",
+    "allResults": "All results",
+    "accessible": "Accessible (your average is sufficient)",
+    "stretch": "Possible (close to your average)",
+    "safety": "Safe (below your average)",
+    "allLocations": "All regions",
+    "allUniversities": "All universities", 
+    "allSpecializations": "All specializations",
+    "clearFilters": "Clear filters"
+  },
+  "stats": {
+    "average": "Average",
+    "score": "Score",
+    "accessible": "Accessible to you",
+    "possible": "Possible",
+    "challenge": "Challenge"
+  },
+  "details": {
+    "location": "Region:",
+    "code": "Code:",
+    "admissionChance": "Admission chances:",
+    "scoreDifference": "Difference from your average:",
+    "matchPercentage": "Match percentage"
+  },
+  "categories": {
+    "accessible": "Accessible to you",
+    "stretch": "Possible",
+    "reach": "Challenge",
+    "undefined": "Undefined"
+  },
+  "admissionChances": {
+    "veryHigh": "Very high",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "veryDifficult": "Very difficult"
+  },
+  "noResults": {
+    "title": "No results",
+    "description": "Try changing filters or search criteria",
+    "resetFilters": "Reset filters"
+  },
+  "actions": {
+    "back": "Back",
+    "createProfile": "Create new profile",
+    "reloadData": "Reload data",
+    "addToFavorites": "Add to favorites",
+    "loginRequired": "You must login to add favorites"
+  },
+  "benefits": {
+    "accurateAnalysis": {
+      "title": "Accurate analysis",
+      "description": "Comprehensive analysis of your grades and average to offer the best options"
+    },
+    "customRecommendations": {
+      "title": "Personalized recommendations",
+      "description": "University suggestions adapted to your capabilities and academic goals"
+    },
+    "favoritesManagement": {
+      "title": "Favorites management",
+      "description": "Save and follow the specializations you're interested in"
+    }
+  }
+}

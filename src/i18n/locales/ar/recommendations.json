@@ -1,0 +1,80 @@
+{
+  "title": "التوصيات المخصصة لك",
+  "welcomeTitle": "مرحبا بك في صفحة التوصيات",
+  "welcomeDescription": "للحصول على توصيات جامعية مخصصة بناءً على درجاتك ومعدلك",
+  "needProfile": "يجب إكمال إدخال الدرجات في ملفك الشخصي أولاً",
+  "loading": {
+    "title": "جاري تحميل التوصيات",
+    "description": "نحن نحلل درجاتك ونجهز أفضل التوصيات الجامعية المناسبة لك",
+    "steps": {
+      "analyzing": "تحليل الدرجات والمعطيات",
+      "calculating": "حساب المعدلات والنقاط", 
+      "preparing": "إعداد التوصيات المخصصة"
+    }
+  },
+  "filters": {
+    "filter": "فلترة",
+    "search": "البحث في التخصصات...",
+    "allResults": "جميع النتائج",
+    "accessible": "متاح (معدلك كافي)",
+    "stretch": "محتمل (قريب من معدلك)",
+    "safety": "آمن (أقل من معدلك)",
+    "allLocations": "كل المناطق",
+    "allUniversities": "كل الجامعات",
+    "allSpecializations": "كل التخصصات",
+    "clearFilters": "مسح الفلاتر"
+  },
+  "stats": {
+    "average": "معدل",
+    "score": "نقطة",
+    "accessible": "متاح لك",
+    "possible": "محتمل",
+    "challenge": "تحدي"
+  },
+  "details": {
+    "location": "المنطقة:",
+    "code": "الكود:",
+    "admissionChance": "فرص القبول:",
+    "scoreDifference": "الفارق من معدلك:",
+    "matchPercentage": "نسبة التطابق"
+  },
+  "categories": {
+    "accessible": "متاح لك",
+    "stretch": "محتمل", 
+    "reach": "تحدي",
+    "undefined": "غير محدد"
+  },
+  "admissionChances": {
+    "veryHigh": "عالية جداً",
+    "high": "عالية",
+    "medium": "متوسطة",
+    "low": "منخفضة",
+    "veryDifficult": "صعبة جداً"
+  },
+  "noResults": {
+    "title": "لا توجد نتائج",
+    "description": "جرب تغيير المرشحات أو معايير البحث",
+    "resetFilters": "إعادة تعيين المرشحات"
+  },
+  "actions": {
+    "back": "رجوع",
+    "createProfile": "إنشاء ملف شخصي جديد",
+    "reloadData": "إعادة تحميل البيانات",
+    "addToFavorites": "إضافة للمفضلة",
+    "loginRequired": "يجب تسجيل الدخول لإضافة المفضلة"
+  },
+  "benefits": {
+    "accurateAnalysis": {
+      "title": "تحليل دقيق",
+      "description": "تحليل شامل لدرجاتك ومعدلك لتقديم أفضل الخيارات"
+    },
+    "customRecommendations": {
+      "title": "توصيات مخصصة", 
+      "description": "اقتراحات جامعية تناسب قدراتك وأهدافك الأكاديمية"
+    },
+    "favoritesManagement": {
+      "title": "إدارة المفضلة",
+      "description": "احفظ واتبع التخصصات التي تهتم بها"
+    }
+  }
+}

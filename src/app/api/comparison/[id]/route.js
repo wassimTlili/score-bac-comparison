@@ -14,15 +14,7 @@ export async function GET(request, { params }) {
 
     if (!comparison) {
       return NextResponse.json({ error: 'Comparison not found' }, { status: 404 });
-    }
-
-    console.log('📦 API returning comparison:', { 
-      id: comparison.id, 
-      hasUserProfile: !!comparison.userProfile,
-      userProfile: comparison.userProfile 
-    });
-
-    return NextResponse.json(comparison);
+    }return NextResponse.json(comparison);
   } catch (error) {
     console.error('Error fetching comparison:', error);
     return NextResponse.json(

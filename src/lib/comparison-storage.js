@@ -12,11 +12,7 @@ class ComparisonStorage {
       // Validate data
       if (!comparisonData.id || !comparisonData.orientation1 || !comparisonData.orientation2) {
         throw new Error('Invalid comparison data: missing required fields');
-      }
-
-      console.log('💾 Creating comparison with minimal fields:', comparisonData.id);
-
-      // Use absolute minimal fields to avoid any schema conflicts
+      }// Use absolute minimal fields to avoid any schema conflicts
       const comparisonRecord = await this.prisma.comparison.create({
         data: {
           id: comparisonData.id,
@@ -36,10 +32,7 @@ class ComparisonStorage {
           isPublic: false,
           title: `مقارنة بين ${comparisonData.orientation1?.name || comparisonData.orientation1?.licence || 'تخصص 1'} و ${comparisonData.orientation2?.name || comparisonData.orientation2?.licence || 'تخصص 2'}`
         }
-      });
-
-      console.log('✅ Comparison created successfully with minimal approach');
-      return comparisonData;
+      });return comparisonData;
 
     } catch (error) {
       console.error('❌ Error creating comparison:', error);

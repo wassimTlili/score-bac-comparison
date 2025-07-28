@@ -11,10 +11,11 @@ import ChatSidebar from '@/components/ChatSidebar';
 import { trackData, calculateMG, calculateFS } from '@/utils/calculations';
 import { getUserProfile } from '@/actions/profile-actions';
 import { getUserFavoritesByCode } from '@/actions/favorites-actions';
-
+import { useTranslation } from '../../i18n/client';
 export default function ComparisonToolPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn, user } = useUser();
+  const { t, loading: translationLoading } = useTranslation('common');
 
   const [userData, setUserData] = useState(null);
   const [orientation1, setOrientation1] = useState(null);
@@ -32,13 +33,13 @@ export default function ComparisonToolPage() {
   // Bac type mapping
   const getBacTypeFromFiliere = (filiere) => {
     const bacTypeMap = {
-      math: "رياضيات",
-      science: "علوم تجريبية",
-      info: "علوم الإعلامية",
-      tech: "العلوم التقنية",
-      eco: "إقتصاد وتصرف",
-      lettres: "آداب",
-      sport: "رياضة"
+      math: t('branches.math'),
+      science: t('branches.science'),
+      info: t('branches.info'),
+      tech: t('branches.tech'),
+      eco: t('branches.eco'),
+      lettres: t('branches.lettres'),
+      sport: t('branches.sport')
     };
     return bacTypeMap[filiere] || filiere;
   };
@@ -47,19 +48,10 @@ export default function ComparisonToolPage() {
   useEffect(() => {
     const loadUserProfile = async () => {
       if (isLoaded && isSignedIn && user) {
-        try {
-          console.log('🔍 Loading user profile and favorites...');
-          
-          // Load user profile
-          const result = await getUserProfile();
-          console.log('🔍 getUserProfile result:', result);
-          
-          if (result.success && result.profile) {
+        try {// Load user profile
+          const result = await getUserProfile();if (result.success && result.profile) {
             // Convert database profile to expected format
-            const dbProfile = result.profile;
-            console.log('📊 Database profile:', dbProfile);
-            
-            const userData = {
+            const dbProfile = result.profile;const userData = {
               filiere: dbProfile.filiere,
               notes: dbProfile.grades || {},
               birthday: new Date(dbProfile.birthDate),
@@ -70,9 +62,7 @@ export default function ComparisonToolPage() {
               mgScore: dbProfile.mgScore,
               fsScore: dbProfile.fsScore,
               wilaya: dbProfile.wilaya
-            };
-            console.log('✅ Converted userData:', userData);
-            setUserData(userData);
+            };setUserData(userData);
             
             // Get user's bac type and filter orientations
             const userBacType = getBacTypeFromFiliere(userData.filiere);
@@ -92,34 +82,36 @@ export default function ComparisonToolPage() {
             setAvailableOrientations(orientations);
             
             // Load user favorites
-            try {
-              const favoritesResult = await getUserFavoritesByCode();
-              console.log('🔍 Favorites result:', favoritesResult);
-              
-              if (favoritesResult.success) {
-                const favoriteCodes = favoritesResult.favorites.map(fav => fav.orientationCode);
-                console.log('❤️ Favorite codes:', favoriteCodes);
-                
-                // Filter orientations to get only favorites
-                const favoriteOrientations = orientations.filter(orientation => 
-                  favoriteCodes.includes(orientation.code)
-                );
-                console.log('❤️ Favorite orientations:', favoriteOrientations);
-                setFavoriteOrientations(favoriteOrientations);
+            try {const favoritesResult = await getUserFavoritesByCode();if (favoritesResult.success && favoritesResult.favorites?.length > 0) {
+                const favoriteCodes = favoritesResult.favorites.map(fav => fav.orientationCode);// Get full orientation data for each favorite code from the main data source
+                const favoriteOrientationsDetails = favoriteCodes.map(code => {
+                  const orientation = orientationsData.find(o => o.ramz_code === code);
+                  if (!orientation) return null;
+                  return {
+                    id: orientation.ramz_code,
+                    name: orientation.table_specialization,
+                    university: orientation.university_name,
+                    hub: orientation.table_location,
+                    score2024: orientation.historical_scores?.['2024'] || 0,
+                    score2023: orientation.historical_scores?.['2023'] || 0,
+                    score2022: orientation.historical_scores?.['2022'] || 0,
+                    bacType: orientation.bac_type_name,
+                    code: orientation.ramz_code
+                  };
+                }).filter(Boolean); // Filter out any nulls if an orientation wasn't foundsetFavoriteOrientations(favoriteOrientationsDetails);
+              } else {setFavoriteOrientations([]);
               }
             } catch (favError) {
               console.error('❌ Error loading favorites:', favError);
+              setFavoriteOrientations([]);
             }
             
             return;
-          }
-          
-          console.log('⚠️ No database profile found, result:', result);
-          setError('لم يتم العثور على بياناتك الشخصية. يرجى إكمال استمارة البيانات أولاً.');
+          }setError(t('comparisonTool.profileNotFound'));
           
         } catch (error) {
           console.error('Error loading user profile:', error);
-          setError('خطأ في تحميل البيانات');
+          setError(t('comparisonTool.dataLoadingError'));
         }
       }
     };
@@ -198,7 +190,7 @@ export default function ComparisonToolPage() {
       else setOrientation2(searchResult);
       setError(null);
     } else {
-      setError(`لم يتم العثور على التوجه بالكود ${code}`);
+      setError(`${t('comparisonTool.orientationNotFound')} ${code}`);
     }
   };
 
@@ -255,21 +247,17 @@ export default function ComparisonToolPage() {
   // Handle comparison creation via API
   const handleCompare = async () => {
     if (!orientation1 || !orientation2) {
-      setError('يرجى اختيار توجهين للمقارنة');
+      setError(t('comparisonTool.selectTwoOrientations'));
       return;
     }
     if (!userData) {
-      setError('بيانات المستخدم غير متوفرة');
+      setError(t('dataUnavailable'));
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const userScores = calculateUserScores();
-      console.log('🔢 Calculated user scores:', userScores);
-      console.log('👤 Current userData:', userData);
-      
-      const response = await fetch('/api/comparison', {
+      const userScores = calculateUserScores();const response = await fetch('/api/comparison', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -279,38 +267,32 @@ export default function ComparisonToolPage() {
           userProfile: {
             score: userScores.fs,
             mg: userScores.mg,
-            location: userData.governorate || 'تونس',
+            location: userData.governorate || t('tunisia'),
             bacType: userData.filiere,
             birthDate: userData.birthday?.toISOString() || new Date().toISOString(),
             gender: userData.gender
           }
         })
-      });
-      
-      console.log('📡 API Response status:', response.status);
-      const result = await response.json();
-      console.log('📋 API Response data:', result);
-      
-      if (result.success) {
+      });const result = await response.json();if (result.success) {
         router.push(`/comparison/${result.comparisonId}`);
       } else {
         console.error('❌ API Error:', result.error);
-        setError(result.error || 'حدث خطأ أثناء إنشاء المقارنة');
+        setError(result.error || t('comparisonTool.comparisonError'));
       }
     } catch (err) {
-      setError('حدث خطأ أثناء إنشاء المقارنة. يرجى المحاولة مرة أخرى.');
+      setError(t('comparisonTool.comparisonErrorRetry'));
     } finally {
       setIsLoading(false);
     }
   };
 
   // UI rendering
-  if (!isLoaded) {
+  if (!isLoaded || translationLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">جارٍ التحميل...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -322,25 +304,25 @@ export default function ComparisonToolPage() {
         <div className="text-center max-w-md mx-auto p-8">
           <div className="mb-6">
             <GitCompare className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">يجب تسجيل الدخول أولاً</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('loginRequired')}</h1>
             <p className="text-gray-400">
-              لاستخدام أداة المقارنة وحفظ مقارناتك، يجب عليك تسجيل الدخول أولاً.
+              {t('comparisonTool.loginRequired')}
             </p>
           </div>
           <div className="space-y-3">
             <Button onClick={() => router.push('/sign-in')}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600">
-              تسجيل الدخول
+              {t('signIn')}
             </Button>
             <Button onClick={() => router.push('/sign-up')}
               variant="outline"
               className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
-              إنشاء حساب جديد
+              {t('createAccount')}
             </Button>
             <Button onClick={() => router.push('/')}
               variant="ghost"
               className="w-full text-gray-400 hover:text-gray-300">
-              العودة للصفحة الرئيسية
+              {t('backToHome')}
             </Button>
           </div>
         </div>
@@ -353,7 +335,7 @@ export default function ComparisonToolPage() {
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-400">جاري تحميل بياناتك...</p>
+          <p className="text-gray-400">{t('loadingData')}</p>
         </div>
       </div>
     );
@@ -364,19 +346,19 @@ export default function ComparisonToolPage() {
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
           <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">بيانات المستخدم غير متوفرة</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('userDataNotAvailable')}</h2>
           <p className="text-gray-400 mb-6">
-            {error || 'يرجى إكمال بياناتك أولاً لاستخدام أداة المقارنة'}
+            {error || t('comparisonTool.completeProfile')}
           </p>
           <div className="space-y-3">
             <Button onClick={() => router.push('/stepper')} 
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600">
-              إكمال البيانات
+              {t('completeData')}
             </Button>
             <Button onClick={() => router.push('/comparison')} 
               variant="outline"
               className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
-              العودة لصفحة المقارنة
+              {t('comparisonTool.backToComparison')}
             </Button>
           </div>
         </div>
@@ -391,26 +373,26 @@ export default function ComparisonToolPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* User Info Card */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">معلوماتك الشخصية</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t('comparisonTool.personalInfo')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
-              <span className="text-gray-400">الشعبة:</span>
+              <span className="text-gray-400">{t('branch')}:</span>
               <span className="text-white ml-2">{getBacTypeFromFiliere(userData.filiere)}</span>
             </div>
             <div>
-              <span className="text-gray-400">الولاية:</span>
+              <span className="text-gray-400">{t('governorate')}:</span>
               <span className="text-white ml-2">{userData.wilaya}</span>
             </div>
             <div>
-              <span className="text-gray-400">المعدل العام:</span>
+              <span className="text-gray-400">{t('overallGrade')}:</span>
               <span className="text-white ml-2">{userData.mgScore ? userData.mgScore.toFixed(2) : getUserScores().mg.toFixed(2)}</span>
             </div>
             <div>
-              <span className="text-gray-400">النقاط:</span>
+              <span className="text-gray-400">{t('points')}:</span>
               <span className="text-white ml-2">{userData.fsScore ? userData.fsScore.toFixed(2) : getUserScores().fs.toFixed(2)}</span>
             </div>
             <div>
-              <span className="text-gray-400">المفضلات:</span>
+              <span className="text-gray-400">{t('favorites')}:</span>
               <span className="text-cyan-400 ml-2 flex items-center">
                 <Heart className="w-4 h-4 mr-1" />
                 {favoriteOrientations.length}
@@ -421,7 +403,7 @@ export default function ComparisonToolPage() {
 
         {/* Input Method Toggle */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">طريقة الإدخال</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t('inputMethod')}</h2>
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
             <Button
               onClick={() => setUseCodeInput(false)}
@@ -429,7 +411,7 @@ export default function ComparisonToolPage() {
               className={`${!useCodeInput ? 'bg-[#1581f3] text-white' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'} flex items-center justify-center`}
             >
               <Heart className="w-4 h-4 mr-2" />
-              المفضلة ({favoriteOrientations.length})
+              {t('favoriteList')} ({favoriteOrientations.length})
             </Button>
             <Button
               onClick={() => setUseCodeInput(true)}
@@ -437,13 +419,13 @@ export default function ComparisonToolPage() {
               className={`${useCodeInput ? 'bg-[#1581f3] text-white' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'} flex items-center justify-center`}
             >
               <Search className="w-4 h-4 mr-2" />
-              البحث بالكود
+              {t('comparisonTool.searchByCode')}
             </Button>
           </div>
           {!useCodeInput && favoriteOrientations.length === 0 && (
             <div className="mt-4 p-4 bg-yellow-900/30 border border-yellow-500/50 rounded-lg">
               <p className="text-yellow-300 text-sm">
-                📌 لا توجد توجهات مفضلة بعد. يمكنك إضافة مفضلاتك من صفحة التوصيات أولاً.
+                {t('comparisonTool.noFavorites')}
               </p>
             </div>
           )}
@@ -455,7 +437,7 @@ export default function ComparisonToolPage() {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <span className="w-6 h-6 bg-[#1581f3] rounded-full flex items-center justify-center text-white text-sm mr-2">1</span>
-              التوجه الأول
+              {t('firstOrientation')}
             </h3>
             {orientation1 ? (
               <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
@@ -463,10 +445,10 @@ export default function ComparisonToolPage() {
                   <div className="flex-1">
                     <h4 className="font-medium text-cyan-300 mb-2">{orientation1.name}</h4>
                     <div className="space-y-1 text-sm text-gray-300">
-                      <div>الجامعة: {orientation1.university}</div>
-                      <div>القطب: {orientation1.hub}</div>
-                      <div>النتيجة المطلوبة 2024: {orientation1.score2024}</div>
-                      <div>النتيجة المطلوبة 2023: {orientation1.score2023}</div>
+                      <div>{t('university')}: {orientation1.university}</div>
+                      <div>{t('hub')}: {orientation1.hub}</div>
+                      <div>{t('requiredScore2024')}: {orientation1.score2024}</div>
+                      <div>{t('requiredScore2023')}: {orientation1.score2023}</div>
                     </div>
                   </div>
                   <Button
@@ -481,19 +463,19 @@ export default function ComparisonToolPage() {
                 {/* Score Analysis */}
                 <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">فرصة القبول:</span>
+                    <span className="text-sm text-gray-400">{t('admissionChance')}:</span>
                     <span className={`text-sm font-medium ${
                       getUserScores().fs >= orientation1.score2024 ? 'text-green-400' :
                       getUserScores().fs >= orientation1.score2024 - 10 ? 'text-yellow-400' :
                       'text-red-400'
                     }`}>
-                      {getUserScores().fs >= orientation1.score2024 ? 'ممتازة' :
-                        getUserScores().fs >= orientation1.score2024 - 10 ? 'جيدة' :
-                        'ضعيفة'}
+                      {getUserScores().fs >= orientation1.score2024 ? t('excellent') :
+                        getUserScores().fs >= orientation1.score2024 - 10 ? t('good') :
+                        t('poor')}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-sm text-gray-400">الفارق:</span>
+                    <span className="text-sm text-gray-400">{t('difference')}:</span>
                     <span className={`text-sm font-medium ${
                       getUserScores().fs >= orientation1.score2024 ? 'text-green-400' : 'text-red-400'
                     }`}>
@@ -507,12 +489,12 @@ export default function ComparisonToolPage() {
                 {useCodeInput ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      أدخل كود التوجه الأول:
+                      {t('enterFirstOrientationCode')}
                     </label>
                     <div className="relative">
                       <input
                         type="text"
-                        placeholder="مثال: 12311"
+                        placeholder={t('placeholder1')}
                         value={orientation1Code}
                         onChange={(e) => setOrientation1Code(e.target.value)}
                         className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -529,20 +511,20 @@ export default function ComparisonToolPage() {
                               <div>
                                 <h4 className="font-medium text-green-300 text-sm">{codeSearchResults.orientation1.name}</h4>
                                 <p className="text-xs text-gray-300">{codeSearchResults.orientation1.university}</p>
-                                <p className="text-xs text-gray-400">نقاط 2024: {codeSearchResults.orientation1.score2024}</p>
+                                <p className="text-xs text-gray-400">{t('score2024')}: {codeSearchResults.orientation1.score2024}</p>
                               </div>
                               <Button
                                 onClick={() => handleCodeSearch(orientation1Code, 1)}
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
-                                اختيار
+                                {t('select')}
                               </Button>
                             </div>
                           </div>
                         ) : (
                           <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-3">
-                            <p className="text-red-300 text-sm">❌ لم يتم العثور على توجه بهذا الكود</p>
+                            <p className="text-red-300 text-sm">{t('orientationNotFoundCode')}</p>
                           </div>
                         )}
                       </div>
@@ -552,7 +534,7 @@ export default function ComparisonToolPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       <Heart className="w-4 h-4 inline mr-1" />
-                      اختر من مفضلاتك:
+                      {t('selectFromFavorites')}
                     </label>
                     {favoriteOrientations.length > 0 ? (
                       <select
@@ -562,7 +544,7 @@ export default function ComparisonToolPage() {
                         }}
                         className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       >
-                        <option value="">اختر من مفضلاتك...</option>
+                        <option value="">{t('selectFromFavorites2')}</option>
                         {favoriteOrientations.map(orientation => (
                           <option key={orientation.id} value={orientation.id}>
                             {orientation.code} - {orientation.name.substring(0, 50)}...
@@ -571,13 +553,13 @@ export default function ComparisonToolPage() {
                       </select>
                     ) : (
                       <div className="bg-slate-700 border border-slate-600 rounded-lg p-4 text-center">
-                        <p className="text-gray-400 text-sm mb-2">لا توجد مفضلات بعد</p>
+                        <p className="text-gray-400 text-sm mb-2">{t('noFavoritesYet')}</p>
                         <Button
                           onClick={() => router.push('/recommendations')}
                           size="sm"
                           className="bg-[#1581f3] hover:bg-blue-600 text-white"
                         >
-                          إضافة مفضلات
+                          {t('addFavorites')}
                         </Button>
                       </div>
                     )}
@@ -590,7 +572,7 @@ export default function ComparisonToolPage() {
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <span className="w-6 h-6 bg-[#1581f3] rounded-full flex items-center justify-center text-white text-sm mr-2">2</span>
-              التوجه الثاني
+              {t('secondOrientation')}
             </h3>
             {orientation2 ? (
               <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 mb-4">
@@ -598,10 +580,10 @@ export default function ComparisonToolPage() {
                   <div className="flex-1">
                     <h4 className="font-medium text-cyan-300 mb-2">{orientation2.name}</h4>
                     <div className="space-y-1 text-sm text-gray-300">
-                      <div>الجامعة: {orientation2.university}</div>
-                      <div>القطب: {orientation2.hub}</div>
-                      <div>النتيجة المطلوبة 2024: {orientation2.score2024}</div>
-                      <div>النتيجة المطلوبة 2023: {orientation2.score2023}</div>
+                      <div>{t('university')}: {orientation2.university}</div>
+                      <div>{t('hub')}: {orientation2.hub}</div>
+                      <div>{t('requiredScore2024')}: {orientation2.score2024}</div>
+                      <div>{t('requiredScore2023')}: {orientation2.score2023}</div>
                     </div>
                   </div>
                   <Button
@@ -616,19 +598,19 @@ export default function ComparisonToolPage() {
                 {/* Score Analysis */}
                 <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-400">فرصة القبول:</span>
+                    <span className="text-sm text-gray-400">{t('admissionChance')}:</span>
                     <span className={`text-sm font-medium ${
                       getUserScores().fs >= orientation2.score2024 ? 'text-green-400' :
                       getUserScores().fs >= orientation2.score2024 - 10 ? 'text-yellow-400' :
                       'text-red-400'
                     }`}>
-                      {getUserScores().fs >= orientation2.score2024 ? 'ممتازة' :
-                        getUserScores().fs >= orientation2.score2024 - 10 ? 'جيدة' :
-                        'ضعيفة'}
+                      {getUserScores().fs >= orientation2.score2024 ? t('excellent') :
+                        getUserScores().fs >= orientation2.score2024 - 10 ? t('good') :
+                        t('poor')}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-sm text-gray-400">الفارق:</span>
+                    <span className="text-sm text-gray-400">{t('difference')}:</span>
                     <span className={`text-sm font-medium ${
                       getUserScores().fs >= orientation2.score2024 ? 'text-green-400' : 'text-red-400'
                     }`}>
@@ -642,12 +624,12 @@ export default function ComparisonToolPage() {
                 {useCodeInput ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      أدخل كود التوجه الثاني:
+                      {t('enterSecondOrientationCode')}
                     </label>
                     <div className="relative">
                       <input
                         type="text"
-                        placeholder="مثال: 12312"
+                        placeholder={t('placeholder2')}
                         value={orientation2Code}
                         onChange={(e) => setOrientation2Code(e.target.value)}
                         className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -664,20 +646,20 @@ export default function ComparisonToolPage() {
                               <div>
                                 <h4 className="font-medium text-green-300 text-sm">{codeSearchResults.orientation2.name}</h4>
                                 <p className="text-xs text-gray-300">{codeSearchResults.orientation2.university}</p>
-                                <p className="text-xs text-gray-400">نقاط 2024: {codeSearchResults.orientation2.score2024}</p>
+                                <p className="text-xs text-gray-400">{t('score2024')}: {codeSearchResults.orientation2.score2024}</p>
                               </div>
                               <Button
                                 onClick={() => handleCodeSearch(orientation2Code, 2)}
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-700 text-white"
                               >
-                                اختيار
+                                {t('select')}
                               </Button>
                             </div>
                           </div>
                         ) : (
                           <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-3">
-                            <p className="text-red-300 text-sm">❌ لم يتم العثور على توجه بهذا الكود</p>
+                            <p className="text-red-300 text-sm">{t('orientationNotFoundCode')}</p>
                           </div>
                         )}
                       </div>
@@ -687,7 +669,7 @@ export default function ComparisonToolPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       <Heart className="w-4 h-4 inline mr-1" />
-                      اختر من مفضلاتك:
+                      {t('selectFromFavorites')}
                     </label>
                     {favoriteOrientations.length > 0 ? (
                       <select
@@ -697,7 +679,7 @@ export default function ComparisonToolPage() {
                         }}
                         className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       >
-                        <option value="">اختر من مفضلاتك...</option>
+                        <option value="">{t('selectFromFavorites2')}</option>
                         {favoriteOrientations
                           .filter(o => !orientation1 || o.id !== orientation1.id)
                           .map(orientation => (
@@ -708,13 +690,13 @@ export default function ComparisonToolPage() {
                       </select>
                     ) : (
                       <div className="bg-slate-700 border border-slate-600 rounded-lg p-4 text-center">
-                        <p className="text-gray-400 text-sm mb-2">لا توجد مفضلات بعد</p>
+                        <p className="text-gray-400 text-sm mb-2">{t('noFavoritesYet')}</p>
                         <Button
                           onClick={() => router.push('/recommendations')}
                           size="sm"
                           className="bg-[#1581f3] hover:bg-blue-600 text-white"
                         >
-                          إضافة مفضلات
+                          {t('addFavorites')}
                         </Button>
                       </div>
                     )}
@@ -728,10 +710,10 @@ export default function ComparisonToolPage() {
         {/* Quick Comparison Preview */}
         {orientation1 && orientation2 && (
           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
-            <h3 className="text-lg font-semibold text-white mb-4">مقارنة سريعة</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">{t('quickComparison')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-sm text-gray-400">نقاط 2024</div>
+                <div className="text-sm text-gray-400">{t('score2024')}</div>
                 <div className="flex justify-between text-lg font-bold">
                   <span className="text-cyan-400">{orientation1.score2024}</span>
                   <span className="text-gray-400">vs</span>
@@ -739,14 +721,14 @@ export default function ComparisonToolPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-400">نقاطك</div>
+                <div className="text-sm text-gray-400">{t('yourPoints')}</div>
                 <div className="text-lg font-bold text-white">{getUserScores().fs.toFixed(1)}</div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-400">الأفضل لك</div>
+                <div className="text-sm text-gray-400">{t('bestForYou')}</div>
                 <div className="text-lg font-bold text-green-400">
                   {Math.abs(getUserScores().fs - orientation1.score2024) < Math.abs(getUserScores().fs - orientation2.score2024)
-                    ? 'الأول' : 'الثاني'}
+                    ? t('first') : t('second')}
                 </div>
               </div>
             </div>
@@ -773,18 +755,18 @@ export default function ComparisonToolPage() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                جاري المقارنة...
+                {t('comparing')}
               </>
             ) : (
               <>
                 <GitCompare className="w-5 h-5 mr-2" />
-                بدء المقارنة التفصيلية
+                {t('startDetailedComparison')}
               </>
             )}
           </Button>
           {orientation1 && orientation2 && (
             <p className="text-sm text-gray-400 mt-2">
-              سيتم إنشاء تحليل مفصل يعتمد على الذكاء الاصطناعي
+              {t('aiAnalysisDescription')}
             </p>
           )}
         </div>

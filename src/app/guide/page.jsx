@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import finaleData from '@/data/finale-data.json';
 import { addToFavoritesByCode, removeFromFavoritesByCode, getUserFavoritesByCode } from '@/actions/favorites-actions';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
-
+import { useTranslation } from '../i18n/client';
 export default function GuidePage() {
   const router = useRouter();
+  const { t, loading: translationLoading } = useTranslation('common');
   const { isRedirecting, isReady, userProfile, isSignedIn, user } = useAuthRedirect({
     requireAuth: false,
     requireProfile: false
@@ -83,10 +84,8 @@ export default function GuidePage() {
     }
     
     try {
-      const userFavorites = await getUserFavoritesByCode();
-      if (userFavorites.success) {
-        setFavorites(userFavorites.favorites.map(fav => fav.orientationCode));
-      }
+      const userFavorites = await getUserFavoritesByCode();if (userFavorites.success) {setFavorites(userFavorites.favorites.map(fav => fav.orientationCode));
+      } else {}
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
@@ -95,32 +94,21 @@ export default function GuidePage() {
   // Handle favorites toggle with database
   const handleFavoriteToggle = async (orientationCode) => {
     if (!isSignedIn) {
-      alert('يجب تسجيل الدخول لإضافة المفضلة');
+      alert(t('guide.loginRequired'));
       return;
-    }
-
-    console.log('🔍 Toggling favorite for:', orientationCode);
-    setLoadingFavorites(prev => ({ ...prev, [orientationCode]: true }));
+    }setLoadingFavorites(prev => ({ ...prev, [orientationCode]: true }));
 
     try {
       const isFavorite = favorites.includes(orientationCode);
       
-      if (isFavorite) {
-        console.log('🔍 Removing from favorites...');
-        const result = await removeFromFavoritesByCode(orientationCode);
+      if (isFavorite) {const result = await removeFromFavoritesByCode(orientationCode);
         if (result.success) {
-          setFavorites(prev => prev.filter(code => code !== orientationCode));
-          console.log('✅ Removed from favorites');
-        } else {
+          setFavorites(prev => prev.filter(code => code !== orientationCode));} else {
           console.error('❌ Failed to remove from favorites:', result.error);
         }
-      } else {
-        console.log('🔍 Adding to favorites...');
-        const result = await addToFavoritesByCode(orientationCode);
+      } else {const result = await addToFavoritesByCode(orientationCode);
         if (result.success) {
-          setFavorites(prev => [...prev, orientationCode]);
-          console.log('✅ Added to favorites');
-        } else {
+          setFavorites(prev => [...prev, orientationCode]);} else {
           console.error('❌ Failed to add to favorites:', result.error);
         }
       }
@@ -257,8 +245,8 @@ export default function GuidePage() {
           </div>
           
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-white">جاري تحميل دليل البرامج</h2>
-            <p className="text-gray-400">جاري تحميل بيانات البرامج الجامعية...</p>
+            <h2 className="text-2xl font-bold text-white">{t('guide.loading')}</h2>
+            <p className="text-gray-400">{t('guide.loadingDescription')}</p>
             
             {/* Loading progress dots */}
             <div className="flex justify-center space-x-1 pt-4">
@@ -267,6 +255,18 @@ export default function GuidePage() {
               <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce animation-delay-300"></div>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Wait for translations to load
+  if (translationLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <div className="text-gray-400">{t('loading')}</div>
         </div>
       </div>
     );
@@ -283,17 +283,20 @@ export default function GuidePage() {
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              العودة
+              {t('back')}
             </button>
             <div className="w-20"></div>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                دليل البرامج الجامعية
+                {t('guide.title')}
               </h1>
               <p className="text-gray-400 mt-2">
-                اكتشف {filteredPrograms.length} برنامج جامعي من {programs.length} برنامج متاح
+                {t('search.discoverPrograms', 'guide', { 
+                  filtered: filteredPrograms.length, 
+                  total: programs.length 
+                })}
               </p>
             </div>
             
@@ -304,7 +307,7 @@ export default function GuidePage() {
                 className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 <Filter className="w-4 h-4 mr-2" />
-                فلترة ({Object.values(filters).filter(v => v && v !== 'latest_score').length})
+                {t('guide.filterLabel')} ({Object.values(filters).filter(v => v && v !== 'latest_score').length})
               </Button>
               <Button
                 variant="outline"
@@ -314,7 +317,7 @@ export default function GuidePage() {
                 }`}
               >
                 <Heart className={`w-4 h-4 mr-2 ${filters.showFavoritesOnly ? 'fill-red-400 text-red-400' : ''}`} />
-                المفضلة ({favorites.length})
+                {t('guide.favoritesLabel')} ({favorites.length})
               </Button>
             </div>
           </div>
@@ -332,7 +335,7 @@ export default function GuidePage() {
                 <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="البحث في البرامج والجامعات..."
+                  placeholder={t('guide.searchPlaceholder')}
                   value={filters.search}
                   onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                   className="w-full pr-10 pl-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-right"
@@ -357,9 +360,9 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, seven_percent: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع البرامج</option>
-                <option value="yes">برامج الـ 7% فقط</option>
-                <option value="no">برامج عادية فقط</option>
+                <option value="">{t('filters.allPrograms')}</option>
+                <option value="yes">{t('filters.sevenPercentOnly')}</option>
+                <option value="no">{t('filters.regularOnly')}</option>
               </select>
             </div>
 
@@ -371,7 +374,7 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, field_of_study: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع مجالات الدراسة ({filterOptions.fieldOfStudy.length})</option>
+                <option value="">{t('filters.allFieldsOfStudy')} ({filterOptions.fieldOfStudy.length})</option>
                 {filterOptions.fieldOfStudy.map(field => (
                   <option key={field} value={field}>
                     {field.length > 40 ? field.substring(0, 40) + '...' : field}
@@ -385,7 +388,7 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, university_name: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع الجامعات ({filterOptions.universities.length})</option>
+                <option value="">{t('filters.allUniversities')} ({filterOptions.universities.length})</option>
                 {filterOptions.universities.map(university => (
                   <option key={university} value={university}>{university}</option>
                 ))}
@@ -397,7 +400,7 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, bac_type_name: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع شعب الباكالوريا ({filterOptions.bacTypes.length})</option>
+                <option value="">{t('filters.allBacTypes')} ({filterOptions.bacTypes.length})</option>
                 {filterOptions.bacTypes.map(bacType => (
                   <option key={bacType} value={bacType}>{bacType}</option>
                 ))}
@@ -409,7 +412,7 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, table_location: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع المناطق ({filterOptions.locations.length})</option>
+                <option value="">{t('filters.allLocations')} ({filterOptions.locations.length})</option>
                 {filterOptions.locations.map(location => (
                   <option key={location} value={location}>{location}</option>
                 ))}
@@ -421,7 +424,7 @@ export default function GuidePage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, table_institution: e.target.value }))}
                 className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
-                <option value="">جميع المؤسسات ({filterOptions.institutions.length})</option>
+                <option value="">{t('filters.allInstitutions')} ({filterOptions.institutions.length})</option>
                 {filterOptions.institutions.map(institution => (
                   <option key={institution} value={institution}>
                     {institution.length > 40 ? institution.substring(0, 40) + '...' : institution}
@@ -582,12 +585,12 @@ function EmptyState({ filters, onClearFilters }) {
     <div className="text-center py-12">
       <div className="text-6xl mb-4">🔍</div>
       <h3 className="text-xl font-semibold text-white mb-2">
-        {hasActiveFilters ? 'لا توجد نتائج' : 'لا توجد برامج'}
+        {hasActiveFilters ? t('guide.noResults') : t('guide.noPrograms')}
       </h3>
       <p className="text-gray-400 mb-6">
         {hasActiveFilters 
-          ? 'جرب تغيير المرشحات أو معايير البحث' 
-          : 'لم يتم العثور على برامج جامعية'
+          ? t('guide.tryChangeFilters')
+          : t('guide.noProgramsFound')
         }
       </p>
       {hasActiveFilters && (

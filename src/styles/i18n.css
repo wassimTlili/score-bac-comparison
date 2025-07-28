@@ -1,0 +1,192 @@
+/* RTL/LTR Direction Support */
+
+/* Font Families for Different Languages */
+.font-arabic {
+  font-family: 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif;
+}
+
+.font-latin {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* RTL/LTR Utility Classes */
+.rtl {
+  direction: rtl;
+}
+
+.ltr {
+  direction: ltr;
+}
+
+/* RTL-aware spacing utilities */
+.rtl .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+.rtl .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
+
+.rtl .text-left {
+  text-align: right;
+}
+
+.rtl .text-right {
+  text-align: left;
+}
+
+/* RTL-aware flexbox utilities */
+.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+.rtl .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+/* RTL-aware positioning */
+.rtl .left-0 {
+  left: unset;
+  right: 0;
+}
+
+.rtl .right-0 {
+  right: unset;
+  left: 0;
+}
+
+/* RTL-aware borders */
+.rtl .border-l {
+  border-left: unset;
+  border-right: 1px solid;
+}
+
+.rtl .border-r {
+  border-right: unset;
+  border-left: 1px solid;
+}
+
+/* RTL-aware rounded corners */
+.rtl .rounded-l-lg {
+  border-top-left-radius: unset;
+  border-bottom-left-radius: unset;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+.rtl .rounded-r-lg {
+  border-top-right-radius: unset;
+  border-bottom-right-radius: unset;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+/* RTL-aware transforms */
+.rtl .transform {
+  transform: scaleX(-1);
+}
+
+/* Icons that should flip in RTL */
+.rtl .flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Icons that should NOT flip in RTL */
+.rtl .no-flip {
+  transform: none;
+}
+
+/* RTL-aware dropdown positioning */
+.rtl .dropdown-right {
+  left: 0;
+  right: unset;
+}
+
+.rtl .dropdown-left {
+  right: 0;
+  left: unset;
+}
+
+/* Language-specific font improvements */
+[lang="ar"] {
+  font-feature-settings: "liga" on, "calt" on;
+  line-height: 1.7; /* Better line height for Arabic */
+}
+
+[lang="ar"] h1,
+[lang="ar"] h2,
+[lang="ar"] h3,
+[lang="ar"] h4,
+[lang="ar"] h5,
+[lang="ar"] h6 {
+  line-height: 1.4;
+}
+
+/* Input field RTL support */
+.rtl input[type="text"],
+.rtl input[type="email"],
+.rtl input[type="password"],
+.rtl textarea {
+  text-align: right;
+}
+
+.ltr input[type="text"],
+.ltr input[type="email"],
+.ltr input[type="password"],
+.ltr textarea {
+  text-align: left;
+}
+
+/* Button RTL support */
+.rtl button,
+.rtl .btn {
+  text-align: center;
+}
+
+/* Navigation RTL adjustments */
+.rtl .nav-item {
+  margin-left: unset;
+  margin-right: 1rem;
+}
+
+.ltr .nav-item {
+  margin-right: unset;
+  margin-left: 1rem;
+}
+
+/* Smooth transitions for direction changes */
+.direction-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Force LTR for certain elements (like numbers, codes) */
+.force-ltr {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Force RTL for certain elements */
+.force-rtl {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Custom scrollbar for RTL */
+.rtl ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rtl ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rtl ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.rtl ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

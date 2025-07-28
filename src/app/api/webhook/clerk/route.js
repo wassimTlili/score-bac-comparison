@@ -61,9 +61,7 @@ export async function POST(req) {
       case 'user.deleted':
         await handleUserDeleted(evt.data);
         break;
-      default:
-        console.log(`Unhandled webhook event type: ${eventType}`);
-    }
+      default:}
 
     return new Response('Success', { status: 200 });
   } catch (error) {
@@ -83,10 +81,7 @@ async function handleUserCreated(userData) {
         imageUrl: userData.image_url || '',
         lastLogin: new Date(),
       },
-    });
-    
-    console.log('User created in database:', user.id);
-  } catch (error) {
+    });} catch (error) {
     console.error('Error creating user:', error);
     throw error;
   }
@@ -103,10 +98,7 @@ async function handleUserUpdated(userData) {
         imageUrl: userData.image_url || '',
         lastLogin: new Date(),
       },
-    });
-    
-    console.log('User updated in database:', user.id);
-  } catch (error) {
+    });} catch (error) {
     console.error('Error updating user:', error);
     throw error;
   }
@@ -119,10 +111,7 @@ async function handleUserDeleted(userData) {
       data: {
         isActive: false,
       },
-    });
-    
-    console.log('User deactivated in database:', userData.id);
-  } catch (error) {
+    });} catch (error) {
     console.error('Error deactivating user:', error);
     throw error;
   }

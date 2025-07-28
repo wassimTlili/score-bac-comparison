@@ -3,13 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { getComparisonStats } from '@/actions/enhanced-comparison-actions';
 import { getUserFavoritesByCode } from '@/actions/favorites-actions';
-import { debugComparisonCounts } from '@/actions/debug-comparison-stats';
 import { useEffect, useState } from 'react';
 import { trackData, calculateMG, calculateFS, getScoreLevel } from '@/utils/calculations';
 import { useAuthRedirect, RedirectLoadingScreen } from '@/hooks/useAuthRedirect';
-
-// Debug trackData import
-console.log('TrackData imported:', Object.keys(trackData));
+import { useTranslation } from '../i18n/client';
 
 export default function ComparisonLandingPage() {
   const router = useRouter();
@@ -17,10 +14,11 @@ export default function ComparisonLandingPage() {
     requireAuth: true,
     requireProfile: true
   });
+  const { t, locale, loading: translationLoading } = useTranslation('common');
 
   const [stats, setStats] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [scores, setScores] = useState({ mg: 0, fs: 0, scoreLevel: { color: '#gray', text: 'غير محدد' } });
+  const [scores, setScores] = useState({ mg: 0, fs: 0, scoreLevel: { color: '#gray', text: t('undetermined') } });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [favoritesCount, setFavoritesCount] = useState(0);
@@ -69,13 +67,13 @@ export default function ComparisonLandingPage() {
   // Get bac type mapping
   const getBacTypeFromFiliere = (filiere) => {
     const bacTypeMap = {
-      math: "رياضيات",
-      science: "علوم تجريبية", 
-      info: "علوم الإعلامية",
-      tech: "العلوم التقنية",
-      eco: "إقتصاد وتصرف",
-      lettres: "آداب",
-      sport: "رياضة"
+      math: t('mathematics'),
+      science: t('experimentalSciences'), 
+      info: t('computerScience'),
+      tech: t('technicalSciences'),
+      eco: t('economicsManagement'),
+      lettres: t('literature'),
+      sport: t('sports')
     };
     return bacTypeMap[filiere] || filiere;
   };
@@ -131,17 +129,9 @@ export default function ComparisonLandingPage() {
     // Load comparison stats
     const loadStats = async () => {
       try {
-        console.log('📊 Loading comparison stats...');
-        
-        // Add debug call
-        const debugResult = await debugComparisonCounts();
-        console.log('🔍 Debug result:', debugResult);
-        
         const result = await getComparisonStats();
-        console.log('📊 Stats result:', result);
         if (result.success) {
           setStats(result.stats);
-          console.log('✅ Stats loaded:', result.stats);
         } else {
           console.error('❌ Stats loading failed:', result.error);
         }
@@ -184,8 +174,8 @@ export default function ComparisonLandingPage() {
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-400 border-t-transparent mx-auto mb-6"></div>
-          <h3 className="text-2xl font-bold mb-2">جاري التحميل...</h3>
-          <p className="text-gray-400">يرجى الانتظار</p>
+          <h3 className="text-2xl font-bold mb-2">{t('loadingData2')}</h3>
+          <p className="text-gray-400">{t('pleaseWait')}</p>
         </div>
       </div>
     );
@@ -195,13 +185,13 @@ export default function ComparisonLandingPage() {
     return (
       <div className="min-h-screen bg-[#0f172a] text-gray-100 flex items-center justify-center">
         <div className="text-center bg-red-500/20 border border-red-400/50 rounded-2xl p-12 max-w-md">
-          <h3 className="text-2xl font-bold mb-4">خطأ</h3>
+          <h3 className="text-2xl font-bold mb-4">{t('errorOccurred')}</h3>
           <p className="text-red-300 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-cyan-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-cyan-400 transition-colors"
           >
-            إعادة المحاولة
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -226,10 +216,10 @@ export default function ComparisonLandingPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 dark:text-white mb-4">
-            لوحة التحكم الجامعية
+            {t('universityDashboard')}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            أهلاً وسهلاً! هنا ستجد كل ما تحتاجه لاختيار توجهك الجامعي
+            {t('dashboardWelcome')}
           </p>
         </div>
 
@@ -244,12 +234,12 @@ export default function ComparisonLandingPage() {
               <div className="bg-white/20 rounded-full p-3">
                 <span className="text-2xl">💡</span>
               </div>
-              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">جديد</span>
+              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">{t('new')}</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">التوصيات</h3>
-            <p className="text-blue-100 text-sm mb-4">احصل على توصيات مخصصة</p>
+            <h3 className="text-xl font-bold mb-2">{t('recommendationsTitle')}</h3>
+            <p className="text-blue-100 text-sm mb-4">{t('recommendationsSubtitle')}</p>
             <div className="text-right">
-              <span className="text-3xl font-bold text-blue-200">→ اكتشف المزيد</span>
+              <span className="text-3xl font-bold text-blue-200">→ {t('discoverMore')}</span>
             </div>
           </div>
 
@@ -262,12 +252,12 @@ export default function ComparisonLandingPage() {
               <div className="bg-white/20 rounded-full p-3">
                 <span className="text-2xl">⚖️</span>
               </div>
-              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">قارن</span>
+              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">{t('compare')}</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">مقارنة التوجهات</h3>
-            <p className="text-purple-100 text-sm mb-4">قارن بين التخصصات المختلفة</p>
+            <h3 className="text-xl font-bold mb-2">{t('compareTitle')}</h3>
+            <p className="text-purple-100 text-sm mb-4">{t('compareSubtitle')}</p>
             <div className="text-right">
-              <span className="text-3xl font-bold text-purple-200">→ اكتشف المزيد</span>
+              <span className="text-3xl font-bold text-purple-200">→ {t('discoverMore')}</span>
             </div>
           </div>
 
@@ -280,12 +270,12 @@ export default function ComparisonLandingPage() {
               <div className="bg-white/20 rounded-full p-3">
                 <span className="text-2xl">🎓</span>
               </div>
-              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">استكشف</span>
+              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">{t('explore')}</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">التوجهات الجامعية</h3>
-            <p className="text-green-100 text-sm mb-4">استكشف التخصصات المتاحة</p>
+            <h3 className="text-xl font-bold mb-2">{t('exploreTitle')}</h3>
+            <p className="text-green-100 text-sm mb-4">{t('exploreSubtitle')}</p>
             <div className="text-right">
-              <span className="text-3xl font-bold text-green-200">→ اكتشف المزيد</span>
+              <span className="text-3xl font-bold text-green-200">→ {t('discoverMore')}</span>
             </div>
           </div>
 
@@ -298,12 +288,12 @@ export default function ComparisonLandingPage() {
               <div className="bg-white/20 rounded-full p-3">
                 <span className="text-2xl">📖</span>
               </div>
-              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">دليل</span>
+              <span className="text-sm bg-white/20 px-2 py-1 rounded-full">{t('guideTitle')}</span>
             </div>
-            <h3 className="text-xl font-bold mb-2">دليل التوجيه</h3>
-            <p className="text-orange-100 text-sm mb-4">معلومات شاملة عن التعليم العالي</p>
+            <h3 className="text-xl font-bold mb-2">{t('guideTitle')}</h3>
+            <p className="text-orange-100 text-sm mb-4">{t('guideSubtitle')}</p>
             <div className="text-right">
-              <span className="text-3xl font-bold text-orange-200">→ اكتشف المزيد</span>
+              <span className="text-3xl font-bold text-orange-200">→ {t('discoverMore')}</span>
             </div>
           </div>
         </div>
@@ -311,58 +301,50 @@ export default function ComparisonLandingPage() {
         {/* User Info Card */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">معلوماتك الشخصية</h2>
+            <h2 className="text-lg font-semibold text-white">{t('personalInformation')}</h2>
             <button
               onClick={() => router.push('/stepper/review')}
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1"
             >
               <span>✏️</span>
-              تحديث البيانات
+              {t('updateData')}
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <span className="text-gray-400">الشعبة:</span>
+              <span className="text-gray-400">{t('branch')}:</span>
               <span className="text-white ml-2">
-                {userData?.filiere ? (
-                  userData.filiere === 'math' ? 'رياضيات' :
-                  userData.filiere === 'science' ? 'علوم تجريبية' :
-                  userData.filiere === 'tech' ? 'تقني رياضي' :
-                  userData.filiere === 'eco' ? 'اقتصاد وتسيير' :
-                  userData.filiere === 'info' ? 'معلوماتية' :
-                  userData.filiere === 'sport' ? 'رياضة' :
-                  userData.filiere
-                ) : 'غير محدد'}
+                {userData?.filiere ? getBacTypeFromFiliere(userData.filiere) : t('undetermined')}
               </span>
             </div>
             <div>
-              <span className="text-gray-400">الولاية:</span>
-              <span className="text-white ml-2">{userData?.wilaya || 'غير محدد'}</span>
+              <span className="text-gray-400">{t('governorate')}:</span>
+              <span className="text-white ml-2">{userData?.wilaya || t('undetermined')}</span>
             </div>
             <div>
-              <span className="text-gray-400">المعدل العام:</span>
+              <span className="text-gray-400">{t('overallGrade')}:</span>
               <span className="text-white ml-2">
-                {scores.mg && scores.mg > 0 ? scores.mg.toFixed(2) : 'غير محدد'}
+                {scores.mg && scores.mg > 0 ? scores.mg.toFixed(2) : t('undetermined')}
               </span>
             </div>
             <div>
-              <span className="text-gray-400">النقاط:</span>
+              <span className="text-gray-400">{t('points')}:</span>
               <span className="text-white ml-2">
-                {scores.fs && scores.fs > 0 ? scores.fs.toFixed(2) : 'غير محدد'}
+                {scores.fs && scores.fs > 0 ? scores.fs.toFixed(2) : t('undetermined')}
               </span>
             </div>
           </div>
           <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
             <p className="text-blue-200 text-sm flex items-center gap-2">
               <span>💡</span>
-              يمكنك تحديث بياناتك الشخصية ودرجاتك من خلال 
+              {t('updateDataMessage')}
               <button
                 onClick={() => router.push('/stepper/review')}
                 className="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors"
               >
-                صفحة مراجعة البيانات
+                {t('dataReviewPage')}
               </button>
-              لضمان دقة التوصيات والمقارنات.
+              {t('ensureAccuracy')}
             </p>
           </div>
         </div>
@@ -370,55 +352,55 @@ export default function ComparisonLandingPage() {
         {/* Quick Stats Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">
-            إحصائيات سريعة
+            {t('quickStats')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
               <div className="text-3xl font-bold text-blue-600 mb-2">{stats?.totalComparisons || 0}</div>
-              <div className="text-gray-600 dark:text-gray-300">عدد المقارنات</div>
-              <div className="text-sm text-gray-500">لك</div>
+              <div className="text-gray-600 dark:text-gray-300">{t('comparisonsCount')}</div>
+              <div className="text-sm text-gray-500">{t('forYou')}</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-green-600 mb-2">{favoritesCount}</div>
-              <div className="text-gray-600 dark:text-gray-300">المفضلة</div>
-              <div className="text-sm text-gray-500">التخصصات المحفوظة</div>
+              <div className="text-gray-600 dark:text-gray-300">{t('favoritesTitle')}</div>
+              <div className="text-sm text-gray-500">{t('savedMajors')}</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-orange-600 mb-2">
-                {scores.scoreLevel?.text || 'غير محدد'}
+                {scores.scoreLevel?.text || t('undetermined')}
               </div>
-              <div className="text-gray-600 dark:text-gray-300">مستوى النقاط</div>
-              <div className="text-sm text-gray-500">{scores.fs ? `${scores.fs.toFixed(1)} نقطة` : ''}</div>
+              <div className="text-gray-600 dark:text-gray-300">{t('scoreLevel')}</div>
+              <div className="text-sm text-gray-500">{scores.fs ? `${scores.fs.toFixed(1)} ${t('pointsUnit')}` : ''}</div>
             </div>
           </div>
         </div>
 
         {/* Getting Started Guide */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
-          <h2 className="text-3xl font-bold mb-4">مرحباً بك في منصة التوجيه الجامعي</h2>
+          <h2 className="text-3xl font-bold mb-4">{t('welcomeToPlatform')}</h2>
           <p className="text-blue-100 mb-6 text-lg">
-            ابدأ رحلتك الأكاديمية بخطوات بسيطة وواضحة
+            {t('startYourJourney')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl mb-2">1️⃣</div>
-              <h4 className="font-semibold mb-1">أدخل معلوماتك</h4>
-              <p className="text-sm text-blue-100">املأ بياناتك الأساسية</p>
+              <h4 className="font-semibold mb-1">{t('step1Title')}</h4>
+              <p className="text-sm text-blue-100">{t('step1Desc')}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl mb-2">2️⃣</div>
-              <h4 className="font-semibold mb-1">احصل على التوصيات</h4>
-              <p className="text-sm text-blue-100">شاهد التخصصات المناسبة لك</p>
+              <h4 className="font-semibold mb-1">{t('step2Title')}</h4>
+              <p className="text-sm text-blue-100">{t('step2Desc')}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl mb-2">3️⃣</div>
-              <h4 className="font-semibold mb-1">قارن الخيارات</h4>
-              <p className="text-sm text-blue-100">قارن بين التخصصات المختلفة</p>
+              <h4 className="font-semibold mb-1">{t('step3Title')}</h4>
+              <p className="text-sm text-blue-100">{t('step3Desc')}</p>
             </div>
             <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl mb-2">4️⃣</div>
-              <h4 className="font-semibold mb-1">اتخذ قرارك</h4>
-              <p className="text-sm text-blue-100">اختر المسار الأنسب لمستقبلك</p>
+              <h4 className="font-semibold mb-1">{t('step4Title')}</h4>
+              <p className="text-sm text-blue-100">{t('step4Desc')}</p>
             </div>
           </div>
         </div>

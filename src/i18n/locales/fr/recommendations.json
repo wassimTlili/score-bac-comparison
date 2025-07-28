@@ -1,0 +1,80 @@
+{
+  "title": "Vos recommandations personnalisées",
+  "welcomeTitle": "Bienvenue sur la page des recommandations",
+  "welcomeDescription": "Pour obtenir des recommandations universitaires personnalisées basées sur vos notes et votre moyenne",
+  "needProfile": "Vous devez d'abord compléter la saisie des notes dans votre profil",
+  "loading": {
+    "title": "Chargement des recommandations",
+    "description": "Nous analysons vos notes et préparons les meilleures recommandations universitaires pour vous",
+    "steps": {
+      "analyzing": "Analyse des notes et des données",
+      "calculating": "Calcul des moyennes et des points",
+      "preparing": "Préparation des recommandations personnalisées"
+    }
+  },
+  "filters": {
+    "filter": "Filtrer",
+    "search": "Rechercher dans les spécialisations...",
+    "allResults": "Tous les résultats",
+    "accessible": "Accessible (votre moyenne suffit)",
+    "stretch": "Possible (proche de votre moyenne)",
+    "safety": "Sûr (inférieur à votre moyenne)",
+    "allLocations": "Toutes les régions",
+    "allUniversities": "Toutes les universités", 
+    "allSpecializations": "Toutes les spécialisations",
+    "clearFilters": "Effacer les filtres"
+  },
+  "stats": {
+    "average": "Moyenne",
+    "score": "Score",
+    "accessible": "Accessible pour vous",
+    "possible": "Possible",
+    "challenge": "Défi"
+  },
+  "details": {
+    "location": "Région:",
+    "code": "Code:",
+    "admissionChance": "Chances d'admission:",
+    "scoreDifference": "Différence avec votre moyenne:",
+    "matchPercentage": "Pourcentage de correspondance"
+  },
+  "categories": {
+    "accessible": "Accessible pour vous",
+    "stretch": "Possible",
+    "reach": "Défi",
+    "undefined": "Non défini"
+  },
+  "admissionChances": {
+    "veryHigh": "Très élevées",
+    "high": "Élevées",
+    "medium": "Moyennes",
+    "low": "Faibles",
+    "veryDifficult": "Très difficiles"
+  },
+  "noResults": {
+    "title": "Aucun résultat",
+    "description": "Essayez de modifier les filtres ou les critères de recherche",
+    "resetFilters": "Réinitialiser les filtres"
+  },
+  "actions": {
+    "back": "Retour",
+    "createProfile": "Créer un nouveau profil",
+    "reloadData": "Recharger les données",
+    "addToFavorites": "Ajouter aux favoris",
+    "loginRequired": "Vous devez vous connecter pour ajouter aux favoris"
+  },
+  "benefits": {
+    "accurateAnalysis": {
+      "title": "Analyse précise",
+      "description": "Analyse complète de vos notes et de votre moyenne pour offrir les meilleures options"
+    },
+    "customRecommendations": {
+      "title": "Recommandations personnalisées",
+      "description": "Suggestions universitaires adaptées à vos capacités et objectifs académiques"
+    },
+    "favoritesManagement": {
+      "title": "Gestion des favoris",
+      "description": "Sauvegardez et suivez les spécialisations qui vous intéressent"
+    }
+  }
+}

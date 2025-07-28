@@ -1,0 +1,29 @@
+{
+  "title": "دليل البرامج الجامعية",
+  "loading": "جاري تحميل دليل البرامج",
+  "loadingDescription": "جاري تحميل بيانات البرامج الجامعية...",
+  "search": {
+    "placeholder": "البحث في البرامج والجامعات...",
+    "noResults": "لا توجد نتائج",
+    "noPrograms": "لا توجد برامج",
+    "tryChangeFilters": "جرب تغيير المرشحات أو معايير البحث",
+    "discoverPrograms": "اكتشف {filtered} برنامج جامعي من {total} برنامج متاح",
+    "noProgramsFound": "لم يتم العثور على برامج جامعية"
+  },
+  "filters": {
+    "filterLabel": "فلترة",
+    "favoritesLabel": "المفضلة",
+    "allUniversities": "جميع الجامعات",
+    "allInstitutions": "جميع المؤسسات",
+    "allSpecializations": "جميع التخصصات",
+    "allFieldsOfStudy": "جميع مجالات الدراسة",
+    "allBacTypes": "جميع شعب الباكالوريا",
+    "allLocations": "جميع المناطق",
+    "allPrograms": "جميع البرامج",
+    "sevenPercentOnly": "برامج الـ 7% فقط",
+    "regularOnly": "برامج عادية فقط"
+  },
+  "favorites": {
+    "loginRequired": "يجب تسجيل الدخول لإضافة المفضلة"
+  }
+}

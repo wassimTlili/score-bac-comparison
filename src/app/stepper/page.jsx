@@ -7,6 +7,7 @@ import { CalendarIcon, CalendarDays, MapPin, GraduationCap, Languages } from 'lu
 import { Button } from '@/components/ui/button';
 import { getAllGovernorates } from '../../lib/orientations';
 import { trackData } from '@/utils/calculations';
+import { useTranslation } from '../i18n/client';
 import { useAuthRedirect, RedirectLoadingScreen } from '@/hooks/useAuthRedirect';
 import dynamic from 'next/dynamic';
 
@@ -23,6 +24,7 @@ const FloatingNexie = dynamic(() => import('@/components/FloatingNexie'), {
 });
 
 export default function StepperPage() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const { isRedirecting, isReady, authState } = useAuthRedirect({
     requireAuth: false, // Allow unauthenticated users to see this page
@@ -69,73 +71,73 @@ export default function StepperPage() {
   const governorates = getAllGovernorates();
 
   const filieres = [
-    { id: 'math', name: 'رياضيات', icon: '📐', color: 'cyan' },
-    { id: 'science', name: 'علوم تجريبية', icon: '🔬', color: 'blue' },
-    { id: 'info', name: 'علوم إعلامية', icon: '💻', color: 'purple' },
-    { id: 'tech', name: 'تقنية', icon: '⚙️', color: 'green' },
-    { id: 'eco', name: 'إقتصاد وتصرف', icon: '📈', color: 'orange' },
-    { id: 'lettres', name: 'آداب', icon: '📚', color: 'pink' },
-    { id: 'sport', name: 'رياضة', icon: '🏃', color: 'red' }
+    { id: 'math', name: t('stepper.branches.math', 'رياضيات'), icon: '📐', color: 'cyan' },
+    { id: 'science', name: t('stepper.branches.science', 'علوم تجريبية'), icon: '🔬', color: 'blue' },
+    { id: 'info', name: t('stepper.branches.info', 'علوم إعلامية'), icon: '💻', color: 'purple' },
+    { id: 'tech', name: t('stepper.branches.tech', 'تقنية'), icon: '⚙️', color: 'green' },
+    { id: 'eco', name: t('stepper.branches.eco', 'إقتصاد وتصرف'), icon: '📈', color: 'orange' },
+    { id: 'lettres', name: t('stepper.branches.lettres', 'آداب'), icon: '📚', color: 'pink' },
+    { id: 'sport', name: t('stepper.branches.sport', 'رياضة'), icon: '🏃', color: 'red' }
   ];
 
   const optionalSubjects = [
-    { id: 'italian', name: 'الإيطالية', icon: '🇮🇹', flag: '🇮🇹' },
-    { id: 'german', name: 'الألمانية', icon: '🇩🇪', flag: '🇩🇪' },
-    { id: 'spanish', name: 'الإسبانية', icon: '🇪🇸', flag: '🇪🇸' },
-    { id: 'english', name: 'الإنجليزية', icon: '🇬🇧', flag: '🇬🇧' },
-    { id: 'russian', name: 'الروسية', icon: '🇷🇺', flag: '🇷🇺' },
-    { id: 'chinese', name: 'الصينية', icon: '🇨🇳', flag: '🇨🇳' }
+    { id: 'italian', name: t('stepper.optionalSubjects.italian', 'الإيطالية'), icon: '🇮🇹', flag: '🇮🇹' },
+    { id: 'german', name: t('stepper.optionalSubjects.german', 'الألمانية'), icon: '🇩🇪', flag: '🇩🇪' },
+    { id: 'spanish', name: t('stepper.optionalSubjects.spanish', 'الإسبانية'), icon: '🇪🇸', flag: '🇪🇸' },
+    { id: 'english', name: t('stepper.optionalSubjects.english', 'الإنجليزية'), icon: '🇬🇧', flag: '🇬🇧' },
+    { id: 'russian', name: t('stepper.optionalSubjects.russian', 'الروسية'), icon: '🇷🇺', flag: '🇷🇺' },
+    { id: 'chinese', name: t('stepper.optionalSubjects.chinese', 'الصينية'), icon: '🇨🇳', flag: '🇨🇳' }
   ];
 
   const steps = [
     { 
       id: 1, 
-      title: 'اختر الشعبة', 
+      title: t('stepper.chooseBranch', 'اختر الشعبة'), 
       icon: GraduationCap, 
-      description: 'اختر شعبة البكالوريا الخاصة بك',
-      message: 'الشعبة مهمة جداً لتحديد التوجهات المناسبة لك! 🎯'
+      description: t('stepper.chooseBranchDesc', 'اختر شعبة البكالوريا الخاصة بك'),
+      message: t('stepper.branchImportantMessage', 'الشعبة مهمة جداً لتحديد التوجهات المناسبة لك! 🎯')
     },
     { 
       id: 2, 
-      title: 'النقاط', 
+      title: t('stepper.enterGrades', 'النقاط'), 
       icon: '📊', 
-      description: 'أدخل نقاطك في المواد المختلفة',
-      message: 'النقاط الدقيقة تساعد في حساب معدلك النهائي! 🎯'
+      description: t('stepper.enterGradesDesc', 'أدخل نقاطك في المواد المختلفة'),
+      message: t('stepper.accurateGradesMessage', 'النقاط الدقيقة تساعد في حساب معدلك النهائي! 🎯')
     },
     { 
       id: 3, 
-      title: 'تاريخ الميلاد', 
+      title: t('stepper.birthday', 'تاريخ الميلاد'), 
       icon: CalendarDays, 
-      description: 'أدخل تاريخ ميلادك',
-      message: 'العمر مهم في بعض التخصصات مثل الطيران والأمن! ⏰'
+      description: t('stepper.personalInfoDesc', 'أدخل تاريخ ميلادك'),
+      message: t('stepper.birthdayMessage', 'العمر مهم في بعض التخصصات مثل الطيران والأمن! ⏰')
     },
     { 
       id: 4, 
-      title: 'الجنس', 
+      title: t('stepper.gender', 'الجنس'), 
       icon: '👤', 
-      description: 'اختر جنسك',
-      message: 'الجنس مهم في بعض التخصصات مثل الأمن والعسكرية! 🔒'
+      description: t('stepper.genderDesc', 'اختر جنسك'),
+      message: t('stepper.genderMessage', 'الجنس مهم في بعض التخصصات مثل الأمن والعسكرية! 🔒')
     },
     { 
       id: 5, 
-      title: 'الولاية', 
+      title: t('stepper.governorate', 'الولاية'), 
       icon: MapPin, 
-      description: 'اختر ولايتك',
-      message: 'الولاية تؤثر على خياراتك الجامعية المتاحة! 🏛️'
+      description: t('stepper.governorateDesc', 'اختر ولايتك'),
+      message: t('stepper.governorateMessage', 'الولاية تؤثر على خياراتك الجامعية المتاحة! 🏛️')
     },
     { 
       id: 6, 
-      title: 'نوع الدورة', 
+      title: t('stepper.session', 'نوع الدورة'), 
       icon: '🎓', 
-      description: 'اختر نوع الدورة',
-      message: 'الدورة الرئيسية لها أولوية في القبول! 📝'
+      description: t('stepper.sessionDesc', 'اختر نوع الدورة'),
+      message: t('stepper.sessionMessage', 'الدورة الرئيسية لها أولوية في القبول! 📝')
     },
     { 
       id: 7, 
-      title: 'المادة الاختيارية', 
+      title: t('stepper.selectOptionalSubject', 'المادة الاختيارية'), 
       icon: Languages, 
-      description: 'اختر المادة الاختيارية',
-      message: 'المادة الاختيارية تضيف نقاط إضافية لمعدلك! ⭐'
+      description: t('stepper.optionalSubjectDesc', 'اختر المادة الاختيارية'),
+      message: t('stepper.optionalSubjectMessage', 'المادة الاختيارية تضيف نقاط إضافية لمعدلك! ⭐')
     }
   ];
 
@@ -169,8 +171,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">🎓</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">اختر شعبة البكالوريا</h2>
-              <p className="text-gray-300">اختر الشعبة التي تدرس بها</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.chooseBranch', 'اختر شعبة البكالوريا')}</h2>
+              <p className="text-gray-300">{t('stepper.chooseBranchDesc', 'اختر الشعبة التي تدرس بها')}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -201,8 +203,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">📊</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">أدخل نقاطك</h2>
-              <p className="text-gray-300">أدخل نقاطك في المواد المختلفة</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.enterGrades', 'أدخل نقاطك')}</h2>
+              <p className="text-gray-300">{t('stepper.enterGradesDesc', 'أدخل نقاطك في المواد المختلفة')}</p>
             </div>
             
             <div className="max-w-4xl mx-auto">
@@ -210,27 +212,27 @@ export default function StepperPage() {
                 (() => {
                   const currentTrackSubjects = trackData[formData.filiere]?.subjects || {};
                   
-                  // Map calculation subjects to form fields and Arabic names
+                  // Map calculation subjects to form fields and translated names
                   const subjectMapping = {
-                    math: { field: 'mathematics', name: 'الرياضيات', icon: '📐' },
-                    physics: { field: 'physics', name: 'الفيزياء', icon: '⚛️' },
-                    svt: { field: 'biology', name: 'علوم الطبيعة والحياة', icon: '🔬' },
-                    french: { field: 'french', name: 'الفرنسية', icon: '🇫🇷' },
-                    arabic: { field: 'arabic', name: 'العربية', icon: '🇹🇳' },
-                    english: { field: 'english', name: 'الإنجليزية', icon: '🇬🇧' },
-                    philosophy: { field: 'philosophy', name: 'الفلسفة', icon: '🤔' },
-                    hg: { field: 'history', name: 'التاريخ والجغرافيا', icon: '📜' },
-                    algo: { field: 'algorithmics', name: 'الخوارزميات', icon: '💻' },
-                    technique: { field: 'technique', name: 'التقنية', icon: '⚙️' },
-                    eco: { field: 'economics', name: 'الإقتصاد', icon: '📈' },
-                    gestion: { field: 'management', name: 'التصرف', icon: '📊' },
-                    sportTheory: { field: 'sportTheory', name: 'الرياضة النظرية', icon: '📚' },
-                    sportPractical: { field: 'sportPractical', name: 'الرياضة التطبيقية', icon: '🏃' },
-                    tic: { field: 'ict', name: 'تكنولوجيا المعلومات', icon: '💻' },
-                    bdd: { field: 'database', name: 'قواعد البيانات', icon: '🗄️' },
-                    ep: { field: 'physicalEducation', name: 'التربية البدنية', icon: '🏃' },
-                    chemistry: { field: 'chemistry', name: 'الكيمياء', icon: '🧪' },
-                    sport: { field: 'sport', name: 'الرياضة', icon: '🏃' }
+                    math: { field: 'mathematics', name: t('stepper.subjects.mathematics', 'الرياضيات'), icon: '📐' },
+                    physics: { field: 'physics', name: t('stepper.subjects.physics', 'الفيزياء'), icon: '⚛️' },
+                    svt: { field: 'biology', name: t('stepper.subjects.biology', 'علوم الطبيعة والحياة'), icon: '🔬' },
+                    french: { field: 'french', name: t('stepper.subjects.french', 'الفرنسية'), icon: '🇫🇷' },
+                    arabic: { field: 'arabic', name: t('stepper.subjects.arabic', 'العربية'), icon: '🇹🇳' },
+                    english: { field: 'english', name: t('stepper.subjects.english', 'الإنجليزية'), icon: '🇬🇧' },
+                    philosophy: { field: 'philosophy', name: t('stepper.subjects.philosophy', 'الفلسفة'), icon: '🤔' },
+                    hg: { field: 'history', name: t('stepper.subjects.history', 'التاريخ والجغرافيا'), icon: '📜' },
+                    algo: { field: 'algorithmics', name: t('stepper.subjects.algorithmics', 'الخوارزميات'), icon: '💻' },
+                    technique: { field: 'technique', name: t('stepper.subjects.technique', 'التقنية'), icon: '⚙️' },
+                    eco: { field: 'economics', name: t('stepper.subjects.economics', 'الإقتصاد'), icon: '📈' },
+                    gestion: { field: 'management', name: t('stepper.subjects.management', 'التصرف'), icon: '📊' },
+                    sportTheory: { field: 'sportTheory', name: t('stepper.subjects.sportTheory', 'الرياضة النظرية'), icon: '📚' },
+                    sportPractical: { field: 'sportPractical', name: t('stepper.subjects.sportPractical', 'الرياضة التطبيقية'), icon: '🏃' },
+                    tic: { field: 'ict', name: t('stepper.subjects.ict', 'تكنولوجيا المعلومات'), icon: '💻' },
+                    bdd: { field: 'database', name: t('stepper.subjects.database', 'قواعد البيانات'), icon: '🗄️' },
+                    ep: { field: 'physicalEducation', name: t('stepper.subjects.physicalEducation', 'التربية البدنية'), icon: '🏃' },
+                    chemistry: { field: 'chemistry', name: t('stepper.subjects.chemistry', 'الكيمياء'), icon: '🧪' },
+                    sport: { field: 'sport', name: t('stepper.subjects.sport', 'الرياضة'), icon: '🏃' }
                   };
 
                   const subjectsToShow = Object.entries(currentTrackSubjects).map(([calcSubject, subjectData]) => ({
@@ -275,7 +277,7 @@ export default function StepperPage() {
                 })()
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-400">الرجاء اختيار الشعبة أولاً</p>
+                  <p className="text-gray-400">{t('stepper.pleaseSelectBranchFirst', 'الرجاء اختيار الشعبة أولاً')}</p>
                 </div>
               )}
             </div>
@@ -287,8 +289,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">📅</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">تاريخ الميلاد</h2>
-              <p className="text-gray-300">أدخل تاريخ ميلادك</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.birthdateTitle', 'تاريخ الميلاد')}</h2>
+              <p className="text-gray-300">{t('stepper.birthdateDescription', 'أدخل تاريخ ميلادك')}</p>
             </div>
             
             <div className="flex justify-center">
@@ -296,7 +298,7 @@ export default function StepperPage() {
                 <div className="grid grid-cols-3 gap-3">
                   {/* Day */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">اليوم</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">{t('stepper.day', 'اليوم')}</label>
                     <select
                       value={formData.birthday ? formData.birthday.getDate() : ''}
                       onChange={(e) => {
@@ -315,7 +317,7 @@ export default function StepperPage() {
                       }}
                       className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                     >
-                      <option value="">اليوم</option>
+                      <option value="">{t('stepper.selectDay', 'اليوم')}</option>
                       {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                         <option key={day} value={day}>{day}</option>
                       ))}
@@ -324,7 +326,7 @@ export default function StepperPage() {
 
                   {/* Month */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">الشهر</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">{t('stepper.month', 'الشهر')}</label>
                     <select
                       value={formData.birthday ? formData.birthday.getMonth() + 1 : ''}
                       onChange={(e) => {
@@ -343,10 +345,12 @@ export default function StepperPage() {
                       }}
                       className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                     >
-                      <option value="">الشهر</option>
+                      <option value="">{t('stepper.selectMonth', 'الشهر')}</option>
                       {[
-                        'جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان',
-                        'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+                        t('stepper.months.january', 'جانفي'), t('stepper.months.february', 'فيفري'), t('stepper.months.march', 'مارس'), 
+                        t('stepper.months.april', 'أفريل'), t('stepper.months.may', 'ماي'), t('stepper.months.june', 'جوان'),
+                        t('stepper.months.july', 'جويلية'), t('stepper.months.august', 'أوت'), t('stepper.months.september', 'سبتمبر'), 
+                        t('stepper.months.october', 'أكتوبر'), t('stepper.months.november', 'نوفمبر'), t('stepper.months.december', 'ديسمبر')
                       ].map((month, index) => (
                         <option key={index + 1} value={index + 1}>{month}</option>
                       ))}
@@ -355,7 +359,7 @@ export default function StepperPage() {
 
                   {/* Year */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">السنة</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">{t('stepper.year', 'السنة')}</label>
                     <select
                       value={formData.birthday ? formData.birthday.getFullYear() : ''}
                       onChange={(e) => {
@@ -374,7 +378,7 @@ export default function StepperPage() {
                       }}
                       className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
                     >
-                      <option value="">السنة</option>
+                      <option value="">{t('stepper.selectYear', 'السنة')}</option>
                       {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - 15 - i).map(year => (
                         <option key={year} value={year}>{year}</option>
                       ))}
@@ -386,7 +390,7 @@ export default function StepperPage() {
                 {formData.birthday && (
                   <div className="text-center p-3 bg-cyan-500/20 border border-cyan-400/30 rounded-xl">
                     <div className="text-cyan-300 font-medium">
-                      التاريخ المختار: {formData.birthday.toLocaleDateString('ar-DZ', {
+                      {t('stepper.selectedDate', 'التاريخ المختار:')} {formData.birthday.toLocaleDateString('ar-DZ', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -404,8 +408,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">👤</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">الجنس</h2>
-              <p className="text-gray-300">اختر جنسك</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.gender', 'الجنس')}</h2>
+              <p className="text-gray-300">{t('stepper.genderDesc', 'اختر جنسك')}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -419,7 +423,7 @@ export default function StepperPage() {
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">👨</div>
-                  <h3 className="text-xl font-semibold text-white">ذكر</h3>
+                  <h3 className="text-xl font-semibold text-white">{t('stepper.male', 'ذكر')}</h3>
                 </div>
               </div>
               
@@ -433,7 +437,7 @@ export default function StepperPage() {
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">👩</div>
-                  <h3 className="text-xl font-semibold text-white">أنثى</h3>
+                  <h3 className="text-xl font-semibold text-white">{t('stepper.female', 'أنثى')}</h3>
                 </div>
               </div>
             </div>
@@ -445,8 +449,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">🏛️</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">الولاية</h2>
-              <p className="text-gray-300">اختر ولايتك</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.governorate', 'الولاية')}</h2>
+              <p className="text-gray-300">{t('stepper.governorateDesc', 'اختر ولايتك')}</p>
             </div>
             
             <div className="max-w-md mx-auto">
@@ -455,7 +459,7 @@ export default function StepperPage() {
                 onChange={(e) => setFormData(prev => ({ ...prev, governorate: e.target.value }))}
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
               >
-                <option value="">اختر ولايتك</option>
+                <option value="">{t('stepper.governorateDesc', 'اختر ولايتك')}</option>
                 {governorates.map((gov, index) => (
                   <option key={index} value={gov} className="bg-gray-700 text-white">
                     {gov}
@@ -471,8 +475,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">📝</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">نوع الدورة</h2>
-              <p className="text-gray-300">اختر نوع الدورة التي تريد التسجيل بها</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.session', 'نوع الدورة')}</h2>
+              <p className="text-gray-300">{t('stepper.sessionDesc', 'اختر نوع الدورة التي تريد التسجيل بها')}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -486,8 +490,8 @@ export default function StepperPage() {
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">🎯</div>
-                  <h3 className="text-xl font-semibold text-white">الدورة الرئيسية</h3>
-                  <p className="text-gray-300 mt-2">أولوية في القبول</p>
+                  <h3 className="text-xl font-semibold text-white">{t('stepper.sessionMain', 'الدورة الرئيسية')}</h3>
+                  <p className="text-gray-300 mt-2">{t('stepper.admissionPriority', 'أولوية في القبول')}</p>
                 </div>
               </div>
               
@@ -501,8 +505,8 @@ export default function StepperPage() {
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">🔄</div>
-                  <h3 className="text-xl font-semibold text-white">دورة المراقبة</h3>
-                  <p className="text-gray-300 mt-2">فرصة ثانية</p>
+                  <h3 className="text-xl font-semibold text-white">{t('stepper.sessionControl', 'دورة المراقبة')}</h3>
+                  <p className="text-gray-300 mt-2">{t('stepper.secondChance', 'فرصة ثانية')}</p>
                 </div>
               </div>
             </div>
@@ -514,8 +518,8 @@ export default function StepperPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">🌍</div>
-              <h2 className="text-3xl font-bold text-cyan-300 mb-2">المادة الاختيارية</h2>
-              <p className="text-gray-300">اختر المادة الاختيارية التي تدرسها</p>
+              <h2 className="text-3xl font-bold text-cyan-300 mb-2">{t('stepper.selectOptionalSubject', 'المادة الاختيارية')}</h2>
+              <p className="text-gray-300">{t('stepper.optionalSubjectDesc', 'اختر المادة الاختيارية التي تدرسها')}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -548,7 +552,7 @@ export default function StepperPage() {
 
   // Show loading while redirecting or not ready
   if (isRedirecting || !isReady) {
-    return <RedirectLoadingScreen message="جاري التحقق من ملفك الشخصي..." />;
+    return <RedirectLoadingScreen message={t('checkingProfile', 'جاري التحقق من ملفك الشخصي...')} />;
   }
 
   // Show sign-up prompt for unauthenticated users
@@ -558,9 +562,9 @@ export default function StepperPage() {
         <div className="text-center max-w-md mx-auto p-8">
           <div className="mb-6">
             <GraduationCap className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">يجب تسجيل الدخول أولاً</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('stepper.needSignUp', 'يجب تسجيل الدخول أولاً')}</h1>
             <p className="text-gray-400">
-              لاستخدام نظام التوجيه الجامعي وحفظ بياناتك، يجب عليك تسجيل الدخول أولاً.
+              {t('stepper.signUpToStart', 'لاستخدام نظام التوجيه الجامعي وحفظ بياناتك، يجب عليك تسجيل الدخول أولاً.')}
             </p>
           </div>
           <div className="space-y-3">
@@ -568,21 +572,21 @@ export default function StepperPage() {
               onClick={() => router.push('/sign-in')}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
             >
-              تسجيل الدخول
+              {t('signIn', 'تسجيل الدخول')}
             </Button>
             <Button 
               onClick={() => router.push('/sign-up')}
               variant="outline"
               className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
             >
-              إنشاء حساب جديد
+              {t('register', 'إنشاء حساب جديد')}
             </Button>
             <Button 
               onClick={() => router.push('/')}
               variant="ghost"
               className="w-full text-gray-400 hover:text-gray-300"
             >
-              العودة للصفحة الرئيسية
+              {t('back', 'العودة للصفحة الرئيسية')}
             </Button>
           </div>
         </div>
@@ -592,7 +596,7 @@ export default function StepperPage() {
 
   // Show redirect loading screen
   if (isRedirecting || !isReady) {
-    return <RedirectLoadingScreen message="جاري التحقق من ملفك الشخصي..." />;
+    return <RedirectLoadingScreen message={t('checkingProfile', 'جاري التحقق من ملفك الشخصي...')} />;
   }
 
   return (
@@ -601,7 +605,7 @@ export default function StepperPage() {
       <div className="bg-gray-800/50 p-4 border-b border-gray-700">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-400">الخطوة {currentStep} من {steps.length}</span>
+            <span className="text-sm text-gray-400">{t('stepper.stepCounter', 'الخطوة {currentStep} من {totalSteps}').replace('{currentStep}', currentStep).replace('{totalSteps}', steps.length)}</span>
             <span className="text-sm text-gray-400">{Math.round((currentStep / steps.length) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2">
@@ -638,7 +642,7 @@ export default function StepperPage() {
               className="flex items-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
             >
               <span>→</span>
-              <span>السابق</span>
+              <span>{t('stepper.previousButton', 'السابق')}</span>
             </button>
 
             <div className="flex gap-2">
@@ -660,7 +664,7 @@ export default function StepperPage() {
               onClick={handleNext}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg transition-all duration-200"
             >
-              <span>{currentStep === steps.length ? 'إنهاء' : 'التالي'}</span>
+              <span>{currentStep === steps.length ? t('finish', 'إنهاء') : t('next', 'التالي')}</span>
               <span>←</span>
             </button>
           </div>

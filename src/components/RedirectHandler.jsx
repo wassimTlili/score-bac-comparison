@@ -41,33 +41,23 @@ export default function RedirectHandler({
           return;
         }
 
-        if (isSignedIn && user) {
-          console.log('🔍 User is signed in, checking profile...');
-          
-          // Check if user has completed profile
+        if (isSignedIn && user) {// Check if user has completed profile
           const result = await getUserProfile();
           
-          if (result.success && result.profile) {
-            console.log('✅ User has profile, redirecting to:', redirectTo);
-            setUserProfile(result.profile);
+          if (result.success && result.profile) {setUserProfile(result.profile);
             
             // Only redirect if we're not already on the target page
             if (currentPath !== redirectTo) {
               router.push(redirectTo);
               return;
             }
-          } else {
-            console.log('⚠️ User has no profile, redirecting to stepper');
-            
-            // User is logged in but has no profile - redirect to stepper
+          } else {// User is logged in but has no profile - redirect to stepper
             if (currentPath !== stepperRedirectTo) {
               router.push(stepperRedirectTo);
               return;
             }
           }
-        } else {
-          console.log('👤 User not signed in, staying on current page');
-        }
+        } else {}
       } catch (error) {
         console.error('❌ Error in redirect handler:', error);
       } finally {

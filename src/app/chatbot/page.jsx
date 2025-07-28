@@ -88,13 +88,7 @@ export default function ChatbotPage() {
     initialMessages: getInitialMessages(),
     onFinish: async (message) => {
       // Clean and update persistent conversation state
-      const updatedMessages = [...messages, message];
-      
-      console.log('📝 Raw message in onFinish:', message);
-      console.log('📝 Message content type:', typeof message.content);
-      console.log('📝 Message content:', message.content);
-      
-      // Clean messages to prevent [object Object] issues
+      const updatedMessages = [...messages, message];// Clean messages to prevent [object Object] issues
       const cleanedMessages = updatedMessages.map(msg => {
         let content;
         
@@ -116,36 +110,18 @@ export default function ChatbotPage() {
           content: content,
           createdAt: msg.createdAt || new Date().toISOString()
         };
-      });
-      
-      console.log('📝 Cleaned messages:', cleanedMessages);
-      
-      updatePersistentConversation(currentConversationId || persistentConversationId, cleanedMessages);
+      });updatePersistentConversation(currentConversationId || persistentConversationId, cleanedMessages);
       
       // Save conversation to database if this is the first user message and we don't have a conversation yet
       if (!currentConversationId && !persistentConversationId) {
-        try {
-          console.log('🔄 onFinish called, creating conversation...');
-          console.log('Stored user message:', currentUserMessageRef.current);
-          
-          // Use the stored message content
-          const messageText = currentUserMessageRef.current || 'New conversation';
-          
-          console.log('Using message text:', messageText);
-          
-          const result = await createConversationWithMessage({
+        try {// Use the stored message content
+          const messageText = currentUserMessageRef.current || 'New conversation';const result = await createConversationWithMessage({
             firstMessage: messageText,
             title: messageText.substring(0, 50) + '...',
             type: 'general',
             context: { fullscreen: true },
             isFullscreen: true
-          });
-          
-          console.log('Create conversation result:', result);
-          
-          if (result.success && result.conversation) {
-            console.log('✅ Conversation created with ID:', result.conversation.id);
-            setCurrentConversationId(result.conversation.id);
+          });if (result.success && result.conversation) {setCurrentConversationId(result.conversation.id);
             // Update persistent state with the new conversation ID and current messages
             updatePersistentConversation(result.conversation.id, cleanedMessages);
           } else {
@@ -165,10 +141,7 @@ export default function ChatbotPage() {
   const handleSubmit = (e) => {
     e?.preventDefault();
     // Store the current input value before submission
-    currentUserMessageRef.current = input;
-    console.log('📝 Storing user message:', input);
-    
-    // Don't manually add user message here - let useChat handle it
+    currentUserMessageRef.current = input;// Don't manually add user message here - let useChat handle it
     // This prevents duplicate messages
     
     // Call the original handle submit
@@ -288,9 +261,7 @@ export default function ChatbotPage() {
 
   // Update URL when conversation is created
   useEffect(() => {
-    if (currentConversationId && !conversationParam) {
-      console.log('🔄 Updating URL with conversation ID:', currentConversationId);
-      const newUrl = `/chatbot?conversation=${currentConversationId}`;
+    if (currentConversationId && !conversationParam) {const newUrl = `/chatbot?conversation=${currentConversationId}`;
       window.history.replaceState({}, '', newUrl);
     }
   }, [currentConversationId, conversationParam]);

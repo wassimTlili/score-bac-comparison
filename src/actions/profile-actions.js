@@ -37,10 +37,7 @@ export async function createOrUpdateUserProfile(profileData) {
             imageUrl: clerkUser.imageUrl,
             lastLogin: new Date()
           }
-        });
-        
-        console.log('✅ Created new user:', user.id);
-      } catch (clerkError) {
+        });} catch (clerkError) {
         console.error('Error fetching user from Clerk:', clerkError);
         // Create basic user record without Clerk data
         user = await prisma.user.create({
@@ -154,10 +151,7 @@ export async function getUserProfile() {
               take: 1
             }
           }
-        });
-        
-        console.log('✅ Created new user during profile fetch:', user.id);
-      } catch (clerkError) {
+        });} catch (clerkError) {
         console.error('Error fetching user from Clerk:', clerkError);
         // Create basic user record without Clerk data
         user = await prisma.user.create({

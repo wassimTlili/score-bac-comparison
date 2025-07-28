@@ -23,10 +23,7 @@ async function getOrCreateUser(clerkId) {
           imageUrl: clerkUser.imageUrl,
           lastLogin: new Date()
         }
-      });
-      
-      console.log('✅ Created new user in favorites:', user.id);
-    } catch (clerkError) {
+      });} catch (clerkError) {
       console.error('Error fetching user from Clerk:', clerkError);
       user = await prisma.user.create({
         data: {
@@ -423,11 +420,7 @@ export async function addToFavoritesByCode(orientationCode) {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
       throw new Error('User not authenticated');
-    }
-
-    console.log('🔍 Adding to favorites:', { clerkId, orientationCode });
-
-    // Get or create user in database
+    }// Get or create user in database
     const user = await getOrCreateUser(clerkId);
 
     // Get user's active profile
@@ -436,11 +429,7 @@ export async function addToFavoritesByCode(orientationCode) {
         userId: user.id,
         isActive: true
       }
-    });
-
-    console.log('🔍 User and profile:', { userId: user.id, profileId: profile?.id });
-
-    // Check if already favorited
+    });// Check if already favorited
     const existingFavorite = await prisma.favorite.findFirst({
       where: {
         userId: user.id,
@@ -448,9 +437,7 @@ export async function addToFavoritesByCode(orientationCode) {
       }
     });
 
-    if (existingFavorite) {
-      console.log('⚠️ Already in favorites');
-      return { success: false, error: 'Already in favorites' };
+    if (existingFavorite) {return { success: false, error: 'Already in favorites' };
     }
 
     // Create favorite with orientation code
@@ -461,10 +448,7 @@ export async function addToFavoritesByCode(orientationCode) {
         orientationCode: orientationCode,
         createdAt: new Date()
       }
-    });
-
-    console.log('✅ Added to favorites:', favorite);
-    revalidatePath('/recommendations');
+    });revalidatePath('/recommendations');
     
     return { success: true, favorite };
   } catch (error) {
@@ -481,11 +465,7 @@ export async function removeFromFavoritesByCode(orientationCode) {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
       throw new Error('User not authenticated');
-    }
-
-    console.log('🔍 Removing from favorites:', { clerkId, orientationCode });
-
-    // Get or create user in database
+    }// Get or create user in database
     const user = await getOrCreateUser(clerkId);
 
     // Find and delete favorite
@@ -496,19 +476,14 @@ export async function removeFromFavoritesByCode(orientationCode) {
       }
     });
 
-    if (!favorite) {
-      console.log('⚠️ Not in favorites');
-      return { success: false, error: 'Not in favorites' };
+    if (!favorite) {return { success: false, error: 'Not in favorites' };
     }
 
     await prisma.favorite.delete({
       where: {
         id: favorite.id
       }
-    });
-
-    console.log('✅ Removed from favorites');
-    revalidatePath('/recommendations');
+    });revalidatePath('/recommendations');
     
     return { success: true };
   } catch (error) {
@@ -545,11 +520,7 @@ export async function getUserFavoritesByCode() {
       orderBy: {
         createdAt: 'desc'
       }
-    });
-
-    console.log('🔍 Retrieved favorites:', favorites);
-    
-    return { success: true, favorites };
+    });return { success: true, favorites };
   } catch (error) {
     console.error('❌ Error getting favorites:', error);
     return { success: false, error: error.message };

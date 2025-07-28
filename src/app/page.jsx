@@ -1,25 +1,27 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { useAuthRedirect, RedirectLoadingScreen } from '@/hooks/useAuthRedirect';
-
+import { useTranslation } from './i18n/client';
 export default function Home() {
   const router = useRouter();
   const { isRedirecting, isReady } = useAuthRedirect({
     redirectIfHasProfile: true
   });
+  const { t, locale, loading } = useTranslation('common');
   
-  const [isVisible, setIsVisible] = useState(false);
+  // Debug loggingconst [isVisible, setIsVisible] = useState(false);
   const [textIndex, setTextIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   
-  const welcomeTexts = [
-    "مرحبا طالب! 👋",
-    "اكتشف مستقبلك الأكاديمي! 🎓",
-    "رحلتك الجامعية تبدأ هنا! ✨"
-  ];
+  // Update welcome texts when locale changes
+  const welcomeTexts = useMemo(() => [
+    t('welcomeStudent'),
+    t('discoverFuture'),
+    t('journeyStarts')
+  ], [t, locale]);
 
   // Auto-redirect logic (handled by useAuthRedirect hook now)
 
@@ -34,7 +36,7 @@ export default function Home() {
       }
       return () => clearInterval(interval);
     }
-  }, [isAutoPlay, isReady]);
+  }, [isAutoPlay, isReady, welcomeTexts.length]);
 
   const handleDotClick = (index) => {
     if (isRedirecting) return; // Prevent interaction while redirecting
@@ -46,7 +48,7 @@ export default function Home() {
 
   // Show redirecting screen while checking/redirecting
   if (isRedirecting || !isReady) {
-    return <RedirectLoadingScreen message="مرحباً بعودتك! جاري توجيهك إلى الصفحة المناسبة..." />;
+    return <RedirectLoadingScreen message={t('welcomeBack', "مرحباً بعودتك! جاري توجيهك إلى الصفحة المناسبة...")} />;
   }
 
   return (
@@ -65,7 +67,7 @@ export default function Home() {
                     {welcomeTexts[textIndex]}
                   </h1>
                   <p className="text-xl opacity-90 leading-relaxed mb-8">
-                    هل تريد معرفة التوجهات الجامعية المناسبة لنقاطك؟
+                    {t('wantToKnowDirections')}
                   </p>
                 </div>
                 
@@ -95,7 +97,7 @@ export default function Home() {
                   href="/stepper"
                   className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-10 py-4 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl hover:shadow-cyan-400/25 hover:scale-105"
                 >
-                  <span>ابدأ الآن</span>
+                  <span>{t('startNow')}</span>
                   <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
                     <span className="text-sm">→</span>
                   </div>
@@ -126,18 +128,18 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-cyan-400 transition-all duration-300">
               <div className="text-3xl mb-3">🎯</div>
-              <h3 className="text-lg font-semibold mb-2">دقة عالية</h3>
-              <p className="text-gray-400">حسابات دقيقة لنقاطك</p>
+              <h3 className="text-lg font-semibold mb-2">{t('highAccuracy')}</h3>
+              <p className="text-gray-400">{t('accurateCalculations')}</p>
             </div>
             <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-blue-400 transition-all duration-300">
               <div className="text-3xl mb-3">🚀</div>
-              <h3 className="text-lg font-semibold mb-2">سرعة فائقة</h3>
-              <p className="text-gray-400">نتائج فورية ومباشرة</p>
+              <h3 className="text-lg font-semibold mb-2">{t('superSpeed')}</h3>
+              <p className="text-gray-400">{t('instantResults')}</p>
             </div>
             <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-purple-400 transition-all duration-300">
               <div className="text-3xl mb-3">💡</div>
-              <h3 className="text-lg font-semibold mb-2">إرشاد ذكي</h3>
-              <p className="text-gray-400">توصيات مخصصة لك</p>
+              <h3 className="text-lg font-semibold mb-2">{t('smartGuidance')}</h3>
+              <p className="text-gray-400">{t('personalizedRecommendations')}</p>
             </div>
           </div>
         </div>

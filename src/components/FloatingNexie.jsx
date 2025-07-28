@@ -5,7 +5,6 @@ import { useGLTF, ContactShadows } from '@react-three/drei';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useFloatingNexie } from '@/context/FloatingNexieContext';
-import { debugLog, debugError } from '@/utils/debug';
 import ChatErrorBoundary from './ChatErrorBoundary';
 
 // Dynamic import for ChatBotEnhanced to avoid SSR issues
@@ -175,9 +174,7 @@ function NexieModel({ onLoad }) {
   const isLoaded = useMemo(() => !!scene, [scene]);
   
   useEffect(() => {
-    if (isLoaded && onLoad) {
-      debugLog('NexieModel', '3D Model loaded successfully');
-      onLoad();
+    if (isLoaded && onLoad) {onLoad();
     }
     if (error) {
       debugError('NexieModel', 'Error loading 3D model:', error);
@@ -232,9 +229,7 @@ function NexieModel({ onLoad }) {
     );
   }
 
-  if (!isLoaded) {
-    debugLog('NexieModel', 'Scene not loaded yet');
-    return null;
+  if (!isLoaded) {return null;
   }
 
   return (
@@ -288,26 +283,12 @@ export default function FloatingNexie({
 
   // Request activation when component mounts
   useEffect(() => {
-    const startTime = performance.now();
-    debugLog('FloatingNexie', 'useEffect triggered');
-    debugLog('FloatingNexie', 'pathname', pathname);
-    debugLog('FloatingNexie', 'shouldShowOnCurrentPath', shouldShowOnCurrentPath);
-    
-    if (shouldShowOnCurrentPath) {
-      const canActivate = requestActivation(pathname);
-      debugLog('FloatingNexie', 'canActivate', canActivate);
-      setCanRender(canActivate);
-    } else {
-      debugLog('FloatingNexie', 'Should not show on current path');
-      setCanRender(false);
+    const startTime = performance.now();if (shouldShowOnCurrentPath) {
+      const canActivate = requestActivation(pathname);setCanRender(canActivate);
+    } else {setCanRender(false);
     }
     
-    const endTime = performance.now();
-    debugLog('FloatingNexie', `useEffect execution time: ${endTime - startTime}ms`);
-    
-    return () => {
-      debugLog('FloatingNexie', 'cleanup, releasing activation for', pathname);
-      releaseActivation(pathname);
+    const endTime = performance.now();return () => {releaseActivation(pathname);
     };
   }, [pathname, shouldShowOnCurrentPath, requestActivation, releaseActivation]);
 
@@ -316,22 +297,16 @@ export default function FloatingNexie({
     setIsLoaded(true);
   }, []);
 
-  const handleChatToggle = useCallback(() => {
-    debugLog('FloatingNexie', 'handleChatToggle called');
-    const isComparisonPage = pathname.startsWith('/comparison');
+  const handleChatToggle = useCallback(() => {const isComparisonPage = pathname.startsWith('/comparison');
     
-    if (isComparisonPage) {
-      debugLog('FloatingNexie', 'On comparison page - toggling side chat');
-      setIsChatOpen(prev => {
+    if (isComparisonPage) {setIsChatOpen(prev => {
         const newState = !prev;
         if (newState && onChatOpen) {
           onChatOpen();
         }
         return newState;
       });
-    } else {
-      debugLog('FloatingNexie', 'On other page - opening floating chat');
-      setIsChatOpen(prev => {
+    } else {setIsChatOpen(prev => {
         const newState = !prev;
         if (newState && onChatOpen) {
           onChatOpen();
@@ -349,14 +324,8 @@ export default function FloatingNexie({
   }, [contextualMessage, onMessageClick, handleChatToggle]);
 
   // Don't render if we can't or shouldn't
-  if (!shouldShowOnCurrentPath || !canRender) {
-    debugLog('FloatingNexie', 'Not rendering', { shouldShowOnCurrentPath, canRender, pathname });
-    return null;
-  }
-
-  debugLog('FloatingNexie', 'Rendering component on path:', pathname);
-
-  const isComparisonPage = pathname.startsWith('/comparison');
+  if (!shouldShowOnCurrentPath || !canRender) {return null;
+  }const isComparisonPage = pathname.startsWith('/comparison');
   
   return (
     <>

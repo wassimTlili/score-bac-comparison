@@ -1,0 +1,44 @@
+{
+  "general": "Une erreur s'est produite. Veuillez réessayer.",
+  "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+  "timeout": "Délai d'attente dépassé. Veuillez réessayer.",
+  "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+  "forbidden": "Accès interdit.",
+  "notFound": "La ressource demandée n'a pas été trouvée.",
+  "serverError": "Erreur interne du serveur. Veuillez réessayer plus tard.",
+  "validation": "Erreur de validation. Veuillez vérifier votre saisie.",
+  "fileUpload": "Échec du téléchargement de fichier. Veuillez réessayer.",
+  "fileTooLarge": "Le fichier est trop volumineux. La taille maximale est {maxSize}.",
+  "unsupportedFileType": "Type de fichier non pris en charge. Veuillez utiliser {supportedTypes}.",
+  "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
+  "accountDisabled": "Votre compte a été désactivé.",
+  "emailNotVerified": "Veuillez vérifier votre adresse e-mail.",
+  "weakPassword": "Le mot de passe est trop faible. Veuillez utiliser un mot de passe plus fort.",
+  "invalidCredentials": "E-mail ou mot de passe invalide.",
+  "emailAlreadyExists": "Un compte avec cet e-mail existe déjà.",
+  "usernameAlreadyExists": "Ce nom d'utilisateur est déjà pris.",
+  "tokenExpired": "Le jeton a expiré. Veuillez en demander un nouveau.",
+  "invalidToken": "Jeton invalide. Veuillez en demander un nouveau.",
+  "rateLimitExceeded": "Trop de requêtes. Veuillez attendre avant de réessayer.",
+  "maintenance": "Le système est actuellement en maintenance. Veuillez réessayer plus tard.",
+  
+  "stepper": {
+    "invalidScores": "Erreur: Scores invalides. Veuillez vous assurer que toutes les notes sont saisies correctement.",
+    "missingFields": "Erreur: Veuillez remplir tous les champs obligatoires.",
+    "saveError": "Erreur lors de la sauvegarde des données: {error}",
+    "saveGeneralError": "Une erreur s'est produite lors de la sauvegarde des données"
+  },
+  
+  "orientations": {
+    "maxChoicesExceeded": "Impossible d'ajouter plus de 10 choix",
+    "programAlreadyExists": "Ce programme est déjà dans votre liste de choix",
+    "programNotFound": "Aucun programme trouvé avec ce code",
+    "minimumChoicesRequired": "Vous devez ajouter au moins 6 choix pour effectuer l'analyse",
+    "profileIncomplete": "Vous devez d'abord compléter les données de votre profil pour effectuer l'analyse",
+    "gradesTooLow": "La moyenne est trop faible pour effectuer une analyse précise. Veuillez vérifier que vos données sont correctes."
+  },
+  
+  "favorites": {
+    "loginRequired": "Vous devez être connecté pour ajouter aux favoris"
+  }
+}

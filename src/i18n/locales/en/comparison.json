@@ -1,0 +1,17 @@
+{
+  "title": "Orientation Comparison Tool",
+  "loginRequired": "To use the comparison tool and save your comparisons, you must log in first.",
+  "completeProfile": "Please complete your data first to use the comparison tool",
+  "backToComparison": "Back to Comparison Page",
+  "personalInfo": "Your Personal Information",
+  "searchByCode": "Search by Code",
+  "noFavorites": "📌 No favorite orientations yet. You can add favorites from the recommendations page first.",
+  "chooseFavorites": "Choose from your favorites:",
+  "chooseFavoritesPlaceholder": "Choose from your favorites...",
+  "errors": {
+    "profileNotFound": "Your personal data was not found. Please complete the data form first.",
+    "selectTwoOrientations": "Please select two orientations to compare",
+    "comparisonError": "An error occurred while creating the comparison",
+    "comparisonErrorRetry": "An error occurred while creating the comparison. Please try again."
+  }
+}

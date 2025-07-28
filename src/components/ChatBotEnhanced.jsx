@@ -119,16 +119,8 @@ export default function ChatBotEnhanced({
     ],
     onFinish: async (message) => {
       try {
-        console.log('🔄 onFinish called in ChatBotEnhanced');
-        console.log('Message:', message);
-        console.log('Current conversation ID:', currentConversationId);
-        console.log('Messages length:', messages.length);
-        
         // Update persistent conversation state
         const updatedMessages = [...messages, message];
-        
-        console.log('📝 Raw message in ChatBotEnhanced onFinish:', message);
-        console.log('📝 Message content type:', typeof message.content);
         
         // Clean messages to prevent [object Object] issues
         const cleanedMessages = updatedMessages.map(msg => {
@@ -168,23 +160,19 @@ export default function ChatBotEnhanced({
             });
             
             if (result.success && result.conversation) {
-              console.log('✅ Conversation created with ID:', result.conversation.id);
               setCurrentConversationId(result.conversation.id);
               updatePersistentConversation(result.conversation.id, cleanedMessages);
-            } else {
-              console.error('❌ Failed to create conversation:', result.error);
             }
           } catch (dbError) {
-            console.error('Database error in createConversationWithMessage:', dbError);
+            // Handle database error silently in production
           }
         }
       } catch (error) {
-        console.error('Error in onFinish callback:', error);
-        console.error('Error stack:', error.stack);
+        // Handle errors silently in production
       }
     },
     onError: (error) => {
-      console.error('Chat error:', error);
+      // Handle errors silently in production
     }
   });
 
@@ -211,7 +199,7 @@ export default function ChatBotEnhanced({
         setConversations(result.conversations);
       }
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      // Handle loading conversations error silently
     }
     setIsLoadingHistory(false);
   };
@@ -234,7 +222,7 @@ export default function ChatBotEnhanced({
         setShowHistory(false);
       }
     } catch (error) {
-      console.error('Error loading conversation:', error);
+      // Handle loading conversation error silently
     }
   };
 
@@ -257,23 +245,16 @@ export default function ChatBotEnhanced({
   // Toggle fullscreen mode
   const handleFullscreenToggle = async () => {
     try {
-      console.log('🔄 Fullscreen toggle clicked');
-      console.log('Current conversation ID:', currentConversationId);
-      console.log('Current isFullscreen:', isFullscreen);
-      console.log('Current window location:', window.location.pathname);
-      
       // Update database if we have a conversation
       if (currentConversationId) {
-        console.log('Calling toggleConversationFullscreen...');
         try {
           const result = await toggleConversationFullscreen(currentConversationId, !isFullscreen);
-          console.log('Toggle result:', result);
           
           if (!result.success) {
-            console.error('Failed to toggle fullscreen in database:', result.error);
+            // Handle error silently
           }
         } catch (dbError) {
-          console.error('Database error in toggleConversationFullscreen:', dbError);
+          // Handle database error silently
         }
       }
       
@@ -285,30 +266,27 @@ export default function ChatBotEnhanced({
           // Navigate to fullscreen page if on a different page
           const conversationParam = currentConversationId ? `?conversation=${currentConversationId}` : '';
           const targetUrl = `/chatbot${conversationParam}`;
-          console.log('Navigating to:', targetUrl);
           
           try {
             window.location.href = targetUrl;
           } catch (navError) {
-            console.error('Navigation error:', navError);
+            // Handle navigation error silently
           }
         } else {
           // Already on chatbot page, just update URL if needed
           if (currentConversationId) {
             const newUrl = `/chatbot?conversation=${currentConversationId}`;
-            console.log('Updating URL to:', newUrl);
             
             try {
               window.history.replaceState({}, '', newUrl);
             } catch (urlError) {
-              console.error('URL update error:', urlError);
+              // Handle URL update error silently
             }
           }
         }
       }
     } catch (error) {
-      console.error('Error in handleFullscreenToggle:', error);
-      console.error('Error stack:', error.stack);
+      // Handle fullscreen toggle error silently
     }
   };
 
@@ -323,7 +301,7 @@ export default function ChatBotEnhanced({
         }
       }
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      // Handle delete conversation error silently
     }
   };
 

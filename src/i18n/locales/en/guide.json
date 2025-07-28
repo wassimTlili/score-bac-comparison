@@ -1,0 +1,29 @@
+{
+  "title": "University Programs Guide",
+  "loading": "Loading Programs Guide",
+  "loadingDescription": "Loading university programs data...",
+  "search": {
+    "placeholder": "Search programs and universities...",
+    "noResults": "No results found",
+    "noPrograms": "No programs found",
+    "tryChangeFilters": "Try changing filters or search criteria",
+    "discoverPrograms": "Discover {filtered} university programs out of {total} available",
+    "noProgramsFound": "No university programs found"
+  },
+  "filters": {
+    "filterLabel": "Filter",
+    "favoritesLabel": "Favorites",
+    "allUniversities": "All Universities",
+    "allInstitutions": "All Institutions",
+    "allSpecializations": "All Specializations",
+    "allFieldsOfStudy": "All Fields of Study",
+    "allBacTypes": "All Baccalaureate Types",
+    "allLocations": "All Locations",
+    "allPrograms": "All Programs",
+    "sevenPercentOnly": "7% Programs Only",
+    "regularOnly": "Regular Programs Only"
+  },
+  "favorites": {
+    "loginRequired": "Login required to add favorites"
+  }
+}

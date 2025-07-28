@@ -218,9 +218,7 @@ export default function ChatBot({ comparison, onExpand, isExpanded }) {
                     </button>
                     <button
                       onClick={() => {
-                        // Add regenerate functionality if needed
-                        console.log('Regenerate message:', message.id);
-                      }}
+                        // Add regenerate functionality if needed}}
                       className="text-xs text-gray-400 hover:text-white transition-colors p-1 rounded"
                       title="Régénérer la réponse"
                     >

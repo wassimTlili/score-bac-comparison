@@ -1,0 +1,150 @@
+{
+  "title": "Orientations Universitaires",
+  "subtitle": "Vos Choix Universitaires Intelligents",
+  "loading": {
+    "title": "Chargement des données",
+    "description": "Nous préparons les meilleurs choix universitaires pour vous"
+  },
+  "choices": {
+    "title": "Vos Choix Universitaires",
+    "addNew": "Ajouter un Nouveau Choix",
+    "empty": {
+      "title": "Aucun choix pour l'instant",
+      "description": "Commencez par ajouter vos choix universitaires pour obtenir une analyse intelligente",
+      "action": "Ajouter le premier choix"
+    },
+    "counter": "{{count}} sur 12 choix",
+    "addMoreAnalysis": "Ajoutez {{count}} choix{{plural}} supplémentaire{{plural}} pour obtenir l'analyse",
+    "remove": "Supprimer le choix",
+    "move": "Déplacer",
+    "tip": {
+      "title": "Conseil important pour l'orientation universitaire :",
+      "description": "Vous devez ajouter au moins <span class=\"font-bold text-blue-300\">6 choix</span> et au maximum <span class=\"font-bold text-blue-300\">10 choix</span> pour obtenir une analyse IA complète"
+    },
+    "listTitle": "Tableau des Choix d'Orientation",
+    "choicesCount": "choix",
+    "addButtonText": "Ajouter",
+    "noFavorites": "Aucun programme favori",
+    "analysisOverall": "Taux d'Acceptation Global Attendu",
+    "basedOnGrades": "Basé sur vos notes et choix actuels",
+    "comprehensiveAnalysis": "Analyse Complète de la Stratégie de Choix",
+    "analysisDescription": "Analyse détaillée des forces et faiblesses de vos choix",
+    "mostLikelyChoice": "Choix le Plus Probable pour l'Acceptation",
+    "mostLikelySubtitle": "La spécialisation avec le taux d'acceptation prévu le plus élevé",
+    "probability": "Probabilité",
+    "acceptanceProbability": "Probabilité d'Acceptation",
+    "detailedAnalysis": "Analyse Détaillée:",
+    "pluralSuffix": "s",
+    "riskDistribution": "Distribution des Niveaux de Risque",
+    "safeChoices": "Choix Sûrs",
+    "highProbability": "Haute Probabilité",
+    "moderateChoices": "Choix Modérés",
+    "moderateProbability": "Probabilité Modérée",
+    "riskyChoices": "Choix Risqués",
+    "lowProbability": "Faible Probabilité",
+    "alternativeImprovements": "Suggestions d'Amélioration Alternatives",
+    "expectedImprovement": "Amélioration Attendue",
+    "noImprovementSuggestions": "Aucune suggestion d'amélioration n'est actuellement disponible",
+    "choicesAreExcellent": "Vos choix actuels sont excellents !",
+    "riskAssessment": "Évaluation des Risques et Scores",
+    "overallRiskLevel": "Niveau de Risque Global :",
+    "riskFactors": "Facteurs de Risque",
+    "strengths": "Forces",
+    "strategicRecommendations": "Recommandations Stratégiques",
+    "practicalSteps": "Étapes pratiques pour améliorer les chances d'acceptation",
+    "nextActionSteps": "Prochaines Étapes d'Action",
+    "shortTerm": "📋 Court Terme",
+    "longTerm": "🎯 Long Terme",
+    "reviewPriorities": "• Réviser l'ordre des priorités",
+    "completeDocuments": "• S'assurer de la complétude des documents",
+    "followRegistrationDates": "• Suivre les dates d'inscription",
+    "contactAdvisors": "• Contacter les conseillers",
+    "prepareBackupPlans": "• Préparer les plans de secours",
+    "prepareAlternativePlan": "• Préparer un plan alternatif",
+    "developRequiredSkills": "• Développer les compétences requises"
+  },
+  "addChoice": {
+    "title": "Ajouter un Nouveau Choix",
+    "methods": {
+      "search": "Recherche",
+      "code": "Code",
+      "favorites": "Favoris"
+    },
+    "search": {
+      "placeholder": "Rechercher un programme ou une université...",
+      "results": "Résultats de recherche",
+      "noResults": "Aucun résultat trouvé"
+    },
+    "code": {
+      "placeholder": "Entrer le code du programme...",
+      "add": "Ajouter",
+      "invalid": "Code invalide"
+    },
+    "favorites": {
+      "title": "Vos programmes favoris",
+      "empty": "Aucun programme favori"
+    },
+    "actions": {
+      "add": "Ajouter",
+      "cancel": "Annuler",
+      "close": "Fermer"
+    }
+  },
+  "analysis": {
+    "title": "Analyse Intelligente",
+    "subtitle": "Analyse détaillée de vos choix universitaires",
+    "button": "Analyser les Choix",
+    "analyzing": "Analyse en cours...",
+    "tabs": {
+      "overview": "Aperçu",
+      "details": "Détails", 
+      "recommendations": "Conseils"
+    },
+    "overview": {
+      "summary": "Résumé de l'Analyse",
+      "averageAcceptance": "Acceptation Moyenne",
+      "riskLevel": "Niveau de Risque",
+      "mostProbable": "Plus Probable pour l'Acceptation",
+      "showMore": "Afficher les Détails",
+      "showLess": "Masquer"
+    },
+    "riskLevels": {
+      "low": "Faible",
+      "medium": "Moyen", 
+      "high": "Élevé",
+      "undefined": "Non défini"
+    },
+    "acceptanceRatings": {
+      "excellent": "Excellent",
+      "good": "Bon",
+      "average": "Moyen",
+      "poor": "Faible"
+    }
+  },
+  "favorites": {
+    "add": "Ajouter aux favoris",
+    "remove": "Retirer des favoris",
+    "loginRequired": "Vous devez vous connecter pour ajouter aux favoris"
+  },
+  "errors": {
+    "maxChoicesExceeded": "Vous ne pouvez pas ajouter plus de 12 choix",
+    "programAlreadyExists": "Ce programme existe déjà dans votre liste de choix",
+    "programNotFound": "Programme non trouvé avec ce code",
+    "minimumChoicesRequired": "Vous devez ajouter au moins 6 choix pour l'analyse",
+    "profileIncomplete": "Vous devez d'abord compléter votre profil",
+    "gradesTooLow": "Vos notes sont trop basses pour l'analyse",
+    "analysisError": "Une erreur s'est produite lors de l'analyse. Veuillez réessayer.",
+    "analysisFailed": "Échec de l'analyse des choix"
+  },
+  "details": {
+    "university": "Université",
+    "institution": "Institution",
+    "location": "Localisation",
+    "code": "Code",
+    "score2024": "Score 2024",
+    "score2023": "Score 2023",
+    "score2022": "Score 2022",
+    "acceptanceRate": "Taux d'Acceptation",
+    "fieldOfStudy": "Domaine d'Étude"
+  }
+}

@@ -513,8 +513,6 @@ export async function getComparisonStats() {
       throw new Error('User not authenticated');
     }
 
-    console.log('🔍 Getting comparison stats for clerkId:', clerkId);
-
     const user = await prisma.user.findUnique({
       where: { clerkId }
     });
@@ -523,11 +521,8 @@ export async function getComparisonStats() {
       throw new Error('User not found');
     }
 
-    console.log('👤 Found user:', { id: user.id, email: user.email });
-
     // Debug: First check if table exists and has data
     const totalAllComparisons = await prisma.comparison.count();
-    console.log('🌍 Total comparisons in database (all users):', totalAllComparisons);
 
     const [
       totalComparisons,
@@ -564,21 +559,12 @@ export async function getComparisonStats() {
       []
     ]);
 
-    console.log('📊 Comparison stats:', {
-      totalComparisons,
-      completedAnalyses,
-      favoriteComparisons,
-      recentComparisons: recentComparisons.length,
-      totalAllComparisons
-    });
-
     // If no comparisons found, check if there are comparisons with null userId
     if (totalComparisons === 0 && totalAllComparisons > 0) {
       const orphanedComparisons = await prisma.comparison.findMany({
         where: { userId: null },
         take: 5
       });
-      console.log('� Found orphaned comparisons (null userId):', orphanedComparisons.length);
     }
 
     return {

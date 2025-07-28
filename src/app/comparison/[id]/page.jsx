@@ -56,18 +56,14 @@ export default function ComparisonResults() {
   useEffect(() => {
     // Redirect logic first
     const checkUserAndRedirect = async () => {
-      if (isLoaded && !isSignedIn) {
-        console.log('👤 User not signed in, redirecting to home');
-        router.push('/');
+      if (isLoaded && !isSignedIn) {router.push('/');
         return false;
       }
       
       if (isLoaded && isSignedIn && user) {
         try {
           const result = await getUserProfile();
-          if (!result.success || !result.profile) {
-            console.log('⚠️ User has no profile, redirecting to stepper');
-            router.push('/stepper');
+          if (!result.success || !result.profile) {router.push('/stepper');
             return false;
           }
         } catch (error) {
@@ -199,15 +195,7 @@ export default function ComparisonResults() {
     setIsGeneratingAI(true);
     try {
       // Import the real AI analysis system
-      const { generateComparisonAnalysis } = await import('@/actions/ai-comparison');
-      
-      console.log('🤖 Generating real AI analysis for:', {
-        orientation1: comparisonData.orientation1?.licence,
-        orientation2: comparisonData.orientation2?.licence,
-        userScore: comparisonData.userProfile?.score || comparisonData.userProfile?.fsScore
-      });
-
-      // Use the real AI analysis system
+      const { generateComparisonAnalysis } = await import('@/actions/ai-comparison');// Use the real AI analysis system
       const aiAnalysis = await generateComparisonAnalysis(comparisonData);
       
       // Update the comparison in the database

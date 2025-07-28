@@ -10,7 +10,7 @@ import { ChevronDown, ChevronUp, Menu, X, LogOut, User, Download } from 'lucide-
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useI18n } from '@/app/i18n/client'
+import { useI18n, useTranslation } from '@/app/i18n/client'
  
 export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand, isMobile = false }) {
   const [isExpanded, setIsExpanded] = useState(true) // Internal state for fallback
@@ -27,8 +27,9 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
   
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isWorkspaceDialogOpen, setIsWorkspaceDialogOpen] = useState(false)
-  const { dictionary, locale } = useI18n()
-  const isRtl = locale === "tn"
+  const { locale } = useI18n()
+  const { t } = useTranslation('sidebar')
+  const isRtl = locale === "ar"
   
   // PWA installation states
   const [isPwaInstallable, setIsPwaInstallable] = useState(false)
@@ -48,69 +49,69 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
 
   const menuItems = [
     { 
-      name: dictionary.sidebar?.chatWithNexie || 'Chat with Nexie', 
+      name: t('chatWithNexie', 'Chat with Nexie'), 
       iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwbSStfCipPIQVv9cY51AoJ62rheLUiRxBg7fl",
       darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwbSStfCipPIQVv9cY51AoJ62rheLUiRxBg7fl", 
       href: '/chat', 
       color: 'text-purple-500' 
     },
     {
-      name: dictionary.sidebar?.studyHelp || 'Study Help',
+      name: t('studyHelp', 'Study Help'),
       iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwInIjuz33xpJvki9ByXrdQzZ5SVlsRKDamhWP",
       darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwInIjuz33xpJvki9ByXrdQzZ5SVlsRKDamhWP",
       color: 'text-blue-500',
       items: [
         { 
-          name: dictionary.sidebar?.documentChat || 'Document Chat', 
+          name: t('documentChat', 'Document Chat'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwNd6F87IW0AdQnDBG8rk4z3qHMRZ5PaxoTFei", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwNd6F87IW0AdQnDBG8rk4z3qHMRZ5PaxoTFei", 
           href: '/document-chat', 
           color: 'text-green-500' 
         },
         { 
-          name: dictionary.sidebar?.summarize || 'Summarize', 
+          name: t('summarize', 'Summarize'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLw0uJILkzuRrLw4C2KtcOdXeZn5qyDMNm8EFAG", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLw0uJILkzuRrLw4C2KtcOdXeZn5qyDMNm8EFAG", 
           href: '/summarize', 
           color: 'text-yellow-500' 
         },
         { 
-          name: dictionary.sidebar?.quizMaker || 'Quiz Maker', 
+          name: t('quizMaker', 'Quiz Maker'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwIeMgEI33xpJvki9ByXrdQzZ5SVlsRKDamhWP", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwIeMgEI33xpJvki9ByXrdQzZ5SVlsRKDamhWP", 
           href: '/quiz-maker', 
           color: 'text-red-500' 
         },
         { 
-          name: dictionary.sidebar?.flashcardMaker || 'Flashcard Maker', 
+          name: t('flashcardMaker', 'Flashcard Maker'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLws2N5dz8IO7XtAfQ6CZVc1NHr3nKiDbxvE0FY", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLws2N5dz8IO7XtAfQ6CZVc1NHr3nKiDbxvE0FY", 
           href: '/flashcard-maker', 
           color: 'text-indigo-500' 
         },
         { 
-          name: dictionary.sidebar?.cheatsheetMaker || 'Cheatsheet Maker', 
+          name: t('cheatsheetMaker', 'Cheatsheet Maker'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwarVcs49Izl1fY0o62BDrquNm8dXKOgtGRnyZ", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwarVcs49Izl1fY0o62BDrquNm8dXKOgtGRnyZ", 
           href: '/cheatsheet-maker', 
           color: 'text-pink-500' 
         },
         { 
-          name: dictionary.sidebar?.feynmanTechnique || 'Feynman Technique', 
+          name: t('feynmanTechnique', 'Feynman Technique'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwkkz57qlKYe18GpqbLc29CaTfUMh6dvuPDHz7", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwkkz57qlKYe18GpqbLc29CaTfUMh6dvuPDHz7", 
           href: '/feynman', 
           color: 'text-cyan-500' 
         },
         { 
-          name: dictionary.sidebar?.exerciseGenerator || 'Exercise Generator', 
+          name: t('exerciseGenerator', 'Exercise Generator'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwjsRTh2SQcdJ9fAL3aQs0zHOtpVyj7Xi1FPuE", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwjsRTh2SQcdJ9fAL3aQs0zHOtpVyj7Xi1FPuE", 
           href: '/exercise-generator', 
           color: 'text-orange-500' 
         },
         { 
-          name: dictionary.sidebar?.assignmentChecker || 'Assignment Checker', 
+          name: t('assignmentChecker', 'Assignment Checker'), 
           iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwkA4AeIlKYe18GpqbLc29CaTfUMh6dvuPDHz7", 
           darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwkA4AeIlKYe18GpqbLc29CaTfUMh6dvuPDHz7", 
           href: '/assignment-checker', 
@@ -126,7 +127,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
       color: 'text-green-500' 
     },
     { 
-      name: dictionary.sidebar?.journalPlanner || 'Journal Planner', 
+      name: t('journalPlanner', 'Journal Planner'), 
       iconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwLqO567PjSeFGCUX1i8noqfRdNgsJIHaZOzVY", 
       darkIconSrc: "https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwLqO567PjSeFGCUX1i8noqfRdNgsJIHaZOzVY", 
       href: '/journalplanner', 
@@ -312,7 +313,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             <button
               onClick={toggleMobileMenu}
               className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-              aria-label={dictionary.sidebar?.closeMobileMenu || "Close mobile menu"}
+              aria-label={t('closeMobileMenu', 'Close mobile menu')}
             >
               <X size={24} />
             </button>
@@ -320,7 +321,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             <button
               onClick={toggleExpand}
               className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-              aria-label={effectiveIsExpanded ? dictionary.sidebar?.collapseSidebar || "Collapse sidebar" : dictionary.sidebar?.expandSidebar || "Expand sidebar"}
+              aria-label={effectiveIsExpanded ? t('collapseSidebar', 'Collapse sidebar') : t('expandSidebar', 'Expand sidebar')}
             >
               {effectiveIsExpanded ? (
                 isRtl ? <ChevronRight size={24} /> : <ChevronLeft size={24} />
@@ -337,7 +338,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             <button
               onClick={toggleExpand}
               className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-              aria-label={dictionary.sidebar?.expandSidebar || "Expand sidebar"}
+              aria-label={t('expandSidebar', 'Expand sidebar')}
             >
               {isRtl ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
             </button>
@@ -426,7 +427,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                           <span>{subItem.name}</span>
                           {subItem.comingSoon && (
                             <span className="ml-2 px-2 py-1 text-xs bg-blue-500 dark:bg-red-500 text-white rounded-full">
-                              {dictionary.sidebar?.comingSoon || "Coming Soon !"}
+                              {t('comingSoon', 'Coming Soon !')}
                             </span>
                           )}
                         </button>
@@ -474,7 +475,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                     <span>{item.name}</span>
                     {item.comingSoon && (
                       <span className="ml-2 px-2 py-1 text-xs bg-blue-500 dark:bg-red-500 text-white rounded-full">
-                        {dictionary.sidebar?.comingSoon || "Coming Soon !"}
+                        {t('comingSoon', 'Coming Soon !')}
                       </span>
                     )}
                   </div>
@@ -491,20 +492,20 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             <div className="flex items-center">
               <Image 
                 src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
-                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                alt={t('workspace', 'Workspace')} 
                 width={24} 
                 height={24} 
                 className={`${isRtl ? 'ml-2' : 'mr-2'} dark:hidden`} 
               />
               <Image 
                 src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
-                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                alt={t('workspace', 'Workspace')} 
                 width={24} 
                 height={24} 
                 className={`${isRtl ? 'ml-2' : 'mr-2'} hidden dark:block`} 
               />
               <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-                {dictionary.sidebar?.yourWorkspace || "Your Workspace"}
+                {t('yourWorkspace', 'Your Workspace')}
               </h3>
             </div>
             <Button
@@ -514,7 +515,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
               }}
               className="w-full mt-2 bg-blue-500 text-white dark:text-white hover:bg-blue-600 dark:bg-red-500 dark:hover:bg-red-600"
             >
-              {dictionary.sidebar?.comingSoon || "Coming Soon !"}
+              {t('comingSoon', 'Coming Soon !')}
             </Button>
           </div>
         )}
@@ -528,18 +529,18 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
                 handleMenuItemClick('Workspace', '#')
               }}
               className="w-10 h-10 p-0 bg-blue-500 text-white dark:text-white hover:bg-blue-600 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg"
-              title={dictionary.sidebar?.yourWorkspace || "Your Workspace"}
+              title={t('yourWorkspace', 'Your Workspace')}
             >
               <Image 
                 src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
-                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                alt={t('workspace', 'Workspace')} 
                 width={20} 
                 height={20} 
                 className="dark:hidden"
               />
               <Image 
                 src={"https://hbc9duawsb.ufs.sh/f/0SaNNFzuRrLwSCip7KoYo498KjwQsXEl2NDVPRaWLF1bSgyd"} 
-                alt={dictionary.sidebar?.workspace || "Workspace"} 
+                alt={t('workspace', 'Workspace')} 
                 width={20} 
                 height={20} 
                 className="hidden dark:block"
@@ -558,7 +559,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
           >
             <Download size={16} />
-            <span>{dictionary.sidebar?.installApp || "Install App"}</span>
+            <span>{t('installApp', 'Install App')}</span>
           </Button>
         </div>
       )}
@@ -569,7 +570,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
           <Button
             onClick={handlePwaInstall}
             className="p-2 rounded-full bg-teal-500 hover:bg-teal-600 text-white"
-            aria-label={dictionary.sidebar?.installApp || "Install App"}
+            aria-label={t('installApp', 'Install App')}
           >
             <Download size={20} />
           </Button>
@@ -620,7 +621,7 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
             className="mt-3 w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-800"
           >
             <LogOut size={16} />
-            <span>{dictionary.sidebar?.signOut || "Sign Out"}</span>
+            <span>{t('signOut', 'Sign Out')}</span>
           </Button>
         </div>
       )}
@@ -639,27 +640,27 @@ export default function Sidebar({ isExpanded: externalIsExpanded, onToggleExpand
         <DialogContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
-              {dictionary.sidebar?.workspaceFeature || "Workspace Feature - Coming Soon!"}
+              {t('workspaceFeature', 'Workspace Feature - Coming Soon!')}
             </DialogTitle>
           </DialogHeader>
           <p className="text-gray-700 dark:text-gray-300">
-            {dictionary.sidebar?.workspaceDescription || "We're excited to announce our upcoming Workspace feature! This new functionality will allow you to:"}
+            {t('workspaceDescription', "We're excited to announce our upcoming Workspace feature! This new functionality will allow you to:")}
           </p>
           <ul className="list-disc list-inside mt-2 mb-4 text-gray-700 dark:text-gray-300">
-            <li>{dictionary.sidebar?.workspaceFeature1 || "Create custom workspaces for different subjects or projects"}</li>
-            <li>{dictionary.sidebar?.workspaceFeature2 || "Organize your content within each workspace"}</li>
-            <li>{dictionary.sidebar?.workspaceFeature3 || "Collaborate with others on shared workspaces"}</li>
-            <li>{dictionary.sidebar?.workspaceFeature4 || "Use NextGen.tn features directly on your workspace content"}</li>
+            <li>{t('workspaceFeature1', 'Create custom workspaces for different subjects or projects')}</li>
+            <li>{t('workspaceFeature2', 'Organize your content within each workspace')}</li>
+            <li>{t('workspaceFeature3', 'Collaborate with others on shared workspaces')}</li>
+            <li>{t('workspaceFeature4', 'Use NextGen.tn features directly on your workspace content')}</li>
           </ul>
           <p className="text-gray-700 dark:text-gray-300">
-            {dictionary.sidebar?.workspaceStayTuned || "Stay tuned for updates on this exciting new feature that will enhance your learning and productivity experience!"}
+            {t('workspaceStayTuned', 'Stay tuned for updates on this exciting new feature that will enhance your learning and productivity experience!')}
           </p>
           <DialogFooter>
             <Button 
               onClick={() => setIsWorkspaceDialogOpen(false)}
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white"
             >
-              {dictionary.common?.close || "Close"}
+              {t('close', 'Close')}
             </Button>
           </DialogFooter>
         </DialogContent>

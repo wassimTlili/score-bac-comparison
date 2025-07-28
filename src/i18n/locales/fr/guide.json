@@ -1,0 +1,29 @@
+{
+  "title": "Guide des Programmes Universitaires",
+  "loading": "Chargement du Guide des Programmes",
+  "loadingDescription": "Chargement des données des programmes universitaires...",
+  "search": {
+    "placeholder": "Rechercher des programmes et universités...",
+    "noResults": "Aucun résultat trouvé",
+    "noPrograms": "Aucun programme trouvé",
+    "tryChangeFilters": "Essayez de modifier les filtres ou les critères de recherche",
+    "discoverPrograms": "Découvrez {filtered} programmes universitaires sur {total} disponibles",
+    "noProgramsFound": "Aucun programme universitaire trouvé"
+  },
+  "filters": {
+    "filterLabel": "Filtrer",
+    "favoritesLabel": "Favoris",
+    "allUniversities": "Toutes les Universités",
+    "allInstitutions": "Toutes les Institutions",
+    "allSpecializations": "Toutes les Spécialisations",
+    "allFieldsOfStudy": "Tous les Domaines d'Étude",
+    "allBacTypes": "Tous les Types de Baccalauréat",
+    "allLocations": "Tous les Emplacements",
+    "allPrograms": "Tous les Programmes",
+    "sevenPercentOnly": "Programmes 7% Seulement",
+    "regularOnly": "Programmes Réguliers Seulement"
+  },
+  "favorites": {
+    "loginRequired": "Connexion requise pour ajouter aux favoris"
+  }
+}

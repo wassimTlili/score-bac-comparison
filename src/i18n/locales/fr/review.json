@@ -1,0 +1,99 @@
+{
+  "title": "Révision et Modification des Données",
+  "subtitle": "Révisez vos données et modifiez-les si nécessaire avant d'obtenir vos résultats d'orientation universitaire",
+  "loading": "Chargement...",
+  "error": "Une erreur s'est produite",
+  
+  "sections": {
+    "personalInfo": {
+      "title": "Informations Personnelles",
+      "fields": {
+        "branch": "Filière",
+        "gender": "Sexe",
+        "governorate": "Gouvernorat",
+        "session": "Type de Session",
+        "optionalSubject": "Matière Optionnelle"
+      },
+      "placeholders": {
+        "selectBranch": "Sélectionner la filière",
+        "selectGender": "Sélectionner le sexe",
+        "enterGovernorate": "Entrer le gouvernorat",
+        "selectSession": "Sélectionner le type de session",
+        "enterOptionalSubject": "Entrer la matière optionnelle"
+      },
+      "options": {
+        "male": "Homme",
+        "female": "Femme",
+        "principal": "Session principale",
+        "controle": "Session de contrôle"
+      }
+    },
+    
+    "grades": {
+      "title": "Notes",
+      "coefficient": "Coefficient"
+    },
+    
+    "summary": {
+      "title": "Résumé des Scores",
+      "manuallyAdjusted": "Scores ajustés manuellement",
+      "useAutomaticCalculation": "Utiliser le calcul automatique",
+      "editScoresManually": "Modifier les scores manuellement",
+      "mgScore": "Moyenne Générale (MG)",
+      "fsScore": "Score Spécial (FS)",
+      "evaluation": "Évaluation",
+      "branch": "Filière",
+      "manualScoreEditing": "Modification manuelle des scores",
+      "manualScoreDescription": "Vous pouvez modifier manuellement les scores si nos calculs sont incorrects. Moyenne générale (0-20), Score spécial (0-999). Assurez-vous d'entrer les scores corrects pour des recommandations précises."
+    },
+    
+    "nextSteps": {
+      "title": "Prêt à découvrir votre parcours universitaire?",
+      "description": "Nous allons maintenant analyser vos données et calculer les meilleures orientations qui vous conviennent en fonction de vos notes et de votre spécialisation"
+    }
+  },
+  
+  "subjects": {
+    "mathematics": "Mathématiques",
+    "physics": "Physique",
+    "chemistry": "Chimie",
+    "biology": "Sciences de la nature et de la vie",
+    "french": "Français",
+    "arabic": "Arabe",
+    "english": "Anglais",
+    "philosophy": "Philosophie",
+    "history": "Histoire",
+    "geography": "Géographie",
+    "optional": "Matière optionnelle"
+  },
+  
+  "branches": {
+    "math": "Mathématiques",
+    "science": "Sciences expérimentales",
+    "info": "Sciences informatiques",
+    "tech": "Technique",
+    "eco": "Économie et gestion",
+    "lettres": "Lettres",
+    "sport": "Sport"
+  },
+  
+  "actions": {
+    "edit": "Modifier",
+    "save": "Sauvegarder", 
+    "cancel": "Annuler",
+    "saving": "Sauvegarde en cours...",
+    "calculateOrientations": "Calculer les orientations appropriées",
+    "backToForm": "Retour au formulaire"
+  },
+  
+  "common": {
+    "notSpecified": "Non spécifié"
+  },
+  
+  "errors": {
+    "invalidScores": "Scores invalides. Veuillez vérifier les valeurs saisies.",
+    "missingFields": "Veuillez remplir tous les champs obligatoires.",
+    "saveError": "Erreur lors de la sauvegarde du profil: {{error}}",
+    "saveGeneralError": "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "title": "Outil de Comparaison d'Orientations",
+  "loginRequired": "Pour utiliser l'outil de comparaison et sauvegarder vos comparaisons, vous devez vous connecter d'abord.",
+  "completeProfile": "Veuillez compléter vos données d'abord pour utiliser l'outil de comparaison",
+  "backToComparison": "Retour à la Page de Comparaison",
+  "personalInfo": "Vos Informations Personnelles",
+  "searchByCode": "Recherche par Code",
+  "noFavorites": "📌 Aucune orientation favorite pour l'instant. Vous pouvez ajouter des favoris depuis la page de recommandations d'abord.",
+  "chooseFavorites": "Choisir parmi vos favoris:",
+  "chooseFavoritesPlaceholder": "Choisir parmi vos favoris...",
+  "errors": {
+    "profileNotFound": "Vos données personnelles n'ont pas été trouvées. Veuillez compléter le formulaire de données d'abord.",
+    "selectTwoOrientations": "Veuillez sélectionner deux orientations à comparer",
+    "comparisonError": "Une erreur s'est produite lors de la création de la comparaison",
+    "comparisonErrorRetry": "Une erreur s'est produite lors de la création de la comparaison. Veuillez réessayer."
+  }
+}

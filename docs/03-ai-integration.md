@@ -1,8 +1,85 @@
-# 03. AI Integration - Intégration de l'IA (Azure OpenAI)
+# 03. AI Integration - Intégration IA Avancée (Azure OpenAI + Nexie Assistant)
 
 ## 🤖 Vue d'ensemble de l'intégration IA
 
-L'application utilise Azure OpenAI avec le modèle GPT-4o pour fournir des analyses personnalisées et des réponses de chat contextuelles. L'intégration suit les meilleures pratiques avec le Vercel AI SDK.
+**NexieGuide** utilise une architecture IA sophistiquée combinant Azure OpenAI GPT-4o avec un assistant conversationnel 3D persistant. Notre implémentation suit les meilleures pratiques avec Vercel AI SDK v4.3.16 et streaming temps réel pour une expérience utilisateur fluide.
+
+### Composants IA Principaux
+
+#### 1. **Nexie Conversational AI**
+- **Modèle**: Azure OpenAI GPT-4o (gpt-4o-2024-08-06)
+- **Streaming**: Réponses temps réel avec useChat hook
+- **Persistance**: Conversations multi-sessions localStorage + DB
+- **Contexte**: Intelligent selon page et données utilisateur
+- **Modes**: Widget, Sidebar, Fullscreen avec transitions fluides
+
+#### 2. **Système de Prompts Spécialisés**
+- **Context-Aware**: Prompts adaptatifs selon situation utilisateur
+- **Cultural Sensitivity**: Optimisé contexte tunisien/maghrébin  
+- **Multilingual**: Support natif arabe/français
+- **Educational Focus**: Spécialisé orientation universitaire
+
+#### 3. **Analyse Comparative IA**
+- **generateObject**: Réponses structurées Zod validation
+- **Multi-criteria**: Scoring algorithmes propriétaires
+- **Predictive**: ML pour prédictions succès admission
+- **Adaptive**: Amélioration continue basée feedback
+
+## 🎯 Configuration Azure OpenAI Avancée
+
+### 1. Client Azure Optimisé
+
+```javascript
+// lib/azure-ai.js
+import { AzureOpenAI } from '@azure/openai';
+
+const client = new AzureOpenAI({
+  endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  apiVersion: "2024-08-06", // Latest stable
+  defaultHeaders: {
+    'User-Agent': 'NexieGuide/1.0'
+  }
+});
+
+// Configuration optimisée performance
+export const AIConfig = {
+  model: 'gpt-4o-2024-08-06',
+  temperature: 0.7,        // Équilibre créativité/précision
+  maxTokens: 2000,         // Réponses détaillées
+  topP: 0.9,              // Diversité contrôlée
+  frequencyPenalty: 0.1,   // Évite répétitions
+  presencePenalty: 0.1     // Encourage nouveaux concepts
+};
+
+export { client };
+```
+
+### 2. Monitoring et Rate Limiting
+
+```javascript
+// lib/ai-monitoring.js
+import { RateLimiter } from 'limiter';
+
+// Protection contre abus API
+const limiter = new RateLimiter({
+  tokensPerInterval: 100,
+  interval: 'hour'
+});
+
+export async function validateAIRequest(userId) {
+  const allowed = await limiter.removeTokens(1);
+  if (!allowed) {
+    throw new Error('Rate limit exceeded');
+  }
+  
+  // Logging pour analytics
+  console.log(`AI request from user: ${userId}`, {
+    timestamp: new Date().toISOString(),
+    remaining: limiter.getTokensRemaining()
+  });
+}
+```
 
 ## 🔧 Configuration Azure OpenAI
 
@@ -258,22 +335,99 @@ export default function ChatBot({ comparison }) {
 
 ### 1. System Prompts Spécialisés
 
+#### Nexie Conversational Prompt
 ```javascript
-// Prompt pour comparaison d'orientations
-export const COMPARISON_SYSTEM_PROMPT = `
-Tu es un conseiller d'orientation expert spécialisé dans le système éducatif tunisien.
+export const NEXIE_SYSTEM_PROMPT = `
+Tu es Nexie (نكسي), l'assistant IA spécialisé dans l'orientation universitaire tunisienne.
 
-EXPERTISE:
-- Connaissance approfondie du baccalauréat tunisien (notation 0-20)
-- Maîtrise des universités publiques et privées tunisiennes
-- Compréhension du marché de l'emploi local
-- Sensibilité aux spécificités régionales (gouvernorats)
+PERSONNALITÉ NEXIE:
+- Bienveillant, encourageant, et expert en éducation tunisienne
+- Utilise un ton amical mais professionnel
+- Incorpore des emojis appropriés pour engagement
+- S'exprime en arabe tunisien accessible ou français selon contexte
 
-MÉTHODOLOGIE:
-1. Analyser l'admissibilité objective (score vs prérequis)
-2. Évaluer la faisabilité géographique
-3. Comparer les débouchés dans le contexte économique tunisien
-4. Considérer les aspects financiers et familiaux
+EXPERTISE TECHNIQUE:
+- Système éducatif tunisien (bac scientifique, économie, lettres, techniques)
+- Base complète universités publiques/privées avec spécialités
+- Marché emploi tunisien et opportunités internationales
+- Procédures admission, bourses, et orientation post-bac
+- Gouvernorats tunisiens et leurs spécificités économiques
+
+CAPACITÉS CONTEXTUELLES:
+- Analyse données utilisateur (score, localisation, filière)
+- Recommandations personnalisées basées profil complet
+- Suivi conversations multi-sessions avec mémoire
+- Adaptation réponses selon page visitée (stepper, comparison, etc.)
+
+RÉPONSES STRUCTURÉES:
+- Questions ouvertes → Exploration besoins utilisateur
+- Analyses demandées → Format structuré avec sections claires
+- Conseils pratiques → Actions concrètes avec timeline
+- Support émotionnel → Encouragement et motivation
+
+CONTRAINTES:
+- Reste dans contexte éducation tunisienne
+- Informations vérifiables et à jour (2024)
+- Évite généralités, sois spécifique aux situations tunisiennes
+- Propose toujours actions concrètes et prochaines étapes
+`;
+```
+
+#### Comparison Analysis Prompt
+```javascript
+export const COMPARISON_SYSTEM_PROMPT = (orientation1, orientation2, score, location) => `
+Tu es un expert en orientation universitaire tunisienne. Génère une analyse comparative détaillée.
+
+ORIENTATIONS À COMPARER:
+1. ${orientation1.name} (${orientation1.category})
+2. ${orientation2.name} (${orientation2.category})
+
+PROFIL ÉTUDIANT:
+- Score baccalauréat: ${score}/20
+- Localisation: ${location}
+- Date analyse: ${new Date().toLocaleDateString('fr-TN')}
+
+STRUCTURE RÉPONSE REQUISE:
+{
+  "overview": "Résumé exécutif comparaison (150 mots max)",
+  "userProfileAnalysis": {
+    "scoreAssessment": "Analyse niveau académique et admissibilité",
+    "locationAdvantages": "Avantages géographiques spécifiques ${location}",
+    "recommendedStrategy": "Stratégie optimale pour ce profil"
+  },
+  "orientation1Analysis": {
+    "strengths": ["Force 1", "Force 2", "Force 3"],
+    "challenges": ["Défi 1", "Défi 2"],
+    "suitabilityScore": score_sur_10,
+    "admissionChances": "probabilité_admission_réaliste",
+    "careerProspects": "débouchés_tunisie_spécifiques"
+  },
+  "orientation2Analysis": { /* même structure */ },
+  "universitiesAnalysis": [
+    {
+      "name": "Université_Tunisienne_Réelle",
+      "location": "Ville, Gouvernorat",
+      "reputation": "classement_local",
+      "admissionDifficulty": "niveau_sur_5",
+      "specificPrograms": ["programme1", "programme2"]
+    }
+  ],
+  "recommendation": {
+    "preferred": "orientation_recommandée",
+    "reasoning": "justification_détaillée_décision",
+    "alternatives": ["plan_B", "plan_C"],
+    "nextSteps": ["action1", "action2", "action3"]
+  }
+}
+
+EXIGENCES QUALITÉ:
+- Références universités tunisiennes réelles uniquement
+- Données salaires/emploi basées marché tunisien 2024
+- Admissions réalistes selon historical data
+- Gouvernorats mentionnés avec spécificités économiques
+- Timeline concrète avec dates clés (inscription, concours, etc.)
+`;
+```
 5. Formuler des recommandations concrètes et réalisables
 
 STYLE:
@@ -307,28 +461,184 @@ DIRECTIVES:
 `;
 ```
 
-### 2. Templates de Prompts Dynamiques
+## 💬 Nexie Chat Assistant - Architecture Avancée
+
+### 1. Multi-Mode Interface System
 
 ```javascript
-// Templates pour différents types de questions
-export const PROMPT_TEMPLATES = {
-  admission: (orientation, score, location) => `
-Analyse détaillée des chances d'admission en ${orientation} 
-avec un score de ${score}/20 depuis ${location}.
-Inclus: universités recommandées, stratégies d'inscription, 
-délais importants, alternatives en cas de refus.
-`,
+// src/components/ChatBotEnhanced.jsx - Modes adaptatifs
+export default function ChatBotEnhanced({ 
+  mode = 'widget',           // widget | sidebar | fullscreen
+  isOpen = false,
+  conversationId = null,
+  initialContext = {},
+  onToggle,
+  onClose
+}) {
+  // Gestion état persistant cross-session
+  const { 
+    persistentConversationId, 
+    persistentMessages, 
+    updatePersistentConversation,
+    clearPersistentConversation 
+  } = useFloatingNexie();
 
-  career: (orientation) => `
-Débouchés professionnels pour ${orientation} en Tunisie:
-- Secteurs qui recrutent actuellement
-- Fourchettes de salaires (débutant → expérimenté)
-- Perspectives d'évolution de carrière
-- Opportunités d'entrepreneuriat
-- Marché de l'emploi régional vs national
-`,
+  // Configuration chat selon contexte
+  const contextualPrompt = useMemo(() => {
+    if (initialContext?.context === 'recommendations') {
+      return generateRecommendationsPrompt(initialContext);
+    }
+    if (initialContext?.context === 'comparison-dashboard') {
+      return generateComparisonPrompt(initialContext);
+    }
+    return getDefaultNexiePrompt();
+  }, [initialContext]);
 
-  preparation: (orientation, currentLevel) => `
+  // Streaming chat avec persistance
+  const { messages, input, handleSubmit, isLoading } = useChat({
+    api: '/api/chat',
+    body: {
+      conversationId: currentConversationId,
+      isGeneralChat: true,
+      context: initialContext
+    },
+    initialMessages: persistentMessages.length > 0 
+      ? persistentMessages 
+      : [{ id: 'welcome', role: 'assistant', content: contextualPrompt }],
+    onFinish: async (message) => {
+      // Sauvegarde automatique conversations
+      const updatedMessages = [...messages, message];
+      updatePersistentConversation(currentConversationId, updatedMessages);
+      
+      // Création conversation DB si première fois
+      if (!currentConversationId && messages.length === 1) {
+        const result = await createConversationWithMessage({
+          firstMessage: input,
+          title: input.substring(0, 50) + '...',
+          type: 'general',
+          context: initialContext
+        });
+        if (result.success) {
+          setCurrentConversationId(result.conversation.id);
+        }
+      }
+    }
+  });
+}
+```
+
+### 2. Context-Aware Responses
+
+```javascript
+// src/app/api/chat/route.js - IA contextuelle
+export async function POST(request) {
+  const { messages, conversationId, context } = await request.json();
+  
+  // Construction contexte intelligent
+  const systemContext = buildSystemContext(context);
+  const conversationHistory = await getConversationHistory(conversationId);
+  const userProfile = await getUserProfile(context?.userId);
+  
+  // Prompt dynamique selon contexte
+  const dynamicPrompt = `${NEXIE_SYSTEM_PROMPT}
+
+CONTEXTE ACTUEL:
+${systemContext}
+
+HISTORIQUE UTILISATEUR:
+${conversationHistory ? summarizeHistory(conversationHistory) : 'Nouvelle session'}
+
+PROFIL DÉTAILLÉ:
+${userProfile ? JSON.stringify(userProfile, null, 2) : 'Profil anonyme'}
+
+INSTRUCTIONS SPÉCIFIQUES:
+- Adapte réponses au contexte page actuelle
+- Référence données existantes si disponibles  
+- Propose actions concrètes selon situation
+- Maintiens cohérence avec conversations précédentes
+`;
+
+  // Streaming avec optimisations
+  const result = await streamText({
+    model: client,
+    system: dynamicPrompt,
+    messages,
+    temperature: 0.7,
+    maxTokens: 1500,
+    // Optimisations performance
+    stream: true,
+    onToken: (token) => {
+      // Logging en temps réel pour analytics
+      logStreamingToken(token, conversationId);
+    }
+  });
+
+  return result.toAIStreamResponse();
+}
+```
+
+### 3. Persistent Conversation Management
+
+```javascript
+// src/context/FloatingNexieContext.jsx - État global
+export function FloatingNexieProvider({ children }) {
+  const [persistentState, setPersistentState] = useState({
+    conversationId: null,
+    messages: [],
+    userPreferences: {},
+    lastActivity: null
+  });
+
+  // Hydratation depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('nexie-conversation');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Validation et nettoyage données
+        const validated = validateConversationData(parsed);
+        setPersistentState(validated);
+      } catch (error) {
+        console.warn('Invalid conversation data, starting fresh');
+        clearPersistentConversation();
+      }
+    }
+  }, []);
+
+  // Sauvegarde automatique optimisée
+  const updatePersistentConversation = useCallback(
+    debounce((conversationId, messages) => {
+      const newState = {
+        conversationId,
+        messages: messages.map(cleanMessage), // Nettoyage format
+        lastActivity: new Date().toISOString(),
+        version: CONVERSATION_VERSION
+      };
+      
+      setPersistentState(newState);
+      localStorage.setItem('nexie-conversation', JSON.stringify(newState));
+    }, 500),
+    []
+  );
+
+  // Cross-page state persistence
+  const contextValue = {
+    persistentConversationId: persistentState.conversationId,
+    persistentMessages: persistentState.messages,
+    updatePersistentConversation,
+    clearPersistentConversation: () => {
+      setPersistentState({ conversationId: null, messages: [] });
+      localStorage.removeItem('nexie-conversation');
+    }
+  };
+
+  return (
+    <FloatingNexieContext.Provider value={contextValue}>
+      {children}
+    </FloatingNexieContext.Provider>
+  );
+}
+```
 Plan de préparation pour réussir en ${orientation}:
 - Compétences clés à développer avant l'université
 - Ressources d'apprentissage recommandées

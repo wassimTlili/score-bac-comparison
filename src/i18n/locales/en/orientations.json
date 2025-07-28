@@ -1,0 +1,150 @@
+{
+  "title": "University Orientations",
+  "subtitle": "Your Smart University Choices",
+  "loading": {
+    "title": "Loading data",
+    "description": "We're preparing the best university choices for you"
+  },
+  "choices": {
+    "title": "Your University Choices",
+    "addNew": "Add New Choice",
+    "empty": {
+      "title": "No choices yet",
+      "description": "Start by adding your university choices to get smart analysis",
+      "action": "Add first choice"
+    },
+    "counter": "{{count}} of 12 choices",
+    "addMoreAnalysis": "Add {{count}} more choice{{plural}} to get analysis",
+    "remove": "Remove Choice",
+    "move": "Move",
+    "tip": {
+      "title": "Important University Guidance Tip:",
+      "description": "You must add at least <span class=\"font-bold text-blue-300\">6 choices</span> and at most <span class=\"font-bold text-blue-300\">10 choices</span> to get complete AI smart analysis"
+    },
+    "listTitle": "Orientation Choices Table",
+    "choicesCount": "choices",
+    "addButtonText": "Add",
+    "noFavorites": "No favorite programs",
+    "analysisOverall": "Overall Expected Acceptance Rate",
+    "basedOnGrades": "Based on your grades and current choices",
+    "comprehensiveAnalysis": "Comprehensive Analysis of Choices Strategy",
+    "analysisDescription": "Detailed analysis of strengths and weaknesses in your choices",
+    "mostLikelyChoice": "Most Likely Choice for Acceptance",
+    "mostLikelySubtitle": "The specialization with the highest expected acceptance rate",
+    "probability": "Probability",
+    "acceptanceProbability": "Acceptance Probability",
+    "detailedAnalysis": "Detailed Analysis:",
+    "pluralSuffix": "s",
+    "riskDistribution": "Risk Levels Distribution",
+    "safeChoices": "Safe Choices",
+    "highProbability": "High Probability",
+    "moderateChoices": "Moderate Choices",
+    "moderateProbability": "Moderate Probability",
+    "riskyChoices": "Risky Choices",
+    "lowProbability": "Low Probability",
+    "alternativeImprovements": "Alternative Improvement Suggestions",
+    "expectedImprovement": "Expected Improvement",
+    "noImprovementSuggestions": "No improvement suggestions are currently available",
+    "choicesAreExcellent": "Your current choices are excellent!",
+    "riskAssessment": "Risk Assessment and Scores",
+    "overallRiskLevel": "Overall Risk Level:",
+    "riskFactors": "Risk Factors",
+    "strengths": "Strengths",
+    "strategicRecommendations": "Strategic Recommendations",
+    "practicalSteps": "Practical steps to improve acceptance chances",
+    "nextActionSteps": "Next Action Steps",
+    "shortTerm": "📋 Short Term",
+    "longTerm": "🎯 Long Term",
+    "reviewPriorities": "• Review priority order",
+    "completeDocuments": "• Ensure document completion",
+    "followRegistrationDates": "• Follow registration dates",
+    "contactAdvisors": "• Contact advisors",
+    "prepareBackupPlans": "• Prepare backup plans",
+    "prepareAlternativePlan": "• Prepare alternative plan",
+    "developRequiredSkills": "• Develop required skills"
+  },
+  "addChoice": {
+    "title": "Add New Choice",
+    "methods": {
+      "search": "Search",
+      "code": "Code",
+      "favorites": "Favorites"
+    },
+    "search": {
+      "placeholder": "Search for program or university...",
+      "results": "Search results",
+      "noResults": "No results found"
+    },
+    "code": {
+      "placeholder": "Enter program code...",
+      "add": "Add",
+      "invalid": "Invalid code"
+    },
+    "favorites": {
+      "title": "Your favorite programs",
+      "empty": "No favorite programs"
+    },
+    "actions": {
+      "add": "Add",
+      "cancel": "Cancel",
+      "close": "Close"
+    }
+  },
+  "analysis": {
+    "title": "Smart Analysis",
+    "subtitle": "Detailed analysis of your university choices",
+    "button": "Analyze Choices",
+    "analyzing": "Analyzing...",
+    "tabs": {
+      "overview": "Overview",
+      "details": "Details", 
+      "recommendations": "Recommends"
+    },
+    "overview": {
+      "summary": "Analysis Summary",
+      "averageAcceptance": "Average Acceptance",
+      "riskLevel": "Risk Level",
+      "mostProbable": "Most Likely for Acceptance",
+      "showMore": "Show Details",
+      "showLess": "Hide"
+    },
+    "riskLevels": {
+      "low": "Low",
+      "medium": "Medium", 
+      "high": "High",
+      "undefined": "Undefined"
+    },
+    "acceptanceRatings": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "average": "Average",
+      "poor": "Poor"
+    }
+  },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "loginRequired": "You must login to add favorites"
+  },
+  "errors": {
+    "maxChoicesExceeded": "You cannot add more than 12 choices",
+    "programAlreadyExists": "This program already exists in your choices list",
+    "programNotFound": "Program not found with this code",
+    "minimumChoicesRequired": "You must add at least 6 choices for analysis",
+    "profileIncomplete": "You must complete your profile first",
+    "gradesTooLow": "Your grades are too low for analysis",
+    "analysisError": "An error occurred during analysis. Please try again.",
+    "analysisFailed": "Failed to analyze choices"
+  },
+  "details": {
+    "university": "University",
+    "institution": "Institution",
+    "location": "Location",
+    "code": "Code",
+    "score2024": "Score 2024",
+    "score2023": "Score 2023",
+    "score2022": "Score 2022",
+    "acceptanceRate": "Acceptance Rate",
+    "fieldOfStudy": "Field of Study"
+  }
+}

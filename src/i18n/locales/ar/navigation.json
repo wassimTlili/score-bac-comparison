@@ -1,0 +1,17 @@
+{
+  "menu": "القائمة",
+  "navigation": "التنقل",
+  "mainMenu": "القائمة الرئيسية",
+  "userMenu": "قائمة المستخدم",
+  "languageSelector": "محدد اللغة",
+  "switchLanguage": "تبديل اللغة",
+  "selectLanguage": "اختيار اللغة",
+  "currentLanguage": "اللغة الحالية",
+  "changeLanguage": "تغيير اللغة",
+  "menuToggle": "تبديل القائمة",
+  "openMenu": "فتح القائمة",
+  "closeMenu": "إغلاق القائمة",
+  "skipToContent": "انتقل إلى المحتوى الرئيسي",
+  "mobileMenu": "القائمة المحمولة",
+  "desktopMenu": "قائمة سطح المكتب"
+}

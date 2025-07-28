@@ -5,28 +5,16 @@ import { getOrCreateUser } from '@/actions/user-actions';
 
 // Create a new conversation with the first message
 export async function createConversationWithMessage(message) {
-  try {
-    console.log('=== Creating conversation with message ===');
-    console.log('Message type:', typeof message);
-    console.log('Message:', message);
-    
-    const { userId: clerkId } = await auth();
+  try {const { userId: clerkId } = await auth();
     if (!clerkId) {
       throw new Error('User not authenticated');
-    }
-
-    console.log('Clerk ID:', clerkId);
-
-    // Get or create user in database
+    }// Get or create user in database
     const userResult = await getOrCreateUser();
     if (!userResult.success) {
       throw new Error(`Failed to get user: ${userResult.error}`);
     }
 
-    const user = userResult.user;
-    console.log('Database User ID:', user.id);
-
-    // Robust message content extraction with multiple fallbacks
+    const user = userResult.user;// Robust message content extraction with multiple fallbacks
     let messageContent;
     
     if (typeof message === 'string') {
@@ -52,12 +40,7 @@ export async function createConversationWithMessage(message) {
       }
     };
     
-    const title = safeSubstring(messageContent, 0, 50) + (messageContent.length > 50 ? '...' : '');
-    
-    console.log('Final message content:', messageContent);
-    console.log('Title:', title);
-    
-    // Create conversation with first message using database user ID
+    const title = safeSubstring(messageContent, 0, 50) + (messageContent.length > 50 ? '...' : '');// Create conversation with first message using database user ID
     const conversation = await prisma.conversation.create({
       data: {
         userId: user.id, // Use database user ID, not Clerk ID
@@ -74,11 +57,7 @@ export async function createConversationWithMessage(message) {
           orderBy: { createdAt: 'asc' }
         }
       }
-    });
-    
-    console.log('=== Conversation created successfully ===');
-    console.log('Conversation ID:', conversation.id);
-    return { success: true, conversation };
+    });return { success: true, conversation };
 
   } catch (error) {
     console.error('=== Error creating conversation ===');

@@ -12,7 +12,8 @@ export default function Home() {
   });
   const { t, locale, loading } = useTranslation('common');
   
-  // Debug loggingconst [isVisible, setIsVisible] = useState(false);
+  // Animation state
+  const [isVisible, setIsVisible] = useState(false);
   const [textIndex, setTextIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   

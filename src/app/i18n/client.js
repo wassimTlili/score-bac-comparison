@@ -295,7 +295,7 @@ export function I18nProvider({ children, initialLocale }) {
       console.warn(`Error getting pluralization for '${key}' with count ${count}:`, error);
       return fallback || key;
     }
-  }, [translations, loading]);
+  }, [translations]);
 
   /**
    * Advanced translation function with interpolation and pluralization
@@ -339,7 +339,7 @@ export function I18nProvider({ children, initialLocale }) {
     };
     
     initTranslations();
-  }, []);
+  }, [loadAllTranslations, locale]);
 
   /**
    * Update document direction and language when locale changes

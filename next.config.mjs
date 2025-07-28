@@ -28,10 +28,12 @@ const nextConfig = {
     minimumCacheTTL: 60,
   },
   
+  // External packages that should be bundled by the server
+  serverExternalPackages: ['prisma'],
+  
   // Experimental features for better optimization
   experimental: {
     optimizeCss: true,
-    serverComponentsExternalPackages: ['prisma'],
   },
   
   // Performance optimizations

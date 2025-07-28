@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /guide
+Allow: /orientations
+Allow: /calcul
+
+# Block sensitive routes
+Disallow: /api/
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /stepper
+Disallow: /comparison
+Disallow: /recommendations
+Disallow: /chatbot
+
+# Sitemap location
+Sitemap: https://your-domain.com/sitemap.xml
